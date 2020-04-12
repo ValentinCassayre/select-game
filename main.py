@@ -25,9 +25,6 @@ def main():
         # update screen for background
         pygame.display.flip()
 
-        hex = Cell()
-        coords = hex.coords(0, 0)
-
         # player close windows
         for event in pygame.event.get():
             # event closing
