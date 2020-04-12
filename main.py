@@ -1,34 +1,42 @@
 """
 Prototype game by Valentin Cassayre
+Git : https://github.com/V-def/select-game
 """
 
 import pygame
-pygame.init()
-
-# open a window
-pygame.display.set_caption("Select!")
-screen = pygame.display.set_mode((1080, 720))
-
-# background
-background = pygame.image.load('assets/Board.jpg')
+import math
+from consts import *
+from display import *
+from board import *
+from insects import *
 
 
-running = True
+def main():
+    pygame.init()
 
-# loop while game is open
-while running:
-    # put the background
-    screen.blit(background, (0, 0))
+    disp = PyDisp()
+    main_condition = True
 
-    # update screen for background
-    pygame.display.flip()
+    pygame.display.set_caption(GAME_NAME)
+
+    # loop while game is open
+    while main_condition:
+
+        # update screen for background
+        pygame.display.flip()
+
+        hex = Cell()
+        coords = hex.coords(0, 0)
+
+        # player close windows
+        for event in pygame.event.get():
+            # event closing
+            if event.type == pygame.QUIT:
+                main_condition = False
+                pygame.quit()
+                print("Closing select!")
 
 
-
-    # player close windows
-    for event in pygame.event.get():
-        # event closing
-        if event.type == pygame.QUIT:
-            running = False
-            pygame.quit()
-            print("Closing select!")
+# everything starts here
+if __name__ == '__main__':
+    main()
