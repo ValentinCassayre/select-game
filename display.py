@@ -37,7 +37,9 @@ class PyDisp:
         """
         Draw the insects
         """
-        self.draw = self.screen.blit(picture, pos)
+        self.picture_rect = picture.get_rect()
+        self.picture_rect.center = pos
+        self.draw = self.screen.blit(picture, self.picture_rect)
 
 """
 Special class for the board
@@ -55,6 +57,7 @@ class Board(PyDisp):
         """
         PyDisp.__init__(self)
         self.coordinate_list = []
+        self.sprites = []
 
     def coords(self, x, y):
         """
@@ -95,3 +98,4 @@ class Board(PyDisp):
                     if i % 5 == 2 or j % 5 == 2:
                         color = COLOR_TILE2
                     self.draw_hexagon(color, self.coords(x, y))
+                    self.sprites.append(self.draw_hexagon(COLOR_EDGE1, self.coords(x,y)))

@@ -65,12 +65,18 @@ def main():
                 # draw the board
                 board.draw_board()
                 # draw the insects
-                a1.highlight_ways()
+                pos = board.position((0, 0))
+                bug1 = Bug(pos, COLOR_HIGHLIGHT)
+                disp.draw_insect(bug1.pict, pos)
+
+                # get all events
+                ev = pygame.event.get()
+
                 pygame.display.flip()
 
                 disp.clock.tick(FPS)
 
-                for event in pygame.event.get():
+                for event in ev:
                     if event.type == pygame.QUIT:
                         main_loop = False
                     elif event.type == pygame.KEYDOWN:
@@ -78,6 +84,16 @@ def main():
                             state = "interrupt"
 
                 if turn == "white":
+                    """"# proceed events
+                    for event in ev:
+                        # handle MOUSEBUTTONUP
+                        if event.type == pygame.MOUSEBUTTONUP:
+                            pos = pygame.mouse.get_pos()
+                            # get a list of all sprites that are under the mouse cursor
+                            sprites = board.sprites
+                            clicked_sprites = [s for s in sprites if s.polygon.collidepoint(pos)]
+                            print("a ")"""""
+
 
                     turn = "black"
                     disp.clock.tick(FPS)
