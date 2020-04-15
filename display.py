@@ -59,7 +59,7 @@ class Board(PyDisp):
         self.coordinate_list = []
         self.sprites = []
 
-    def coords(self, x, y):
+    def coords(self, x, y, width = 1.0):
         """
         create the coordinates of the 6 points of the hexagone
         :param x: x coord
@@ -68,12 +68,15 @@ class Board(PyDisp):
         """
         coords = []
         for k in range(6):
-            coords.append((x + RADIUS * math.cos(k * math.pi / 3), y + RADIUS * math.sin(k * math.pi / 3)))
+            coords.append((x + width * RADIUS * math.cos(k * math.pi / 3), y + width * RADIUS * math.sin(k * math.pi / 3)))
         self.coordinate_list = coords
         return coords
 
-    def draw_hexagon(self, color, coords):
-        self.hexagon = pygame.draw.polygon(self.screen, color, coords)
+    def draw_hexagon(self, color, coords_draw, coords_fill):
+        # draw edges
+        self.hexagon_edges = pygame.draw.polygon(self.screen, COLOR_EDGE1, coords_draw)
+        # fill hexagon
+        self.hexagon = pygame.draw.polygon(self.screen, color, coords_fill)
 
     def highlight_hexagon(self, coords):
         self.highlight_hexagon = pygame.draw.polygon(self.screen, COLOR_HIGHLIGHT, coords)
@@ -97,5 +100,26 @@ class Board(PyDisp):
                     (x, y) = self.position((i, j))
                     if i % 5 == 2 or j % 5 == 2:
                         color = COLOR_TILE2
-                    self.draw_hexagon(color, self.coords(x, y))
-                    self.sprites.append(self.draw_hexagon(COLOR_EDGE1, self.coords(x,y)))
+                    self.draw_hexagon(color, self.coords(x, y, 1.2), self.coords(x, y))
+
+    def raw(self):
+        # something to find the different raw
+        raw_list = []
+        for i in range(4):
+            a, b = self.position((0, 4 - i))
+            pos = self.coords(a, b)[3][0]
+            raw_list.append(pos)
+        for i in range(5):
+            a, b = self.position((i, 0))
+            pos = self.coords(a, b)[0][0]
+            raw_list.append(pos)
+        return raw_list
+
+    def click_on_hexagon(self, cursor_pos):
+        x, y = cursor_pos
+        raw = self.raw()
+
+    def screen_position(self, x, y):
+        a = (2*(x-X_BASE)/(3*1.1*RADIUS)) + ((y-Y_BASE)/(1.1*UNIT))
+        b = ((y - Y_BASE)/(1.1*UNIT)-2*(x-X_BASE)/(3*1.1*RADIUS))
+        return int(round(a)), int(round(b))
