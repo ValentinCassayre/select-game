@@ -68,10 +68,20 @@ def main():
                         print("HEX -> RED_RECT_NOT_CORNER")
 
                 pygame.display.flip()
-                disp.clock.tick(FPS)
 
-                # all the events (closing, enter game...)
-                events(True, True)
+                # check mouse and keyboard
+                for event in pygame.event.get():
+                    if event.type == pygame.QUIT:
+                        main_loop = False
+                    elif event.type == pygame.KEYDOWN:
+                        # close windows
+                        if event.key == pygame.K_ESCAPE:
+                            main_loop = False
+                        # enter game
+                        if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
+                            state = "game"
+
+                disp.clock.tick(FPS)
 
         if main_loop and state == "game":
             # Start the game
@@ -132,21 +142,6 @@ def main():
                 """
                 main_loop = False
 
-
-def events(closing, menu):
-    # check mouse and keyboard
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            main_loop = False
-        elif event.type == pygame.KEYDOWN:
-            # close windows
-            if event.key == pygame.K_ESCAPE:
-                if closing:
-                    main_loop = False
-                # else escape = interrupt
-            # enter game
-            if event.key in [pygame.K_RETURN, pygame.K_SPACE] and menu:
-                state = "game"
 
 # everything starts here
 if __name__ == '__main__':
