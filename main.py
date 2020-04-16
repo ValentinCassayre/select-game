@@ -68,20 +68,10 @@ def main():
                         print("HEX -> RED_RECT_NOT_CORNER")
 
                 pygame.display.flip()
-
-                # check mouse and keyboard
-                for event in pygame.event.get():
-                    if event.type == pygame.QUIT:
-                        main_loop = False
-                    elif event.type == pygame.KEYDOWN:
-                        # close windows
-                        if event.key == pygame.K_ESCAPE:
-                            main_loop = False
-                        # enter game
-                        if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
-                            state = "game"
-
                 disp.clock.tick(FPS)
+
+                # all the events (closing, enter game...)
+                events(True, True)
 
         if main_loop and state == "game":
             # Start the game
@@ -96,18 +86,12 @@ def main():
             while main_loop and state == "game":
                 # draw the board
                 board.draw_board()
+                # get position of the mouse
+                pos = pygame.mouse.get_pos()
                 # draw the insects
-                pos = board.position((0, 0))
-                bug1 = Bug(pos, COLOR_HIGHLIGHT)
-                disp.draw_insect(bug1.pict, pos)
-
-                mouse_pos = pygame.mouse.get_pos()
-                board.click_on_hexagon(mouse_pos)
-                x, y = mouse_pos
-                a, b = board.screen_position(x, y)
-                c, d = board.position((a, b))
-                coords = board.coords(c, d)
-                board.draw_hexagon(BLUE, coords, coords)
+                pos_bug = board.position((0, 0))
+                bug1 = Bug(pos_bug, COLOR_HIGHLIGHT)
+                disp.draw_insect(bug1.pict, pos_bug)
 
                 # get all events
                 ev = pygame.event.get()
@@ -126,7 +110,13 @@ def main():
                 if turn == "white":
 
                     if game_state == "choose insect":
-                        pass
+                        for tile in board.mask_list:
+                            pos_in_mask = pos[0] - tile[0].x, pos[1] - tile[0].y
+                            touching = tile[0].collidepoint(*pos) and tile[1].get_at(pos_in_mask)
+                            if touching:
+                                print("TOUCHING")
+                            else:
+                                print("NO")
                     if game_state == "finished":
                         game_state = "choose insect"
                         turn = "black"
@@ -142,6 +132,21 @@ def main():
                 """
                 main_loop = False
 
+
+def events(closing, menu):
+    # check mouse and keyboard
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            main_loop = False
+        elif event.type == pygame.KEYDOWN:
+            # close windows
+            if event.key == pygame.K_ESCAPE:
+                if closing:
+                    main_loop = False
+                # else escape = interrupt
+            # enter game
+            if event.key in [pygame.K_RETURN, pygame.K_SPACE] and menu:
+                state = "game"
 
 # everything starts here
 if __name__ == '__main__':

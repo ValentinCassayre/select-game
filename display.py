@@ -59,6 +59,12 @@ class Board(PyDisp):
         self.coordinate_list = []
         self.sprites = []
 
+        # prepare for the tile to be clickable
+        self.tile = pygame.image.load("hex.png").convert_alpha()
+        self.rect = self.tile.get_rect()
+        self.tile_mask = pygame.mask.from_surface(self.tile)
+        self.mask_list = []
+
     def coords(self, x, y, width = 1.0):
         """
         create the coordinates of the 6 points of the hexagone
@@ -77,6 +83,17 @@ class Board(PyDisp):
         self.hexagon_edges = pygame.draw.polygon(self.screen, COLOR_EDGE1, coords_draw)
         # fill hexagon
         self.hexagon = pygame.draw.polygon(self.screen, color, coords_fill)
+
+    def mask_hexagon(self, x, y):
+        """
+        create and return the mask of a tile with the position of the tile in the board
+        """
+        # convert coordinates of the board into coordinates of the screen
+        a, b = self.position((x, y))
+        # place mask itself
+        self.rect = self.tile.get_rect(center=(a, b))
+        self.tile_mask = pygame.mask.from_surface(self.tile)
+        return self.rect, self.tile_mask
 
     def highlight_hexagon(self, coords):
         self.highlight_hexagon = pygame.draw.polygon(self.screen, COLOR_HIGHLIGHT, coords)
@@ -101,6 +118,7 @@ class Board(PyDisp):
                     if i % 5 == 2 or j % 5 == 2:
                         color = COLOR_TILE2
                     self.draw_hexagon(color, self.coords(x, y, 1.2), self.coords(x, y))
+                    self.mask_list.append(self.mask_hexagon(x, y))
 
     def raw(self):
         # something to find the different raw
