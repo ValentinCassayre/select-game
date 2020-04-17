@@ -56,14 +56,28 @@ class Board(PyDisp):
         """
         PyDisp.__init__(self)
         self.coordinate_list = []
-        self.sprites = []
         self.pos_list = []
         self.mask_list = []
+        self.tile_state = {}
+
+        # create a list of all the possible position of the board under the form of tuple (x, y)
+        # creating a 10 by 10 board
+        for i in range(10):
+            for j in range(10):
+                # remove unwanted cell in the corners
+                if abs(j - i) >= 5:
+                    continue
+                # adding the right cells to the board (70 in total)
+                else:
+                    self.pos_list.append((i, j))
+
+        for tile_pos in self.pos_list:
+            self.tile_state[tile_pos] = False
 
         # prepare for the tile to be clickable
-        self.tile = pygame.image.load(TILE_MASK_PATH).convert_alpha()
-        self.rect = self.tile.get_rect()
-        self.tile_mask = pygame.mask.from_surface(self.tile)
+        self.tile_pict = pygame.image.load(TILE_MASK_PATH).convert_alpha()
+        self.tile_rect = self.tile_pict.get_rect()
+        self.tile_mask = pygame.mask.from_surface(self.tile_pict)
 
     def coords(self, pos, width=1.0):
         """
@@ -95,9 +109,9 @@ class Board(PyDisp):
         create and return the mask of a tile with the position of the tile in the display and not in the board
         """
         # place mask itself
-        self.rect = self.tile.get_rect(center=(x, y))
-        self.tile_mask = pygame.mask.from_surface(self.tile)
-        return self.rect, self.tile_mask, (x, y)
+        self.tile_rect = self.tile_pict.get_rect(center=(x, y))
+        self.tile_mask = pygame.mask.from_surface(self.tile_pict)
+        return self.tile_rect, self.tile_mask, (x, y)
 
     def highlight_hexagon(self, coords, click):
         """
@@ -118,20 +132,6 @@ class Board(PyDisp):
         y = Y_BASE + (a*UNIT/2 + b*UNIT/2)*1.15
         return x, y
 
-    def create_pos_list(self):
-        """
-        create a list of all the possible position of the board under the form of tuple (x, y)
-        """
-        # creating a 10 by 10 board
-        for i in range(10):
-            for j in range(10):
-                # remove unwanted cell on the corners
-                if j-i >= 5 or i-j >= 5:
-                    continue
-                # adding the right cells to the board (70 in total)
-                else:
-                    self.pos_list.append((i, j))
-
     def draw_board(self):
         """
         draw the game board
@@ -147,17 +147,29 @@ class Board(PyDisp):
             # creating a mask for each cell
             self.mask_list.append(self.mask_hexagon(x, y))
 
+    def copy_board(self):
+        """
+        create a copy of the board (so it is fast to draw)
+        """
+        # how to do it ?
 
     def click_on_hexagon(self, cursor_pos):
         x, y = cursor_pos
-
         return
 
-    def draw_insect(self, picture, pos):
+    def draw_insect(self, image, pos):
         """
         Draw the insects
         """
+        # convert pos into coords for the screen
+        coords = self.position(pos)
         # need to complete this bad boy these a just ideas
-        self.picture_rect = picture.get_rect()
-        self.picture_rect.center = pos
-        self.draw = self.screen.blit(picture, self.picture_rect)
+        image_rect = image.get_rect()
+        image_rect.center = coords
+        self.screen.blit(image, image_rect)
+
+    def tile(self, pos, taken):
+        """
+        give the state of a tile, pos = (x, y) and taken = True if the tile is taken
+        """
+        self.tile_state.update({pos: taken})

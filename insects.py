@@ -14,7 +14,6 @@ class Insect:
     mother class of all the insects
     """
     def __init__(self, pos, color):
-        self.pos = pos
         self.a, self.b = pos
         self.color = color
         self.ways = []

@@ -15,7 +15,6 @@ def main():
     pygame.init()
     disp = PyDisp()
     board = Board()
-    board.create_pos_list()
 
     # variables
     # booleans
@@ -25,6 +24,19 @@ def main():
     state = "menu"
     game_state = "not started"
     turn = "white"
+    white_insect_list = []
+
+    for n, insect in enumerate(INSECT_LIST):
+        ins_pos = INITIAL_POSITION[n]
+        if insect.startswith("bug"):
+            insect = Bug(ins_pos, "white")
+        elif insect.startswith("merkel"):
+            print("wait what ?")
+        # add all the insects types here
+        else:
+            print("Error with the insect list ! Insects needs to start with their role name.")
+        board.tile(ins_pos, True)
+        white_insect_list.append(insect)
 
     # insects of the board initial pos
     a1 = Bug((0, 0), "white")
@@ -63,8 +75,6 @@ def main():
                 disp.game_start()
                 # draw board
                 board.draw_board()
-                # need to add draw insects
-                # ---here---
 
                 # now the game is started
                 game_started = True
@@ -82,9 +92,8 @@ def main():
                 board.draw_board()
 
                 # draw the insects
-                pos_bug = board.position((0, 0))
-                bug1 = Bug(pos_bug, COLOR_HIGHLIGHT)
-                board.draw_insect(bug1.pict, pos_bug)
+                for insect in white_insect_list:
+                    board.draw_insect(insect.pict, insect.pos)
 
                 # get position of the mouse
                 x, y = pygame.mouse.get_pos()
