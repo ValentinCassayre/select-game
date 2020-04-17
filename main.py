@@ -15,6 +15,7 @@ def main():
     pygame.init()
     disp = PyDisp()
     board = Board()
+    board.create_pos_list()
 
     # variables
     # booleans
@@ -72,6 +73,10 @@ def main():
 
             # real game main loop
             while main_loop and state == "game":
+                # update
+                pygame.display.flip()
+                disp.clock.tick(FPS)
+
                 # draw the board to erase old position of the insects
                 # in the future probably need to change to a much optimised thing
                 board.draw_board()
@@ -81,12 +86,8 @@ def main():
                 bug1 = Bug(pos_bug, COLOR_HIGHLIGHT)
                 board.draw_insect(bug1.pict, pos_bug)
 
-                # update
-                pygame.display.flip()
-                disp.clock.tick(FPS)
-
                 # get position of the mouse
-                pos = pygame.mouse.get_pos()
+                x, y = pygame.mouse.get_pos()
 
                 # get all events
                 ev = pygame.event.get()
@@ -106,14 +107,16 @@ def main():
                 # check who needs to play
                 # the whites
                 if turn == "white":
+                    # first step
                     if game_state == "choose insect":
                         for tile in board.mask_list:
-                            pos_in_mask = pos[0] - tile[0].x, pos[1] - tile[0].y
-                            touching = tile[0].collidepoint(*pos) and tile[1].get_at(pos_in_mask)
+                            pos_in_mask = x - tile[0].x, y - tile[0].y
+                            touching = tile[0].collidepoint(*(x, y)) and tile[1].get_at(pos_in_mask)
                             if touching:
-                                print("TOUCHING")
+                                board.highlight_hexagon(board.coords(tile[2]))
                             else:
                                 pass
+
                     if game_state == "finished":
                         game_state = "choose insect"
                         turn = "black"

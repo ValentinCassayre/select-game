@@ -11,7 +11,7 @@ GAME_NAME = "Select!"
 
 ALPHA = math.pi/3
 
-FPS = 30
+FPS = 10
 
 # Board
 RADIUS = 32  # radius of the conscript circle that contain the apexes of the hexagon
