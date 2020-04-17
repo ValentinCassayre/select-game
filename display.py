@@ -18,8 +18,8 @@ class PyDisp:
         """
         # name the window
         pygame.display.set_caption(GAME_NAME)
-        # add a logo
-        # -------------
+        # add an icon
+        pygame.display.set_icon(pygame.image.load(ICON))
         # Create a python surface for the screen
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         # Create the clock used to control the frame rate
@@ -61,7 +61,7 @@ class Board(PyDisp):
         self.mask_list = []
 
         # prepare for the tile to be clickable
-        self.tile = pygame.image.load("hex.png").convert_alpha()
+        self.tile = pygame.image.load(TILE_MASK_PATH).convert_alpha()
         self.rect = self.tile.get_rect()
         self.tile_mask = pygame.mask.from_surface(self.tile)
 
@@ -99,11 +99,14 @@ class Board(PyDisp):
         self.tile_mask = pygame.mask.from_surface(self.tile)
         return self.rect, self.tile_mask, (x, y)
 
-    def highlight_hexagon(self, coords):
+    def highlight_hexagon(self, coords, click):
         """
         highlight the hexagon in this position
         """
-        pygame.draw.polygon(self.screen, COLOR_HIGHLIGHT, coords)
+        if click:
+            pygame.draw.polygon(self.screen, RED, coords)
+        else:
+            pygame.draw.polygon(self.screen, COLOR_HIGHLIGHT, coords)
 
     def position(self, board_pos):
         """
@@ -111,8 +114,8 @@ class Board(PyDisp):
         convert position from board to screen coordinate x, y
         """
         a, b = board_pos
-        x = X_BASE + (a*3*RADIUS/2 - b*3*RADIUS/2)*1.1
-        y = Y_BASE + (a*UNIT/2 + b*UNIT/2)*1.1
+        x = X_BASE + (a*3*RADIUS/2 - b*3*RADIUS/2)*1.15
+        y = Y_BASE + (a*UNIT/2 + b*UNIT/2)*1.15
         return x, y
 
     def create_pos_list(self):

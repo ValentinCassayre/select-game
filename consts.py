@@ -20,6 +20,11 @@ UNIT = (2**5)*math.sqrt(3)  # radius of the circumscribed circle that contain th
 # INSECTS PATHS
 BUG_PATH = 'assets/insects/bug.png'
 
+# BOARD PATHS
+TILE_MASK_PATH = 'assets/board/tile_mask.png'
+
+# ICON
+ICON = 'assets/other/icon.png'
 
 # RGB COLORS
 BACKGROUND_COLOR = (255, 255, 255)

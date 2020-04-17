@@ -113,7 +113,7 @@ def main():
                             pos_in_mask = x - tile[0].x, y - tile[0].y
                             touching = tile[0].collidepoint(*(x, y)) and tile[1].get_at(pos_in_mask)
                             if touching:
-                                board.highlight_hexagon(board.coords(tile[2]))
+                                board.highlight_hexagon(board.coords(tile[2]), False)
                             else:
                                 pass
 
