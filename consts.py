@@ -14,8 +14,8 @@ ALPHA = math.pi/3
 FPS = 30
 
 # Board
-RADIUS = 32
-UNIT = (2**5)*math.sqrt(3) # strange value found with geometrical simplifications
+RADIUS = 32  # radius of the conscript circle that contain the apexes of the hexagon
+UNIT = (2**5)*math.sqrt(3)  # radius of the circumscribed circle that contain the edges of the hexagon
 
 # INSECTS PATHS
 BUG_PATH = 'assets/insects/bug.png'
@@ -26,7 +26,7 @@ BACKGROUND_COLOR = (255, 255, 255)
 COLOR_TILE1 = (207, 107, 0)
 COLOR_TILE2 = (169, 94, 30)
 
-COLOR_EDGE1 = (245, 208, 122)
+COLOR_OUTLINE = (245, 208, 122)
 
 COLOR_HIGHLIGHT = (204, 180, 148)
 

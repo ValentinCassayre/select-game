@@ -11,64 +11,35 @@ from insects import *
 
 
 def main():
-    # Pygame initialization
+    # pygame initialization
     pygame.init()
     disp = PyDisp()
     board = Board()
 
-    # Windows first settings
-    pygame.display.set_caption(GAME_NAME)
-
-    # Variables
+    # variables
+    # booleans
     main_loop = True
     game_started = False
+    # strings
     state = "menu"
     game_state = "not started"
     turn = "white"
-
-    disp.draw_screen()
 
     # insects of the board initial pos
     a1 = Bug((0, 0), "white")
 
     # loop while game is open
     while main_loop:
-
+        # menu
         if main_loop and state == "menu":
+            # initialize the menu
             game_started = False
+            # use disp class to draw the menu page
             disp.draw_menu()
-
+            # update the screen
             pygame.display.flip()
 
             while main_loop and state == "menu":
-                ORIGIN = (X_SIZE // 2, Y_SIZE // 2)
-                hexa_coords = board.coords(ORIGIN[0], ORIGIN[1])
-                pygame.draw.polygon(disp.screen, BLACK, hexa_coords, 1)
-
-                Rectplace_RED = pygame.draw.rect(disp.screen, RED,
-                                             (hexa_coords[3][0], hexa_coords[4][1], RADIUS*2+1, UNIT+1), 1)
-
-                Rectplace_GREEN = pygame.draw.rect(disp.screen, GREEN,
-                                             (hexa_coords[4][0], hexa_coords[4][1], RADIUS + 1, UNIT + 1), 1)
-
-                image = pygame.image.load("hex.png")
-
-                # Mouse position and button clicking.
-                pos = pygame.mouse.get_pos()
-                x, y = pos
-                pressed1, pressed2, pressed3 = pygame.mouse.get_pressed()
-                # Check if the rect collided with the mouse pos
-                # and if the left mouse button was pressed.
-                if Rectplace_RED.collidepoint(pos) and pressed1:
-                    if Rectplace_GREEN.collidepoint(pos) and pressed1:
-                        print("HEX -> GREEN_RECT")
-                    elif y < 2*x - 789:
-                        print("NOT HEX -> RED_RECT_CORNER_LEFT_UP")
-                    else:
-                        print("HEX -> RED_RECT_NOT_CORNER")
-
-                pygame.display.flip()
-
                 # check mouse and keyboard
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -80,45 +51,61 @@ def main():
                         # enter game
                         if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
                             state = "game"
-
+                # limit the frame rate
                 disp.clock.tick(FPS)
 
+        # game
         if main_loop and state == "game":
-            # Start the game
+            # initialize the game
             if not game_started:
+                # this does nothing yet
                 disp.game_start()
+                # draw board
                 board.draw_board()
-                game_state = "choose insect"
                 # need to add draw insects
+                # ---here---
 
+                # now the game is started
                 game_started = True
+                # prepare the next mode which is to choose the insect for the player
+                game_state = "choose insect"
 
+            # real game main loop
             while main_loop and state == "game":
-                # draw the board
+                # draw the board to erase old position of the insects
+                # in the future probably need to change to a much optimised thing
                 board.draw_board()
-                # get position of the mouse
-                pos = pygame.mouse.get_pos()
+
                 # draw the insects
                 pos_bug = board.position((0, 0))
                 bug1 = Bug(pos_bug, COLOR_HIGHLIGHT)
-                disp.draw_insect(bug1.pict, pos_bug)
+                board.draw_insect(bug1.pict, pos_bug)
+
+                # update
+                pygame.display.flip()
+                disp.clock.tick(FPS)
+
+                # get position of the mouse
+                pos = pygame.mouse.get_pos()
 
                 # get all events
                 ev = pygame.event.get()
-
-                pygame.display.flip()
-
-                disp.clock.tick(FPS)
-
+                # check them all one by one
                 for event in ev:
+                    # click on close tab
                     if event.type == pygame.QUIT:
+                        # stop the script
                         main_loop = False
+                    # check keyboard
                     elif event.type == pygame.KEYDOWN:
+                        # escape button is pressed
                         if event.key == pygame.K_ESCAPE:
+                            # interrupt mode (pause)
                             state = "interrupt"
 
+                # check who needs to play
+                # the whites
                 if turn == "white":
-
                     if game_state == "choose insect":
                         for tile in board.mask_list:
                             pos_in_mask = pos[0] - tile[0].x, pos[1] - tile[0].y
@@ -126,21 +113,24 @@ def main():
                             if touching:
                                 print("TOUCHING")
                             else:
-                                print("NO")
+                                pass
                     if game_state == "finished":
                         game_state = "choose insect"
                         turn = "black"
                         disp.clock.tick(FPS)
 
+                # the blacks
                 if turn == "black":
                     turn = "white"
                     disp.clock.tick(FPS)
 
-            if main_loop and state == "interrupt":
-                """
-                Need to add this
-                """
-                main_loop = False
+        # interrupt
+        if main_loop and state == "interrupt":
+            """
+            Need to add this
+            """
+            # temporary close
+            main_loop = False
 
 
 # everything starts here

@@ -7,9 +7,11 @@ import math
 from display import *
 from consts import *
 
+
+# this was just some idea not touched since long time
 class Insect:
     """
-    Mother class of all the insects
+    mother class of all the insects
     """
     def __init__(self, pos, color):
         self.a, self.b = pos
@@ -32,7 +34,6 @@ class Bug(Insect):
     def __init__(self, pos, color):
         Insect.__init__(self, pos, color)
         self.pict = pygame.image.load(BUG_PATH)
-
 
     def highlight_ways(self):
         if self.color == "White":
