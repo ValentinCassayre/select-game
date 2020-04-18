@@ -22,6 +22,11 @@ UNIT = (2**5)*math.sqrt(3)  # radius of the circumscribed circle that contain th
 INSECT_LIST = ["bug_1", "bug_2"]  # they need to start with their role name : bug
 INITIAL_POSITION = [(0, 0), (0, 1)]  # tuple with a (x, y) form
 
+# GAME INFOS
+# JUST TO KNOW WHICH ARE THE DIFFERENT STATES
+GAME_STATE = {"choose insect": 0, "choose way": 1}
+TURN_STATE = {"white": 0, "black": 1}
+
 # PICTURES
 # INSECTS PATHS
 BUG_PATH = 'assets/insects/bug.png'

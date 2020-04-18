@@ -20,10 +20,13 @@ def main():
     # booleans
     main_loop = True
     game_started = False
+    update = True
     # strings
     state = "menu"
     game_state = "not started"
     turn = "white"
+    # other
+    board_draw = board.copy_surface()
     white_insect_list = []
 
     for n, insect in enumerate(INSECT_LIST):
@@ -85,18 +88,6 @@ def main():
 
             # real game main loop
             while main_loop and state == "game":
-                # update
-                pygame.display.flip()
-                disp.clock.tick(FPS)
-
-                # draw the board to erase old position of the insects
-                board.screen.blit(board_draw, CENTER)
-                board.draw_board()
-
-                # draw the insects
-                for insect in white_insect_list:
-                    board.draw_insect(insect.pict, insect.pos)
-
                 # get position of the mouse
                 x, y = pygame.mouse.get_pos()
 
@@ -115,27 +106,32 @@ def main():
                             # interrupt mode (pause)
                             state = "interrupt"
                     # check mouse
-                    elif event.type == pygame.MOUSEBUTTONDOWN:
-                        print("a")
-
-                # check who needs to play
-                # the whites
-                if turn == "white":
-                    # first step
-                    if game_state == "choose insect":
-                        # check events
-                        for tile in board.mask_list:
-                            pos_in_mask = x - tile[0].x, y - tile[0].y
-                            touching = tile[0].collidepoint(*(x, y)) and tile[1].get_at(pos_in_mask)
-                            if touching:
-                                board.highlight_hexagon(board.coords(tile[2]), False)
+                    for tile in board.mask_list:
+                        pos_in_mask = x - tile[0].x, y - tile[0].y
+                        touching = tile[0].collidepoint(*(x, y)) and tile[1].get_at(pos_in_mask)
+                        if touching:
+                            if event.type == pygame.MOUSEBUTTONDOWN:
+                                # tile clicked
+                                board.highlight_hexagon(board.coords(tile[2]), True)
                             else:
-                                pass
+                                # mouse on tile but not clicked
+                                board.highlight_hexagon(board.coords(tile[2]), False)
+                            update = True
 
-                    if game_state == "finished":
-                        game_state = "choose insect"
-                        turn = "black"
-                        disp.clock.tick(FPS)
+                if update:
+                    # draw the insects
+                    for insect in white_insect_list:
+                        board.draw_insect(insect.pict, insect.pos)
+
+                    # update
+                    pygame.display.flip()
+                    disp.clock.tick(FPS)
+
+                    # draw the board to erase old position of the insects for the next update
+                    board.screen.blit(board_draw, CENTER)
+
+                    # reset
+                    update = False
 
                 # the blacks
                 if turn == "black":
