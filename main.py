@@ -27,19 +27,19 @@ def main():
     turn = "white"
     # other
     board_draw = board.copy_surface()
-    white_insect_list = []
+    insect_list = []
 
     for n, insect in enumerate(INSECT_LIST):
         ins_pos = INITIAL_POSITION[n]
         if insect.startswith("bug"):
             insect = Bug(ins_pos, "white")
-        elif insect.startswith("merkel"):
-            print("wait what ?")
+        elif insect.startswith("aaa"):
+            pass
         # add all the insects types here
         else:
             print("Error with the insect list ! Insects needs to start with their role name.")
         board.tile(ins_pos, True)
-        white_insect_list.append(insect)
+        insect_list.append(insect)
 
     # insects of the board initial pos
     a1 = Bug((0, 0), "white")
@@ -110,17 +110,49 @@ def main():
                         pos_in_mask = x - tile[0].x, y - tile[0].y
                         touching = tile[0].collidepoint(*(x, y)) and tile[1].get_at(pos_in_mask)
                         if touching:
+                            disp_pos = tile[2]
+                            tile_pos = tile[3]
                             if event.type == pygame.MOUSEBUTTONDOWN:
                                 # tile clicked
-                                board.highlight_hexagon(board.coords(tile[2]), True)
+                                # check what is on this tile and put it in tile_obj
+                                tile_obj = ""
+                                for insect in insect_list:
+                                    if insect.pos == tile_pos:
+                                        tile_obj = insect
+
+                                # do something with it ?
+                                if tile_obj == "":
+                                    # tile is free
+                                    board.highlight_hexagon(board.coords(disp_pos), True)
+
+                                if game_state == "choose insect":
+                                    if tile_obj.color == turn:
+                                        # there is an insect owned by the player
+                                        # -> draw ways
+                                        # game_state = "choose way"
+                                        pass
+
+                                if game_state == "choose way":
+                                    # if tile is a way
+                                        # tile_obj new pos = tile clicked
+                                            # if eat
+                                                # del insect eaten
+
+                                        # prepare next turn
+                                        # game_state == "choose insect"
+                                        # if turn == "white":
+                                            # turn = "black"
+                                        # elif turn == "black":
+                                            # turn = "white"
+                                    pass
                             else:
                                 # mouse on tile but not clicked
-                                board.highlight_hexagon(board.coords(tile[2]), False)
+                                board.highlight_hexagon(board.coords(disp_pos), False)
                             update = True
 
                 if update:
                     # draw the insects
-                    for insect in white_insect_list:
+                    for insect in insect_list:
                         board.draw_insect(insect.pict, insect.pos)
 
                     # update

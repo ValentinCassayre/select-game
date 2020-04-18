@@ -104,14 +104,15 @@ class Board(PyDisp):
         # fill hexagon
         pygame.draw.polygon(self.screen, color_fill, self.coords(board_pos))
 
-    def mask_hexagon(self, x, y):
+    def mask_hexagon(self, a, b):
         """
         create and return the mask of a tile with the position of the tile in the display and not in the board
         """
+        x, y = self.position((a, b))
         # place mask itself
         self.tile_rect = self.tile_pict.get_rect(center=(x, y))
         self.tile_mask = pygame.mask.from_surface(self.tile_pict)
-        return self.tile_rect, self.tile_mask, (x, y)
+        return self.tile_rect, self.tile_mask, (x, y), (a, b)
 
     def highlight_hexagon(self, coords, click):
         """
@@ -145,7 +146,7 @@ class Board(PyDisp):
                 color = COLOR_TILE1
             self.draw_hexagon((x, y), color)
             # creating a mask for each cell
-            self.mask_list.append(self.mask_hexagon(x, y))
+            self.mask_list.append(self.mask_hexagon(i, j))
 
     def copy_surface(self):
         """
