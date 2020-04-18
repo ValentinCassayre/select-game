@@ -75,6 +75,8 @@ def main():
                 disp.game_start()
                 # draw board
                 board.draw_board()
+                # save board (faster to draw for the next uses)
+                board_draw = board.copy_surface()
 
                 # now the game is started
                 game_started = True
@@ -88,7 +90,7 @@ def main():
                 disp.clock.tick(FPS)
 
                 # draw the board to erase old position of the insects
-                # in the future probably need to change to a much optimised thing
+                board.screen.blit(board_draw, CENTER)
                 board.draw_board()
 
                 # draw the insects
@@ -112,12 +114,16 @@ def main():
                         if event.key == pygame.K_ESCAPE:
                             # interrupt mode (pause)
                             state = "interrupt"
+                    # check mouse
+                    elif event.type == pygame.MOUSEBUTTONDOWN:
+                        print("a")
 
                 # check who needs to play
                 # the whites
                 if turn == "white":
                     # first step
                     if game_state == "choose insect":
+                        # check events
                         for tile in board.mask_list:
                             pos_in_mask = x - tile[0].x, y - tile[0].y
                             touching = tile[0].collidepoint(*(x, y)) and tile[1].get_at(pos_in_mask)

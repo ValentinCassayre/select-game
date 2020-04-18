@@ -147,11 +147,11 @@ class Board(PyDisp):
             # creating a mask for each cell
             self.mask_list.append(self.mask_hexagon(x, y))
 
-    def copy_board(self):
+    def copy_surface(self):
         """
-        create a copy of the board (so it is fast to draw)
+        create a copy of the current surface
         """
-        # how to do it ?
+        return self.screen.copy()
 
     def click_on_hexagon(self, cursor_pos):
         x, y = cursor_pos
