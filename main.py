@@ -1,13 +1,15 @@
 """
 Prototype game by Valentin Cassayre
-Git : https://github.com/V-def/select-game
+Github : https://github.com/V-def/select-game
 """
 
 import pygame
 import math
 from consts import *
 from display import *
+from textures import *
 from insects import *
+from texture_pack import *
 
 
 def main():
@@ -15,6 +17,7 @@ def main():
     pygame.init()
     disp = PyDisp()
     board = Board()
+    textures = Textures()  # create all the textures
 
     # variables
     # booleans
@@ -25,8 +28,7 @@ def main():
     state = "menu"
     game_state = "not started"
     turn = "white"
-    # other
-    board_draw = board.copy_surface()
+
     insect_list = []
 
     for n, insect in enumerate(INSECT_LIST):
@@ -41,8 +43,9 @@ def main():
         board.tile(ins_pos, True)
         insect_list.append(insect)
 
-    # insects of the board initial pos
-    a1 = Bug((0, 0), "white")
+    # creating the board for the first time
+    textures.save_board(board.create_board(
+        textures.colors["COLOR_TILE_OUTLINE"], textures.dflt["tile_1"], textures.dflt["tile_1"], textures.dflt["tile_mask"]))
 
     # loop while game is open
     while main_loop:
@@ -56,6 +59,7 @@ def main():
             pygame.display.flip()
 
             while main_loop and state == "menu":
+
                 # check mouse and keyboard
                 for event in pygame.event.get():
                     if event.type == pygame.QUIT:
@@ -67,20 +71,17 @@ def main():
                         # enter game
                         if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
                             state = "game"
+
                 # limit the frame rate
                 disp.clock.tick(FPS)
 
         # game
         if main_loop and state == "game":
+
+            disp.draw_surface(disp.screen, textures.dflt["board"], CENTER, False)
+
             # initialize the game
             if not game_started:
-                # this does nothing yet
-                disp.game_start()
-                # draw board
-                board.draw_board()
-                # save board (faster to draw for the next uses)
-                board_draw = board.copy_surface()
-
                 # now the game is started
                 game_started = True
                 # prepare the next mode which is to choose the insect for the player
@@ -88,17 +89,21 @@ def main():
 
             # real game main loop
             while main_loop and state == "game":
-                # get position of the mouse
+
+                # get the position of the mouse
                 x, y = pygame.mouse.get_pos()
 
                 # get all events
                 ev = pygame.event.get()
+
                 # check them all one by one
                 for event in ev:
+
                     # click on close tab
                     if event.type == pygame.QUIT:
                         # stop the script
                         main_loop = False
+
                     # check keyboard
                     elif event.type == pygame.KEYDOWN:
                         # escape button is pressed
@@ -107,8 +112,10 @@ def main():
                             state = "interrupt"
                     # check mouse
                     for tile in board.mask_list:
+                        # tile[n] : 0 rect 1 mask 2 disp pos 3 board pos
                         pos_in_mask = x - tile[0].x, y - tile[0].y
                         touching = tile[0].collidepoint(*(x, y)) and tile[1].get_at(pos_in_mask)
+
                         if touching:
                             disp_pos = tile[2]
                             tile_pos = tile[3]
@@ -123,16 +130,17 @@ def main():
                                 # do something with it ?
                                 if tile_obj == "":
                                     # tile is free
-                                    board.highlight_hexagon(board.coords(disp_pos), True)
+                                    disp.draw_surface(disp.screen, textures.dflt["tile_select"], disp_pos)
 
-                                if game_state == "choose insect":
+                                elif game_state == "choose insect":
                                     if tile_obj.color == turn:
+
                                         # there is an insect owned by the player
                                         # -> draw ways
                                         # game_state = "choose way"
                                         pass
 
-                                if game_state == "choose way":
+                                elif game_state == "choose way":
                                     # if tile is a way
                                         # tile_obj new pos = tile clicked
                                             # if eat
@@ -147,20 +155,22 @@ def main():
                                     pass
                             else:
                                 # mouse on tile but not clicked
-                                board.highlight_hexagon(board.coords(disp_pos), False)
+                                disp.draw_surface(disp.screen, textures.dflt["tile_overview"], disp_pos)
                             update = True
 
                 if update:
                     # draw the insects
                     for insect in insect_list:
-                        board.draw_insect(insect.pict, insect.pos)
+                        rect = textures.dflt["ins_bug"].get_rect()
+                        rect.center = board.position(insect.pos)
+                        disp.screen.blit(textures.dflt["ins_bug"], rect)
 
                     # update
                     pygame.display.flip()
                     disp.clock.tick(FPS)
 
                     # draw the board to erase old position of the insects for the next update
-                    board.screen.blit(board_draw, CENTER)
+                    disp.draw_surface(disp.screen, textures.dflt["board"], MIDDLE)
 
                     # reset
                     update = False

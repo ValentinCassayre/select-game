@@ -3,9 +3,11 @@ Stuff for displaying stuff
 """
 
 import pygame
+from pygame import gfxdraw
 import math
 from insects import *
 from consts import *
+from texture_pack import *
 
 
 class PyDisp:
@@ -35,14 +37,19 @@ class PyDisp:
         """
         Draw the menu screen
         """
-        # Need to add something here i think
+        # Need to add the menu textures
         self.draw_screen()
 
-    def game_start(self):
+    def draw_surface(self, image, surface, disp_pos, center=True):
         """
-        Draw the game ?
+        draw a surface centered in the given coords
         """
-        pass
+        x, y = disp_pos
+        if center:
+            image.blit(surface, (x - surface.get_width() // 2, y - surface.get_height() // 2))
+        else:
+            image.blit(surface, (x, y))
+        return image
 
 
 class Board(PyDisp):
@@ -57,11 +64,45 @@ class Board(PyDisp):
         PyDisp.__init__(self)
         self.coordinate_list = []
         self.pos_list = []
+        self.disp_list = []
         self.mask_list = []
         self.tile_state = {}
 
+        for tile_pos in self.pos_list:
+            self.tile_state[tile_pos] = False
+
+    def mask_hexagon(self, mask_surface, b_pos):
+        """
+        create and return the mask of a tile with the position of the tile in the display and not in the board
+        """
+        x, y = self.position(b_pos)
+        self.tile_rect = mask_surface.get_rect(center=(x, y))
+        # place mask itself
+        self.tile_mask = pygame.mask.from_surface(mask_surface)
+        return self.tile_rect, self.tile_mask, (x, y), b_pos
+
+    def position(self, b_pos, xo=B_XO, yo=B_YO):
+        """
+        convert position coordinates of the board from an orthonormal system to the specific system of the screen
+        convert position from board (b_pos) to screen coordinate x, y (coords)
+        """
+        a, b = b_pos
+        x = xo + (a*3*RADIUS/2 - b*3*RADIUS/2)*EDGE_WIDTH
+        y = yo + (a*UNIT/2 + b*UNIT/2)*EDGE_WIDTH
+        return x, y
+
+    def create_board(self, color_bg, tile_1, tile_2, tile_mask):
+
         # create a list of all the possible position of the board under the form of tuple (x, y)
         # creating a 10 by 10 board
+
+        image = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
+
+        coords_bg = [self.position((4, 0)), self.position((0, 0)), self.position((0, 4)),
+                     self.position((5, 9)), self.position((9, 9)), self.position((9, 5))]
+
+        pygame.draw.polygon(image, color_bg, coords_bg)
+
         for i in range(10):
             for j in range(10):
                 # remove unwanted cell in the corners
@@ -69,108 +110,22 @@ class Board(PyDisp):
                     continue
                 # adding the right cells to the board (70 in total)
                 else:
-                    self.pos_list.append((i, j))
+                    cell = i, j
+                    disp_pos = self.position(cell, MIDDLE[0])
 
-        for tile_pos in self.pos_list:
-            self.tile_state[tile_pos] = False
+                    if i % 5 == 2 or j % 5 == 2:
+                        self.draw_surface(image, tile_1, disp_pos)
+                    else:
+                        self.draw_surface(image, tile_2, disp_pos)
 
-        # prepare for the tile to be clickable
-        self.tile_pict = pygame.image.load(TILE_MASK_PATH).convert_alpha()
-        self.tile_rect = self.tile_pict.get_rect()
-        self.tile_mask = pygame.mask.from_surface(self.tile_pict)
+                    self.pos_list.append(cell)
+                    self.disp_list.append(disp_pos)
 
-    def coords(self, pos, width=1.0):
-        """
-        create the coordinates of the 6 points of the hexagon calculated with the pi/3 modulo
-        pos is a tuple of the coordinates on the screen and not on the board
-        to convert position from board to screen use position()
-        :return: list of coords (tuples)
-        """
-        x, y = pos
-        coords = []
-        for k in range(6):
-            coords.append((x + width * RADIUS * math.cos(k * math.pi / 3),
-                           y + width * RADIUS * math.sin(k * math.pi / 3)))
-        self.coordinate_list = coords
-        return coords
+                    self.mask_list.append(self.mask_hexagon(tile_mask, cell))
+        return image
 
-    def draw_hexagon(self, board_pos, color_fill=COLOR_TILE1, color_outline=COLOR_OUTLINE):
-        """
-        draw an hexagon on the board position tuple (x, y) with 2 colors, one for the outline and one for the hexagon
-        default : draw with the color of the board
-        """
-        # draw edges
-        pygame.draw.polygon(self.screen, color_outline, self.coords(board_pos, 1.2))
-        # fill hexagon
-        pygame.draw.polygon(self.screen, color_fill, self.coords(board_pos))
-
-    def mask_hexagon(self, a, b):
-        """
-        create and return the mask of a tile with the position of the tile in the display and not in the board
-        """
-        x, y = self.position((a, b))
-        # place mask itself
-        self.tile_rect = self.tile_pict.get_rect(center=(x, y))
-        self.tile_mask = pygame.mask.from_surface(self.tile_pict)
-        return self.tile_rect, self.tile_mask, (x, y), (a, b)
-
-    def highlight_hexagon(self, coords, click):
-        """
-        highlight the hexagon in this position
-        """
-        if click:
-            pygame.draw.polygon(self.screen, RED, coords)
-        else:
-            pygame.draw.polygon(self.screen, COLOR_HIGHLIGHT, coords)
-
-    def position(self, board_pos):
-        """
-        convert position coordinates of the board from an orthonormal system to the specific system of the screen
-        convert position from board to screen coordinate x, y
-        """
-        a, b = board_pos
-        x = X_BASE + (a*3*RADIUS/2 - b*3*RADIUS/2)*1.15
-        y = Y_BASE + (a*UNIT/2 + b*UNIT/2)*1.15
-        return x, y
-
-    def draw_board(self):
-        """
-        draw the game board
-        """
-        for pos in self.pos_list:
-            i, j = pos
-            x, y = self.position(pos)
-            if i % 5 == 2 or j % 5 == 2:
-                color = COLOR_TILE2
-            else:
-                color = COLOR_TILE1
-            self.draw_hexagon((x, y), color)
-            # creating a mask for each cell
-            self.mask_list.append(self.mask_hexagon(i, j))
-
-    def copy_surface(self):
-        """
-        create a copy of the current surface
-        """
-        return self.screen.copy()
-
-    def click_on_hexagon(self, cursor_pos):
-        x, y = cursor_pos
-        return
-
-    def draw_insect(self, image, pos):
-        """
-        Draw the insects
-        """
-        # convert pos into coords for the screen
-        coords = self.position(pos)
-        # need to complete this bad boy these a just ideas
-        image_rect = image.get_rect()
-        image_rect.center = coords
-        self.screen.blit(image, image_rect)
-
-    def tile(self, pos, taken):
+    def tile(self, b_pos, taken):
         """
         give the state of a tile, pos = (x, y) and taken = True if the tile is taken
         """
-        self.tile_state.update({pos: taken})
+        self.tile_state.update({b_pos: taken})
