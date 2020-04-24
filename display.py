@@ -7,7 +7,6 @@ from pygame import gfxdraw
 import math
 from insects import *
 from consts import *
-from texture_pack import *
 
 
 class PyDisp:

@@ -9,7 +9,6 @@ from consts import *
 from display import *
 from textures import *
 from insects import *
-from texture_pack import *
 
 
 def main():

@@ -8,7 +8,6 @@ import math
 from display import *
 from insects import *
 from consts import *
-from texture_pack import *
 
 
 class Textures:
@@ -24,7 +23,7 @@ class Textures:
         self.import_colors()
 
         self.dflt = {}
-        for name in ["tile_edges", "tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "ins_bug"]:
+        for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "ins_bug"]:
             self.dflt[name] = self.create_dflt(name)
 
     def import_colors(self):
