@@ -23,7 +23,7 @@ class Textures:
         self.import_colors()
 
         self.dflt = {}
-        for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat", "ins_bug"]:
+        for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat"]:
             self.dflt[name] = self.create_dflt(name)
 
     def import_colors(self):
@@ -62,10 +62,6 @@ class Textures:
                 image = self.draw_tile(BLACK)
             is_alpha = True
 
-        elif name.startswith("ins"):
-            if name.endswith("bug"):
-                image = self.draw_insect(BUG_PATH)
-
         if image != None:
             pygame.image.save(image, "assets/screenshots/" + name + ".png")
             return image
@@ -73,6 +69,9 @@ class Textures:
     def save_board(self, board):
         self.dflt["board"] = board
         pygame.image.save(board, "assets/screenshots/board.png")
+
+    def save_insect(self, insect_full_name, insect):
+        self.dflt[insect_full_name] = insect
 
     def coords(self, pos, radius=RADIUS, mult=1.0):
         """
@@ -102,19 +101,23 @@ class Textures:
         # for the moment :
         if fill:
             pygame.draw.polygon(temp, color_in, self.coords(rect.center, radius, mult))
+        else:
+            pygame.gfxdraw.polygon(temp, self.coords(rect.center, radius, mult), color_in)
 
         # blit the surface to the top left edge
         image.blit(temp, rect.topleft)
         return image.convert_alpha()
 
-    def draw_tile(self, color, radius=RADIUS, unit=UNIT, mult=1.0):
+    def draw_tile(self, color, radius=RADIUS, unit=UNIT, mult=1.0, fill=True, alpha=32):
         """
         inner tile pnly
         """
         # create a selection of the area
         rect = pygame.Rect((0, 0), (2 * radius * mult, unit * mult))
-        image = pygame.Surface(rect.size, pygame.SRCALPHA)
-        image = self.draw_hexagon(image, color, rect, radius, mult)
+        image = pygame.Surface(rect.size, pygame.SRCALPHA, alpha)
+
+        image = self.draw_hexagon(image, color, rect, radius, mult, fill)
+
         return image
 
     def draw_tile_board(self, color, mult=1.2):

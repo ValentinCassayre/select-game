@@ -67,6 +67,10 @@ class Board(PyDisp):
         self.mask_list = []
         self.tile_state = {}
 
+        self.screen_copy = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
+        self.mouse_interaction_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
+        self.ways_surface = self.screen_copy
+
     def mask_hexagon(self, mask_surface, b_pos):
         """
         create and return the mask of a tile with the position of the tile in the display and not in the board
@@ -129,3 +133,11 @@ class Board(PyDisp):
         give the state of a tile, pos = (x, y) and taken = True if the tile is taken
         """
         self.tile_state.update({b_pos: taken})
+
+    def reset_surface(self, name):
+        if name == "mouse_interaction_surface":
+            self.mouse_interaction_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
+        elif name == "ways_surface":
+            self.ways_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
+        else:
+            print("Error")

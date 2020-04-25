@@ -27,6 +27,16 @@ def main():
     state = "menu"
     game_state = "not started"
     turn = "white"
+    # lists
+    insect_list = []
+    ways2 = []
+    eat2 = []
+    # int
+    insect_number = int
+    # tuples
+    last_tile_pos = tuple
+    # oter
+    tile_insect = None
 
     # creating the board for the first time
     textures.save_board(board.create_board(
@@ -89,6 +99,8 @@ def main():
 
                     board.tile(insect_data[2], True)
                     insect_list.append(insect)
+                    # importing insect texture
+                    textures.save_insect(insect.full_name, insect.pict)
 
                 # now the game is started
                 game_started = True
@@ -141,37 +153,46 @@ def main():
                                 if game_state == "choose insect":
 
                                     # check any insect is on this tile
-                                    # if tile_pos in map(lambda ins: ins.pos, insect_list):
-                                    for insect_number, insect in enumerate(insect_list):
+                                    #
+                                    for n, insect in enumerate(insect_list):
 
                                         if insect.pos == tile_pos:
                                             tile_insect = insect
 
                                             # check if insect is owned by the player
                                             if insect.color == turn:
+                                                insect_number = n
 
-                                                # get all the possible ways of the insect
+                                                # get all the possible ways_surface of the insect
                                                 ways, eat = tile_insect.calc_ways()
                                                 ways2, eat2 = [], []
 
-                                                # remove all ways that are not possible
-                                                # an insect from the same team is on the cell
+                                                # remove all ways_surface that are not possible
                                                 for cell in ways:
-                                                    if board.tile_state[cell] is False:
+                                                    if cell in map(lambda ins: ins.pos, insect_list):
+                                                        # another insect is on this tile so it cant go
+                                                        pass
+                                                    else:
                                                         ways2.append(cell)
 
-                                                # there is nobody to eat there
+                                                # check if he can eat insects around
                                                 for cell in eat:
-                                                    if board.tile_state[cell] is True:
-                                                        eat2.append(cell)
+                                                    for insect in insect_list:
+                                                        # another insect is on this tile so it can eat it
+                                                        if insect.pos == cell and insect.color != turn:
+                                                            eat2.append(cell)
 
                                                 for way_cell in ways2:
-                                                    disp.draw_surface(disp.screen, textures.dflt["tile_way"],
-                                                                      board.position(way_cell))
+                                                    disp.draw_surface(
+                                                        board.ways_surface,
+                                                        textures.dflt["tile_way"],
+                                                        board.position(way_cell))
 
                                                 for eat_cell in eat2:
-                                                    disp.draw_surface(disp.screen, textures.dflt["tile_eat"],
-                                                                      board.position(eat_cell))
+                                                    disp.draw_surface(
+                                                        board.ways_surface,
+                                                        textures.dflt["tile_eat"],
+                                                        board.position(eat_cell))
 
                                                 update = True
                                                 game_state = "choose way"
@@ -179,33 +200,51 @@ def main():
                                 elif game_state == "choose way":
 
                                     if tile_pos in ways2:
+                                        insect_list[insect_number].pos = tile_pos
                                         update = True
+                                        game_state = "next turn"
 
                                     elif tile_pos in eat2:
-                                        print("miam")
-                                        insect_list[insect_number].pos(tile_pos)
+                                        for insect in insect_list:
+                                            if insect.pos == tile_pos:
+                                                insect_list.remove(insect)
+                                        tile_insect.pos = tile_pos
                                         update = True
+                                        game_state = "next turn"
 
-                                    game_state = "choose insect"
-                                    if turn == "white":
-                                        turn = "black"
-                                    elif turn == "black":
-                                        turn = "white"
+                                    else:
+                                        update = True
+                                        game_state = "choose insect"
+
+                                    board.reset_surface("ways_surface")
 
                             else:
                                 # mouse on tile but not clicked
                                 # check if the tile is a new tile, else no update of the screen
                                 if last_tile_pos != tile[3]:
-                                    disp.draw_surface(disp.screen, textures.dflt["tile_overview"], disp_pos)
+                                    board.reset_surface("mouse_interaction_surface")
+                                    disp.draw_surface(board.mouse_interaction_surface, textures.dflt["tile_overview"], disp_pos)
+
                                     update = True
                             last_tile_pos = tile[3]
 
+                            # prepare for next turn
+                            if game_state == "next turn":
+
+                                game_state = "choose insect"
+                                if turn == "white":
+                                    turn = "black"
+                                elif turn == "black":
+                                    turn = "white"
+
                 if update:
+                    # draw the ways_surface
+                    disp.draw_surface(disp.screen, board.ways_surface, CENTER, False)
+                    # draw the mouse tile pos
+                    disp.draw_surface(disp.screen, board.mouse_interaction_surface, CENTER, False)
                     # draw the insects
                     for insect in insect_list:
-                        rect = textures.dflt["ins_bug"].get_rect()
-                        rect.center = board.position(insect.pos)
-                        disp.screen.blit(textures.dflt["ins_bug"], rect)
+                        disp.draw_surface(disp.screen, textures.dflt[insect.full_name], board.position(insect.pos))
 
                     # update
                     pygame.display.flip()
@@ -217,11 +256,6 @@ def main():
                     # reset
                     update = False
                     print(game_state, turn)
-
-                # the blacks
-                if turn == "black":
-                    turn = "white"
-                    disp.clock.tick(FPS)
 
         # interrupt
         if main_loop and state == "interrupt":
