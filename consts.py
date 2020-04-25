@@ -36,8 +36,7 @@ B_RECT_POS = (X_MID-B_W//2, Y_MID-B_H//2)
 
 
 # INSECTS
-INSECT_LIST = ["bug_1", "bug_2"]  # they need to start with their role name : bug
-INITIAL_POSITION = [(0, 0), (3, 5)]  # tuple with a (x, y) form
+INSECT_LIST = [["bug", "white", (0, 0)], ["bug", "black", (9, 9)]]
 
 # GAME INFOS
 GAME_NAME = "Select!"

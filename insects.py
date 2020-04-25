@@ -36,7 +36,7 @@ class Bug(Insect):
         Insect.__init__(self, pos, color)
         self.pict = pygame.image.load(BUG_PATH)
 
-    def ways(self):
+    def calc_ways(self):
         if self.color == "white":
             # all the ways this insect can go if nothing on new tile
             self.ways = [(self.a + 1, self.b + 1)]
@@ -45,4 +45,8 @@ class Bug(Insect):
         if self.color == "black":
             # All the ways this insect can go if nothing on new tile
             self.ways = [(self.a - 1, self.b - 1)]
+            # if there is an insect it can eat, he can go there and eat it
+            self.eat = [(self.a + 1, self.b), (self.a, self.b + 1)]
+
+        return self.ways, self.eat
 

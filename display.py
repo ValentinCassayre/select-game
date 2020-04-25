@@ -67,9 +67,6 @@ class Board(PyDisp):
         self.mask_list = []
         self.tile_state = {}
 
-        for tile_pos in self.pos_list:
-            self.tile_state[tile_pos] = False
-
     def mask_hexagon(self, mask_surface, b_pos):
         """
         create and return the mask of a tile with the position of the tile in the display and not in the board
@@ -120,7 +117,11 @@ class Board(PyDisp):
                     self.pos_list.append(cell)
                     self.disp_list.append(disp_pos)
 
+                    # create masks to detect if the mouse interact with the tiles
                     self.mask_list.append(self.mask_hexagon(tile_mask, cell))
+
+                    # create dict of all the states of the cells, by default False (no insect on it)
+                    self.tile_state.update({cell: False})
         return image
 
     def tile(self, b_pos, taken):

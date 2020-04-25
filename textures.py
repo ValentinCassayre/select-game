@@ -23,7 +23,7 @@ class Textures:
         self.import_colors()
 
         self.dflt = {}
-        for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "ins_bug"]:
+        for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat", "ins_bug"]:
             self.dflt[name] = self.create_dflt(name)
 
     def import_colors(self):
@@ -54,6 +54,10 @@ class Textures:
                 image = self.draw_tile(self.colors["COLOR_TILE_OVERVIEW"])
             elif name.endswith("select"):
                 image = self.draw_tile(self.colors["COLOR_TILE_SELECT"])
+            elif name.endswith("way"):
+                image = self.draw_tile(self.colors["COLOR_TILE_WAY"])
+            elif name.endswith("eat"):
+                image = self.draw_tile(self.colors["COLOR_TILE_EAT"])
             elif name.endswith("mask"):
                 image = self.draw_tile(BLACK)
             is_alpha = True
