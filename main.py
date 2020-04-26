@@ -29,8 +29,8 @@ def main():
     turn = "white"
     # lists
     insect_list = []
-    ways2 = []
-    eat2 = []
+    ways = []
+    eat = []
     # int
     insect_number = int
     # tuples
@@ -164,31 +164,15 @@ def main():
                                                 insect_number = n
 
                                                 # get all the possible ways_surface of the insect
-                                                ways, eat = tile_insect.calc_ways()
-                                                ways2, eat2 = [], []
+                                                ways, eat = calc_ways(tile_insect.calc_ways(), insect_list, turn)
 
-                                                # remove all ways_surface that are not possible
-                                                for cell in ways:
-                                                    if cell in map(lambda ins: ins.pos, insect_list):
-                                                        # another insect is on this tile so it cant go
-                                                        pass
-                                                    else:
-                                                        ways2.append(cell)
-
-                                                # check if he can eat insects around
-                                                for cell in eat:
-                                                    for insect in insect_list:
-                                                        # another insect is on this tile so it can eat it
-                                                        if insect.pos == cell and insect.color != turn:
-                                                            eat2.append(cell)
-
-                                                for way_cell in ways2:
+                                                for way_cell in ways:
                                                     disp.draw_surface(
                                                         board.ways_surface,
                                                         textures.dflt["tile_way"],
                                                         board.position(way_cell))
 
-                                                for eat_cell in eat2:
+                                                for eat_cell in eat:
                                                     disp.draw_surface(
                                                         board.ways_surface,
                                                         textures.dflt["tile_eat"],
@@ -199,12 +183,12 @@ def main():
 
                                 elif game_state == "choose way":
 
-                                    if tile_pos in ways2:
-                                        insect_list[insect_number].pos = tile_pos
+                                    if tile_pos in ways:
+                                        tile_insect.pos = tile_pos
                                         update = True
                                         game_state = "next turn"
 
-                                    elif tile_pos in eat2:
+                                    elif tile_pos in eat:
                                         for insect in insect_list:
                                             if insect.pos == tile_pos:
                                                 insect_list.remove(insect)
@@ -230,6 +214,23 @@ def main():
 
                             # prepare for next turn
                             if game_state == "next turn":
+                                possible_mov = [0, 0]
+
+                                # check if game is lost
+                                for insect in insect_list:
+                                    if insect.color == "white":
+                                        # if the insect has no ways to go
+                                        a, b = calc_ways(tile_insect.calc_ways(), insect_list, turn)
+                                        possible_mov[0] = possible_mov[0] + len(a) + len(b)
+
+                                for insect in insect_list:
+                                    if insect.color == "black":
+                                        # if the insect has no ways to go
+                                        a, b = calc_ways(tile_insect.calc_ways(), insect_list, turn)
+                                        possible_mov[1] = possible_mov[1] + len(a) + len(b)
+
+                                if possible_mov[0] == 0 or possible_mov[1] == 0:
+                                    print("game over")
 
                                 game_state = "choose insect"
                                 if turn == "white":
@@ -255,7 +256,6 @@ def main():
 
                     # reset
                     update = False
-                    print(game_state, turn)
 
         # interrupt
         if main_loop and state == "interrupt":
@@ -264,6 +264,27 @@ def main():
             """
             # temporary close
             main_loop = False
+
+
+def calc_ways(lists, insect_list, turn):
+    ways, eat = lists
+    ways2 = []
+    eat2 = []
+    # remove all ways_surface that are not possible
+    for cell in ways:
+        if cell in map(lambda ins: ins.pos, insect_list):
+            # another insect is on this tile so it cant go
+            pass
+        else:
+            ways2.append(cell)
+
+    # check if he can eat insects around
+    for cell in eat:
+        for insect in insect_list:
+            # another insect is on this tile so it can eat it
+            if insect.pos == cell and insect.color != turn:
+                eat2.append(cell)
+    return ways2, eat2
 
 
 # everything starts here

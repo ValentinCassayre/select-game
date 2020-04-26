@@ -36,8 +36,8 @@ B_RECT_POS = (X_MID-B_W//2, Y_MID-B_H//2)
 
 
 # INSECTS
-INSECT_LIST = [["bug", "white", (0, 0)], ["bug", "white", (1, 0)], ["bug", "white", (0, 1)],
-               ["bug", "black", (9, 9)], ["bug", "black", (8, 9)], ["bug", "black", (9, 8)]]
+INSECT_LIST = [["bug", "white", (3, 3)], ["bug", "white", (4, 3)], ["bug", "white", (3, 4)],
+               ["bug", "black", (5, 5)], ["bug", "black", (4, 5)], ["bug", "black", (5, 4)]]
 
 # GAME INFOS
 GAME_NAME = "Select!"
