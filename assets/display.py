@@ -75,10 +75,10 @@ class Board(PyDisp):
         create and return the mask of a tile with the position of the tile in the display and not in the board
         """
         x, y = self.position(b_pos)
-        self.tile_rect = mask_surface.get_rect(center=(x, y))
+        tile_rect = mask_surface.get_rect(center=(x, y))
         # place mask itself
-        self.tile_mask = pygame.mask.from_surface(mask_surface)
-        return self.tile_rect, self.tile_mask, (x, y), b_pos
+        tile_mask = pygame.mask.from_surface(mask_surface)
+        return tile_rect, tile_mask, (x, y), b_pos
 
     def position(self, b_pos, xo=B_XO, yo=B_YO):
         """
