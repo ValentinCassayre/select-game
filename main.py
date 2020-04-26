@@ -3,12 +3,26 @@ Prototype game by Valentin Cassayre
 Github : https://github.com/V-def/select-game
 """
 
-import pygame
-import math
-from consts import *
-from display import *
-from textures import *
-from insects import *
+import os
+
+try:
+    import pygame
+except ModuleNotFoundError:
+    print("- Missing pygame module, try pip install pygame")
+    exit()
+
+missing_file = False
+for file in ["consts.py", "display.py", "insects.py", "textures.py"]:
+    if not os.path.exists(os.path.join("assets", file)):
+        print("- Missing game file from data folder:", file)
+        files_exist = True
+if missing_file:
+    exit()
+
+from assets.consts import *
+from assets.display import *
+from assets.insects import *
+from assets.textures import *
 
 
 def main():
@@ -32,10 +46,10 @@ def main():
     ways = []
     eat = []
     # int
-    insect_number = int
+
     # tuples
     last_tile_pos = tuple
-    # oter
+    # other
     tile_insect = None
 
     # creating the board for the first time
@@ -91,7 +105,7 @@ def main():
                     # insect data : 0 type 1 color 2 initial pos
 
                     if insect_data[0] == "bug":
-                        insect = Bug(insect_data[2], insect_data[1])
+                        insect = Bug(insect_data[2], insect_data[1], textures.insect_path)
 
                     else:
                         print("[!] Error ! Insect type not recognised.")
@@ -161,7 +175,6 @@ def main():
 
                                             # check if insect is owned by the player
                                             if insect.color == turn:
-                                                insect_number = n
 
                                                 # get all the possible ways_surface of the insect
                                                 ways, eat = calc_ways(tile_insect.calc_ways(), insect_list, turn)
@@ -207,7 +220,10 @@ def main():
                                 # check if the tile is a new tile, else no update of the screen
                                 if last_tile_pos != tile[3]:
                                     board.reset_surface("mouse_interaction_surface")
-                                    disp.draw_surface(board.mouse_interaction_surface, textures.dflt["tile_overview"], disp_pos)
+                                    disp.draw_surface(
+                                        board.mouse_interaction_surface,
+                                        textures.dflt["tile_overview"],
+                                        disp_pos)
 
                                     update = True
                             last_tile_pos = tile[3]
