@@ -37,6 +37,7 @@ def main():
     eat = []
 
     # other
+    insect = None
     tile_insect = None
     tile_pos = None
 
@@ -97,11 +98,16 @@ def main():
                     if insect_data[0] == "bug":
                         insect = Bug(insect_data[2], insect_data[1], textures.insect_path)
 
+                    elif insect_data[0] == "locust":
+                        insect = Locust(insect_data[2], insect_data[1], textures.insect_path)
+
                     else:
                         print("- Error : Insect type not recognised.")
-                        break
+                        game.stop()
 
-                    board.tile(insect_data[2], insect)
+                    # update tile
+                    board.tile(insect.pos, insect)
+                    # add the insect to the other
                     game.insects.append(insect)
                     # importing insect texture
                     textures.save_insect(insect.full_name, insect.pict)
@@ -109,8 +115,6 @@ def main():
                 # prepare the next mode which is to choose the insect for the player
                 game.process = "choose insect"
                 game.started = True
-
-                board.last_tile = None
 
             # real game main loop
             while game.loop and game.state == "game":
@@ -180,8 +184,10 @@ def main():
                                 # check if insect is owned by the player
                                 if insect.color == game.turn:
 
-                                    # get all the possible ways_surface of the insect
-                                    ways, eat = calc_ways(tile_insect.calc_ways(), game.insects, game.turn)
+                                    # get all the possible tiles where the insect can go
+                                    # ways
+
+                                    ways, eat = board.check_tiles(tile_insect)
 
                                     for way_cell in ways:
                                         disp.draw_surface(
@@ -202,6 +208,7 @@ def main():
 
                         if tile_pos in ways:
                             tile_insect.pos = tile_pos
+                            board.tile(tile_insect.pos, tile_insect)
                             update = True
                             game.process = "next turn"
 
@@ -209,7 +216,13 @@ def main():
                             for insect in game.insects:
                                 if insect.pos == tile_pos:
                                     game.insects.remove(insect)
+
+                            # update tile before
+                            board.tile(tile_insect.pos, None)
+                            # move insect
                             tile_insect.pos = tile_pos
+                            # update tile after
+                            board.tile(tile_insect.pos, tile_insect)
                             update = True
                             game.process = "next turn"
 
@@ -221,27 +234,12 @@ def main():
 
                 # prepare for next turn
                 if game.process == "next turn":
-                    possible_mov = [0, 0]
 
                     # check if game is lost
-                    for insect in game.insects:
-                        if insect.color == "white":
-                            # if the insect has no ways to go
-                            a, b = calc_ways(tile_insect.calc_ways(), game.insects, game.turn)
-                            possible_mov[0] = possible_mov[0] + len(a) + len(b)
-                        elif insect.color == "black":
-                            # if the insect has no ways to go
-                            a, b = calc_ways(tile_insect.calc_ways(), game.insects, game.turn)
-                            possible_mov[1] = possible_mov[1] + len(a) + len(b)
-
-                    if possible_mov[0] == 0 or possible_mov[1] == 0:
-                        print("game over")
+                    # removed it because it was not well done
 
                     game.process = "choose insect"
-                    if game.turn == "white":
-                        game.turn = "black"
-                    elif game.turn == "black":
-                        game.turn = "white"
+                    game.change_turn()
 
                 if update:
                     # draw the ways_surface

@@ -37,6 +37,7 @@ B_RECT_POS = (X_MID-B_W//2, Y_MID-B_H//2)
 # INSECTS
 INSECT_LIST = [["bug", "white", (0, 3)], ["bug", "white", (1, 3)], ["bug", "white", (2, 3)],
                ["bug", "white", (3, 0)], ["bug", "white", (3, 1)], ["bug", "white", (3, 2)], ["bug", "white", (3, 3)],
+               ["locust", "white", (1, 1)],
                ["bug", "black", (6, 9)], ["bug", "black", (6, 8)], ["bug", "black", (6, 7)],
                ["bug", "black", (9, 6)], ["bug", "black", (8, 6)], ["bug", "black", (7, 6)], ["bug", "black", (6, 6)]]
 

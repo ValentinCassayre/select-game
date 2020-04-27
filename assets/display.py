@@ -42,6 +42,8 @@ class PyDisp:
         """
         draw a surface centered in the given coords
         """
+        if image is None:
+            image = self.screen
         x, y = disp_pos
         if center:
             image.blit(surface, (x - surface.get_width() // 2, y - surface.get_height() // 2))
@@ -66,7 +68,7 @@ class Board(PyDisp):
         self.mask_list = []
         self.tile_state = {}
 
-        self.last_tile_pos = []
+        self.last_tile_pos = None
 
         self.screen_copy = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.mouse_interaction_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
@@ -134,7 +136,7 @@ class Board(PyDisp):
                     self.mask_list.append(self.mask_hexagon(tile_mask, cell))
 
                     # create dict of all the states of the cells, by default False (no insect on it)
-                    self.tile_state.update({cell: False})
+                    self.tile_state.update({cell: None})
         return image
 
     def tile(self, b_pos, insect):
@@ -143,10 +145,49 @@ class Board(PyDisp):
         """
         self.tile_state.update({b_pos: insect})
 
+    def check_tiles(self, insect_moving, eat_last=False):
+        ways = []
+        eats = []
+
+        directions_way, directions_eat = insect_moving.calc_directions()
+
+        for direction in directions_way:
+            cond = True
+            i = 0
+            while cond is True and i < len(direction):
+                cell = direction[i]
+                if cell in self.pos_list:
+                    if self.tile_state[direction[i]] is None:
+                        ways.append(direction[i])
+                        i = i + 1
+                    elif eat_last is True:
+                        eats.append(direction[i])
+                    else:
+                        cond = False
+                else:
+                    cond = False
+
+        for direction in directions_eat:
+            cond = True
+            i = 0
+            while cond is True and i < len(direction):
+                cell = direction[i]
+                insect_on_way = self.tile_state[direction[i]]
+                if cell in self.pos_list:
+                    if insect_on_way is not None and insect_on_way.color != insect_moving.color:
+                        eats.append(direction[i])
+                        i = i + 1
+                    else:
+                        cond = False
+                else:
+                    cond = False
+
+        return ways, eats
+
     def reset_surface(self, name):
         if name == "mouse_interaction_surface":
-            self.mouse_interaction_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32).convert_alpha()
+            self.mouse_interaction_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
         elif name == "ways_surface":
-            self.ways_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32).convert_alpha()
+            self.ways_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
         else:
             print("Error")

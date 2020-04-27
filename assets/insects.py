@@ -26,6 +26,7 @@ class Insect:
         return self.position
 
     def _set_position(self, new_pos):
+        self.a, self.b = new_pos
         self.position = new_pos
 
     pos = property(_get_position, _set_position)
@@ -41,20 +42,49 @@ class Bug(Insect):
         self.full_name = self.name + "_" + self.color
         self.pict = pygame.image.load(self.path + self.full_name + ".png")
 
-    def calc_ways(self):
-        self.a, self.b = self.position
-        if self.color == "white":
-            # all the ways_surface this insect can go if nothing on new tile
-            self.ways = [(self.a + 1, self.b + 1)]
-            # if there is an insect it can eat, he can go there and eat it
-            self.eat = [(self.a + 1, self.b), (self.a, self.b + 1)]
-        if self.color == "black":
-            # All the ways_surface this insect can go if nothing on new tile
-            self.ways = [(self.a - 1, self.b - 1)]
-            # if there is an insect it can eat, he can go there and eat it
-            self.eat = [(self.a - 1, self.b), (self.a, self.b - 1)]
+    def calc_directions(self):
+        # (ways, eat) both are directions list composed by direction
 
-        return self.ways, self.eat
+        if self.color == "white":
+            # ways
+            directions_way = []
+            direction = []
+            for i in range(1, 2):
+                direction.append((self.a + i, self.b + i))
+            directions_way.append(direction)
+
+            # eat
+            directions_eat = []
+            direction = []
+            for i in range(1, 2):
+                direction.append((self.a + i, self.b))
+            directions_eat.append(direction)
+            direction = []
+            for i in range(1, 2):
+                direction.append((self.a, self.b + i))
+            directions_eat.append(direction)
+
+        else:
+
+            # ways
+            directions_way = []
+            direction = []
+            for i in range(1, 2):
+                direction.append((self.a - i, self.b - i))
+            directions_way.append(direction)
+
+            # eat
+            directions_eat = []
+            direction = []
+            for i in range(1, 2):
+                direction.append((self.a - i, self.b))
+            directions_eat.append(direction)
+            direction = []
+            for i in range(1, 2):
+                direction.append((self.a, self.b - i))
+            directions_eat.append(direction)
+
+        return directions_way, directions_eat
 
 
 class Locust(Insect):

@@ -12,7 +12,8 @@ class Game:
         # variables and default state
         self.state_string = "menu"
         self.process_string = "choose insect"
-        self.turn_string = "white"
+
+        self.turn = "white"
 
         self.loop = True  # main loop
         self.started = False  # game started ?
@@ -34,17 +35,9 @@ class Game:
     def _set_process(self, process):
         self.process_string = process
 
-    # turn
-    def _get_turn(self):
-        return self.turn_string
-
-    def _set_turn(self, turn):
-        self.turn_string = turn
-
     # allow to store the data and use it in main properly
     state = property(_get_state, _set_state)  # indicate which state the game is in
     process = property(_get_process, _set_process)  # indicate during a game what the players should do
-    turn = property(_get_turn, _set_turn)  # indicate which player can play
 
     # lists
     # insects
@@ -58,3 +51,9 @@ class Game:
 
     def stop(self):
         self.loop = False  # stop the main loop
+
+    def change_turn(self):
+        if self.turn == "white":
+            self.turn = "black"
+        elif self.turn == "black":
+            self.turn = "white"
