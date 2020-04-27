@@ -34,7 +34,7 @@ class Insect:
 
 class Bug(Insect):
     """
-    The bug is an insect
+    the smallest insect
     """
     def __init__(self, pos, color, path):
         Insect.__init__(self, pos, color, path)
@@ -49,7 +49,7 @@ class Bug(Insect):
             # ways
             directions_way = []
             direction = []
-            for i in range(1, 2):
+            for i in range(1, 2):  # -> range of one
                 direction.append((self.a + i, self.b + i))
             directions_way.append(direction)
 
@@ -84,15 +84,68 @@ class Bug(Insect):
                 direction.append((self.a, self.b - i))
             directions_eat.append(direction)
 
-        return directions_way, directions_eat
+        return directions_way, directions_eat, False
 
 
 class Locust(Insect):
     """
-    The locust is another insect
+    the insect that can jump
     """
     def __init__(self, pos, color, path):
         Insect.__init__(self, pos, color, path)
         self.name = "locust"
         self.full_name = self.name + "_" + self.color
         self.pict = pygame.image.load(self.path + self.full_name + ".png")
+
+    def calc_directions(self):
+        # (ways, eat) both are directions list composed by direction
+        # this insect ways does not depends of its color
+
+        # ways
+        directions_way = [[(self.a + 2, self.b)], [(self.a, self.b + 2)], [(self.a + 2, self.b + 2)],
+                          [(self.a - 2, self.b)], [(self.a, self.b - 2)], [(self.a - 2, self.b - 2)]]
+
+        # eat
+        directions_eat = [[(self.a + 2, self.b)], [(self.a, self.b + 2)], [(self.a + 2, self.b + 2)],
+                          [(self.a - 2, self.b)], [(self.a, self.b - 2)], [(self.a - 2, self.b - 2)]]
+
+        return directions_way, directions_eat, False
+
+
+class Spider(Insect):
+    """
+    the insect that can go on the sides
+    """
+
+    def __init__(self, pos, color, path):
+        Insect.__init__(self, pos, color, path)
+        self.name = "spider"
+        self.full_name = self.name + "_" + self.color
+        self.pict = pygame.image.load(self.path + self.full_name + ".png")
+
+    def calc_directions(self):
+        # this insect ways does not depends of its color
+        # ways
+        directions_way = []
+        direction = []
+        for i in range(1, 10):
+            direction.append((self.a + i, self.b))
+        directions_way.append(direction)
+        direction = []
+        for i in range(1, 10):
+            direction.append((self.a, self.b + i))
+        directions_way.append(direction)
+        direction = []
+        for i in range(1, 10):
+            direction.append((self.a - i, self.b))
+        directions_way.append(direction)
+        direction = []
+        for i in range(1, 10):
+            direction.append((self.a, self.b - i))
+        directions_way.append(direction)
+
+        # eat
+        directions_eat = []
+        # this insect can only eat insect who are at the end of the ways range and this is calculated by the board class
+
+        return directions_way, directions_eat, True

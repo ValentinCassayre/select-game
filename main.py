@@ -93,7 +93,7 @@ def main():
                 # prepare the initial position of the insects
                 for n, insect_data in enumerate(INSECT_LIST):
 
-                    # insect data : 0 type 1 color 2 initial pos
+                    # insect data : 0 type/name 1 color 2 initial pos
 
                     if insect_data[0] == "bug":
                         insect = Bug(insect_data[2], insect_data[1], textures.insect_path)
@@ -101,8 +101,11 @@ def main():
                     elif insect_data[0] == "locust":
                         insect = Locust(insect_data[2], insect_data[1], textures.insect_path)
 
+                    elif insect_data[0] == "spider":
+                        insect = Spider(insect_data[2], insect_data[1], textures.insect_path)
+
                     else:
-                        print("- Error : Insect type not recognised.")
+                        print('- Error : Insect type "{}" not recognised.'.format(insect_data[0]))
                         game.stop()
 
                     # update tile
@@ -207,6 +210,7 @@ def main():
                     elif game.process == "choose way":
 
                         if tile_pos in ways:
+                            board.tile(tile_insect.pos, None)
                             tile_insect.pos = tile_pos
                             board.tile(tile_insect.pos, tile_insect)
                             update = True

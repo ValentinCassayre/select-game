@@ -145,11 +145,11 @@ class Board(PyDisp):
         """
         self.tile_state.update({b_pos: insect})
 
-    def check_tiles(self, insect_moving, eat_last=False):
+    def check_tiles(self, insect_moving):
         ways = []
         eats = []
 
-        directions_way, directions_eat = insect_moving.calc_directions()
+        directions_way, directions_eat, eat_last = insect_moving.calc_directions()
 
         for direction in directions_way:
             cond = True
@@ -160,8 +160,9 @@ class Board(PyDisp):
                     if self.tile_state[direction[i]] is None:
                         ways.append(direction[i])
                         i = i + 1
-                    elif eat_last is True:
+                    elif eat_last is True and self.tile_state[direction[i]].color != insect_moving.color:
                         eats.append(direction[i])
+                        cond = False
                     else:
                         cond = False
                 else:
@@ -172,8 +173,8 @@ class Board(PyDisp):
             i = 0
             while cond is True and i < len(direction):
                 cell = direction[i]
-                insect_on_way = self.tile_state[direction[i]]
                 if cell in self.pos_list:
+                    insect_on_way = self.tile_state[direction[i]]
                     if insect_on_way is not None and insect_on_way.color != insect_moving.color:
                         eats.append(direction[i])
                         i = i + 1
