@@ -16,6 +16,7 @@ class Insect:
     """
     def __init__(self, pos, color, path):
         self.position = pos
+        self.a, self.b = pos
         self.color = color
         self.path = path
         self.ways = []
@@ -55,3 +56,13 @@ class Bug(Insect):
 
         return self.ways, self.eat
 
+
+class Locust(Insect):
+    """
+    The locust is another insect
+    """
+    def __init__(self, pos, color, path):
+        Insect.__init__(self, pos, color, path)
+        self.name = "locust"
+        self.full_name = self.name + "_" + self.color
+        self.pict = pygame.image.load(self.path + self.full_name + ".png")

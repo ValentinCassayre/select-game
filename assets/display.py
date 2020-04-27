@@ -66,9 +66,19 @@ class Board(PyDisp):
         self.mask_list = []
         self.tile_state = {}
 
-        self.screen_copy = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
+        self.last_tile_pos = []
+
+        self.screen_copy = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.mouse_interaction_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.ways_surface = self.screen_copy
+
+    def _get_last_tile(self):
+        return self.last_tile_pos
+
+    def _set_last_tile(self, pos):
+        self.last_tile_pos = pos
+
+    last_tile = property(_get_last_tile, _set_last_tile)
 
     def mask_hexagon(self, mask_surface, b_pos):
         """
@@ -127,16 +137,16 @@ class Board(PyDisp):
                     self.tile_state.update({cell: False})
         return image
 
-    def tile(self, b_pos, taken):
+    def tile(self, b_pos, insect):
         """
-        give the state of a tile, pos = (x, y) and taken = True if the tile is taken
+        give the state_string of a tile, pos = (x, y) and insect = True if the tile is insect
         """
-        self.tile_state.update({b_pos: taken})
+        self.tile_state.update({b_pos: insect})
 
     def reset_surface(self, name):
         if name == "mouse_interaction_surface":
-            self.mouse_interaction_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
+            self.mouse_interaction_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32).convert_alpha()
         elif name == "ways_surface":
-            self.ways_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA)
+            self.ways_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32).convert_alpha()
         else:
             print("Error")

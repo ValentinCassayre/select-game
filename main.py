@@ -13,42 +13,32 @@ except ModuleNotFoundError:
     exit()
 
 from assets.consts import *
-from assets.display import *
+from assets.display import PyDisp, Board
 from assets.insects import *
-from assets.textures import *
+from assets.textures import Textures
+from assets.game import Game
 
 
 def main():
     # pygame initialization
     pygame.init()
+
+    # importing the classes
     disp = PyDisp()
     board = Board()
     textures = Textures()  # create all the textures
 
     # variables
     # booleans
-    main_loop = True
-    game_started = False
     update = True
     click = False
-    touching = False
-    # strings
-    state = "menu"
-    game_state = "not started"
-    turn = "white"
     # lists
-    insect_list = []
     ways = []
     eat = []
-    tile = []
-    # int
 
-    # tuples
-    last_tile_pos = tuple
     # other
     tile_insect = None
     tile_pos = None
-    disp_pos = None
 
     # creating the board for the first time
     textures.save_board(board.create_board(
@@ -57,50 +47,49 @@ def main():
         textures.dflt["tile_1"],
         textures.dflt["tile_mask"]))
 
+    game = Game()
+
     # loop while game is open
-    while main_loop:
+    while game.loop:
         # menu
-        if main_loop and state == "menu":
+        if game.loop and game.state == "menu":
             # initialize the menu
-            game_started = False
             # use disp class to draw the menu page
             disp.draw_menu()
             # update the screen
             pygame.display.flip()
 
-            while main_loop and state == "menu":
+            while game.loop and game.state == "menu":
 
                 for event in pygame.event.get():
 
                     # normal closing
                     if event.type == pygame.QUIT:
-                        main_loop = False
+                        game.stop()
 
                     # check keyboard and mouse
                     elif event.type == pygame.KEYDOWN:
 
                         # close windows
                         if event.key == pygame.K_ESCAPE:
-                            main_loop = False
+                            game.stop()
 
                         # enter game
                         if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
-                            state = "game"
+                            game.state = "game"
 
                 # limit the frame rate
                 disp.clock.tick(FPS)
 
         # game
-        if main_loop and state == "game":
+        if game.loop and game.state == "game":
 
             disp.draw_surface(disp.screen, textures.dflt["board"], CENTER, False)
 
             # initialize the game
-            if not game_started:
+            if not game.started:
 
                 # prepare the initial position of the insects
-                insect_list = []
-
                 for n, insect_data in enumerate(INSECT_LIST):
 
                     # insect data : 0 type 1 color 2 initial pos
@@ -112,21 +101,19 @@ def main():
                         print("- Error : Insect type not recognised.")
                         break
 
-                    board.tile(insect_data[2], True)
-                    insect_list.append(insect)
+                    board.tile(insect_data[2], insect)
+                    game.insects.append(insect)
                     # importing insect texture
                     textures.save_insect(insect.full_name, insect.pict)
 
-                # now the game is started
-                game_started = True
-
                 # prepare the next mode which is to choose the insect for the player
-                game_state = "choose insect"
+                game.process = "choose insect"
+                game.started = True
 
-                last_tile_pos = None
+                board.last_tile = None
 
             # real game main loop
-            while main_loop and state == "game":
+            while game.loop and game.state == "game":
 
                 # limit the frame rate
                 disp.clock.tick(FPS)
@@ -143,14 +130,14 @@ def main():
                     # click on close tab
                     if event.type == pygame.QUIT:
                         # stop the script
-                        main_loop = False
+                        game.stop()
 
                     # check keyboard
                     elif event.type == pygame.KEYDOWN:
                         # escape button is pressed
                         if event.key == pygame.K_ESCAPE:
                             # interrupt mode (pause)
-                            state = "interrupt"
+                            game.state = "interrupt"
 
                     # check mouse
                     for tile in board.mask_list:
@@ -163,7 +150,7 @@ def main():
                             tile_pos = tile[3]
 
                             # check if the tile is a new tile, else no update of the screen
-                            if last_tile_pos != tile[3]:
+                            if board.last_tile != tile[3]:
                                 board.reset_surface("mouse_interaction_surface")
                                 disp.draw_surface(
                                     board.mouse_interaction_surface,
@@ -171,7 +158,7 @@ def main():
                                     disp_pos)
 
                                 update = True
-                            last_tile_pos = tile[3]
+                            board.last_tile = tile[3]
 
                             if event.type == pygame.MOUSEBUTTONDOWN:
                                 # tile clicked
@@ -181,20 +168,20 @@ def main():
                 if click:
                     click = False
 
-                    if game_state == "choose insect":
+                    if game.process == "choose insect":
 
                         # check any insect is on this tile
                         #
-                        for n, insect in enumerate(insect_list):
+                        for n, insect in enumerate(game.insects):
 
                             if insect.pos == tile_pos:
                                 tile_insect = insect
 
                                 # check if insect is owned by the player
-                                if insect.color == turn:
+                                if insect.color == game.turn:
 
                                     # get all the possible ways_surface of the insect
-                                    ways, eat = calc_ways(tile_insect.calc_ways(), insect_list, turn)
+                                    ways, eat = calc_ways(tile_insect.calc_ways(), game.insects, game.turn)
 
                                     for way_cell in ways:
                                         disp.draw_surface(
@@ -209,54 +196,52 @@ def main():
                                             board.position(eat_cell))
 
                                     update = True
-                                    game_state = "choose way"
+                                    game.process = "choose way"
 
-                    elif game_state == "choose way":
+                    elif game.process == "choose way":
 
                         if tile_pos in ways:
                             tile_insect.pos = tile_pos
                             update = True
-                            game_state = "next turn"
+                            game.process = "next turn"
 
                         elif tile_pos in eat:
-                            for insect in insect_list:
+                            for insect in game.insects:
                                 if insect.pos == tile_pos:
-                                    insect_list.remove(insect)
+                                    game.insects.remove(insect)
                             tile_insect.pos = tile_pos
                             update = True
-                            game_state = "next turn"
+                            game.process = "next turn"
 
                         else:
                             update = True
-                            game_state = "choose insect"
+                            game.process = "choose insect"
 
                         board.reset_surface("ways_surface")
 
                 # prepare for next turn
-                if game_state == "next turn":
+                if game.process == "next turn":
                     possible_mov = [0, 0]
 
                     # check if game is lost
-                    for insect in insect_list:
+                    for insect in game.insects:
                         if insect.color == "white":
                             # if the insect has no ways to go
-                            a, b = calc_ways(tile_insect.calc_ways(), insect_list, turn)
+                            a, b = calc_ways(tile_insect.calc_ways(), game.insects, game.turn)
                             possible_mov[0] = possible_mov[0] + len(a) + len(b)
-
-                    for insect in insect_list:
-                        if insect.color == "black":
+                        elif insect.color == "black":
                             # if the insect has no ways to go
-                            a, b = calc_ways(tile_insect.calc_ways(), insect_list, turn)
+                            a, b = calc_ways(tile_insect.calc_ways(), game.insects, game.turn)
                             possible_mov[1] = possible_mov[1] + len(a) + len(b)
 
                     if possible_mov[0] == 0 or possible_mov[1] == 0:
                         print("game over")
 
-                    game_state = "choose insect"
-                    if turn == "white":
-                        turn = "black"
-                    elif turn == "black":
-                        turn = "white"
+                    game.process = "choose insect"
+                    if game.turn == "white":
+                        game.turn = "black"
+                    elif game.turn == "black":
+                        game.turn = "white"
 
                 if update:
                     # draw the ways_surface
@@ -265,7 +250,7 @@ def main():
                     disp.draw_surface(disp.screen, board.mouse_interaction_surface, CENTER, False)
 
                     # draw the insects
-                    for insect in insect_list:
+                    for insect in game.insects:
                         disp.draw_surface(disp.screen, textures.dflt[insect.full_name], board.position(insect.pos))
 
                     # update
@@ -279,12 +264,12 @@ def main():
                     update = False
 
         # interrupt
-        if main_loop and state == "interrupt":
+        if game.loop and game.state == "interrupt":
             """
             Need to add this (pause)
             """
             # temporary close
-            main_loop = False
+            game.stop()
 
 
 def calc_ways(lists, insect_list, turn):
