@@ -41,6 +41,15 @@ def main():
     tile_insect = None
     tile_pos = None
 
+    initial_layout = (Bug, (0, 3), "white"), (Bug, (1, 3), "white"), (Bug, (2, 3), "white"), \
+                     (Bug, (3, 0), "white"), (Bug, (3, 1), "white"), (Bug, (3, 2), "white"), (Bug, (3, 3), "white"),\
+                     (Locust, (1, 2), "white"), (Locust, (2, 1), "white"),\
+                     (Spider, (0, 2), "white"), (Spider, (2, 0), "white"),\
+                     (Bug, (6, 9), "black"), (Bug, (6, 8), "black"), (Bug, (6, 7), "black"), \
+                     (Bug, (9, 6), "black"), (Bug, (8, 6), "black"), (Bug, (7, 6), "black"), (Bug, (6, 6), "black"),\
+                     (Locust, (7, 8), "black"), (Locust, (8, 7), "black"),\
+                     (Spider, (7, 9), "black"), (Spider, (9, 7), "black")
+
     # creating the board for the first time
     textures.save_board(board.create_board(
         textures.colors["COLOR_TILE_OUTLINE"],
@@ -91,22 +100,9 @@ def main():
             if not game.started:
 
                 # prepare the initial position of the insects
-                for n, insect_data in enumerate(INSECT_LIST):
+                for insect_data in initial_layout:
 
-                    # insect data : 0 type/name 1 color 2 initial pos
-
-                    if insect_data[0] == "bug":
-                        insect = Bug(insect_data[2], insect_data[1], textures.insect_path)
-
-                    elif insect_data[0] == "locust":
-                        insect = Locust(insect_data[2], insect_data[1], textures.insect_path)
-
-                    elif insect_data[0] == "spider":
-                        insect = Spider(insect_data[2], insect_data[1], textures.insect_path)
-
-                    else:
-                        print('- Error : Insect type "{}" not recognised.'.format(insect_data[0]))
-                        game.stop()
+                    insect = insect_data[0](insect_data[1], insect_data[2], textures.insect_path)
 
                     # update tile
                     board.tile(insect.pos, insect)
