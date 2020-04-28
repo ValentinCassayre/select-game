@@ -149,3 +149,39 @@ class Spider(Insect):
         # this insect can only eat insect who are at the end of the ways range and this is calculated by the board class
 
         return directions_way, directions_eat, True
+
+
+class Beetle(Insect):
+    """
+    the insect that can go on the front
+    """
+
+    def __init__(self, pos, color, path):
+        Insect.__init__(self, pos, color, path)
+        self.name = "beetle"
+        self.full_name = self.name + "_" + self.color
+        self.pict = pygame.image.load(self.path + self.full_name + ".png")
+
+    def calc_directions(self):
+        # (ways, eat) both are directions list composed by direction
+
+        # ways
+        # sides
+        directions_way = [[(self.a + 1, self.b)], [(self.a, self.b + 1)],
+                          [(self.a - 1, self.b)], [(self.a, self.b - 1)]]
+
+        # front
+        direction = []
+        for i in range(1, 10):
+            direction.append((self.a + i, self.b + i))
+        directions_way.append(direction)
+        direction = []
+        for i in range(1, 10):
+            direction.append((self.a - i, self.b - i))
+        directions_way.append(direction)
+
+        # eat
+        directions_eat = []
+        # this insect can only eat insect who are at the end of the ways range and this is calculated by the board class
+
+        return directions_way, directions_eat, True

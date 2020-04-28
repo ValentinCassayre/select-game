@@ -45,6 +45,7 @@ def main():
                      (Bug, (3, 0), "white"), (Bug, (3, 1), "white"), (Bug, (3, 2), "white"), (Bug, (3, 3), "white"),\
                      (Locust, (1, 2), "white"), (Locust, (2, 1), "white"),\
                      (Spider, (0, 2), "white"), (Spider, (2, 0), "white"),\
+                     (Beetle, (1, 0), "white"), (Beetle, (0, 1), "white"),\
                      (Bug, (6, 9), "black"), (Bug, (6, 8), "black"), (Bug, (6, 7), "black"), \
                      (Bug, (9, 6), "black"), (Bug, (8, 6), "black"), (Bug, (7, 6), "black"), (Bug, (6, 6), "black"),\
                      (Locust, (7, 8), "black"), (Locust, (8, 7), "black"),\
