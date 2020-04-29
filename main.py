@@ -64,7 +64,7 @@ def main():
         textures.dflt["tile_2"],
         textures.dflt["tile_mask"]))
 
-    game = Game()
+    game = Game(disp, board, textures)
 
     # loop while game is open
     while game.loop:
@@ -92,7 +92,7 @@ def main():
                             game.stop()
 
                         # enter game
-                        if event.key in [pygame.K_RETURN, pygame.K_SPACE]:
+                        if event.key in [pygame.K_RETURN, pygame.K_SPACE, pygame.K_KP_ENTER]:
                             game.state = "game"
 
                 # limit the frame rate
@@ -111,17 +111,12 @@ def main():
                 for insect_data in initial_layout:
 
                     insect = insect_data[0](insect_data[1], insect_data[2], textures.insect_path)
-
                     # update tile
                     board.tile(insect.pos, insect)
                     # add the insect to the other
                     game.insects.append(insect)
                     # importing insect texture
                     textures.save_insect(insect.full_name, insect.pict)
-
-                # prepare the next mode which is to choose the insect for the player
-                game.process = "choose insect"
-                game.started = True
 
             # real game main loop
             while game.loop and game.state == "game":
@@ -181,35 +176,28 @@ def main():
 
                     if game.process == "choose insect":
 
-                        # check any insect is on this tile
-                        #
-                        for n, insect in enumerate(game.insects):
+                        # return the object of the tile insect if the insect can be selected
+                        tile_insect = game.select_insect(tile_pos)
 
-                            if insect.pos == tile_pos:
-                                tile_insect = insect
+                        # check is something has been selected
+                        if tile_insect is not None:
 
-                                # check if insect is owned by the player
-                                if insect.color == game.turn:
+                            ways, eat = board.check_tiles(tile_insect)
 
-                                    # get all the possible tiles where the insect can go
-                                    # ways
+                            for way_cell in ways:
+                                disp.draw_surface(
+                                    board.ways_surface,
+                                    textures.dflt["tile_way"],
+                                    board.position(way_cell))
 
-                                    ways, eat = board.check_tiles(tile_insect)
+                            for eat_cell in eat:
+                                disp.draw_surface(
+                                    board.ways_surface,
+                                    textures.dflt["tile_eat"],
+                                    board.position(eat_cell))
 
-                                    for way_cell in ways:
-                                        disp.draw_surface(
-                                            board.ways_surface,
-                                            textures.dflt["tile_way"],
-                                            board.position(way_cell))
-
-                                    for eat_cell in eat:
-                                        disp.draw_surface(
-                                            board.ways_surface,
-                                            textures.dflt["tile_eat"],
-                                            board.position(eat_cell))
-
-                                    update = True
-                                    game.process = "choose way"
+                            update = True
+                            game.process = "choose way"
 
                     elif game.process == "choose way":
 
@@ -223,7 +211,7 @@ def main():
                         elif tile_pos in eat:
                             for insect in game.insects:
                                 if insect.pos == tile_pos:
-                                    game.insects.remove(insect)
+                                    game.kill(insect, tile_insect)
 
                             # update tile before
                             board.tile(tile_insect.pos, None)
@@ -239,15 +227,6 @@ def main():
                             game.process = "choose insect"
 
                         board.reset_surface("ways_surface")
-
-                # prepare for next turn
-                if game.process == "next turn":
-
-                    # check if game is lost
-                    # removed it because it was not well done
-
-                    game.process = "choose insect"
-                    game.change_turn()
 
                 if update:
                     # draw the ways_surface

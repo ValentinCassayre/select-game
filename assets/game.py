@@ -4,12 +4,13 @@ Game class
 import pygame
 import assets.consts as c
 
+
 class Game:
     """
     Class used to clean the main.py and allow to store the data and say what to do
     """
 
-    def __init__(self):
+    def __init__(self, disp, board, textures):
         # variables and default state
         self.state_string = "menu"
         self.process_string = "choose insect"
@@ -35,7 +36,15 @@ class Game:
         return self.process_string
 
     def _set_process(self, process):
+
         self.process_string = process
+
+        # prepare for next turn
+        if self.process == "next turn":
+
+            self.process = "choose insect"
+            self.change_turn()
+
         self.update_name()
 
     # allow to store the data and use it in main properly
@@ -75,3 +84,20 @@ class Game:
         else:
             pygame.display.set_caption(c.GAME_NAME + bond +
                                        self.state_string.capitalize())
+
+    def select_insect(self, tile_pos):
+        """
+        select the insect if good color
+        """
+
+        # check any insect is on this tile
+        for insect in self.insects:
+
+            if insect.pos == tile_pos:
+                tile_insect = insect
+
+                # check if insect is owned by the player
+                if insect.color == self.turn:
+
+                    return tile_insect
+

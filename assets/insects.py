@@ -31,9 +31,6 @@ class Insect:
 
     pos = property(_get_position, _set_position)
 
-    def goto(self, new_pos):
-        self.position = new_pos
-
     def kill(self, insect_killed):
         self.position = insect_killed.pos
         insect_killed.killed()
