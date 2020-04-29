@@ -1,7 +1,8 @@
 """
 Game class
 """
-
+import pygame
+import assets.consts as c
 
 class Game:
     """
@@ -27,6 +28,7 @@ class Game:
 
     def _set_state(self, state):
         self.state_string = state
+        self.update_name()
 
     # process
     def _get_process(self):
@@ -34,6 +36,7 @@ class Game:
 
     def _set_process(self, process):
         self.process_string = process
+        self.update_name()
 
     # allow to store the data and use it in main properly
     state = property(_get_state, _set_state)  # indicate which state the game is in
@@ -57,3 +60,18 @@ class Game:
             self.turn = "black"
         elif self.turn == "black":
             self.turn = "white"
+        self.update_name()
+
+    def update_name(self):
+        """
+        update the window name
+        """
+        bond = " - "
+        if self.state_string == "game":
+            pygame.display.set_caption(c.GAME_NAME + bond +
+                                       "In " + self.state_string + bond +
+                                       self.turn.capitalize() + bond +
+                                       self.process_string.capitalize())
+        else:
+            pygame.display.set_caption(c.GAME_NAME + bond +
+                                       self.state_string.capitalize())

@@ -31,6 +31,15 @@ class Insect:
 
     pos = property(_get_position, _set_position)
 
+    def goto(self, new_pos):
+        self.position = new_pos
+
+    def kill(self, insect_killed):
+        self.position = insect_killed.pos
+        insect_killed.killed()
+
+    def killed(self):
+        del self
 
 class Bug(Insect):
     """
@@ -254,5 +263,116 @@ class Ant(Insect):
 
         # eat
         directions_eat = directions_way
+
+        return directions_way, directions_eat, False
+
+
+class Custom(Insect):
+    """
+    this is a bonus insect you can change parameters
+    """
+    def __init__(self, pos, color, path):
+        Insect.__init__(self, pos, color, path)
+        self.name = "custom"
+        self.full_name = self.name + "_" + self.color
+        self.pict = pygame.image.load(self.path + self.full_name + ".png")
+
+    def calc_directions(self):
+        # (ways, eat) both are directions list composed by direction
+
+        if self.color == "white":
+            # ways that mean the insect can only go if there is nobody on these tile
+            directions_way = []
+
+            # one of the direction the insect can go
+            # each direction is stopped by the first opponent they see
+            direction = []
+            for i in range(1, 2):  # -> range in which the insect can go
+                direction.append((self.a + i, self.b + i))
+            # add it to the other directions
+            directions_way.append(direction)
+
+            # other direction this insect can go
+            direction = []
+            for i in range(1, 3):
+                direction.append((self.a + i, self.b))
+            # add it to the other directions
+            directions_way.append(direction)
+
+            # other direction this insect can go
+            direction = []
+            for i in range(1, 3):
+                direction.append((self.a, self.b + i))
+            # add it to the other directions
+            directions_way.append(direction)
+
+            # eat that mean the insect can only go if there is an opponent on these tile
+            directions_eat = []
+
+            direction = []
+            for i in range(1, 2):  # -> range in which the insect can eat
+                direction.append((self.a - i, self.b - i))
+            # add it to the other directions
+            directions_eat.append(direction)
+
+            direction = []
+            for i in range(1, 3):  # -> range in which the insect can eat
+                direction.append((self.a - i, self.b))
+            # add it to the other directions
+            directions_eat.append(direction)
+
+            direction = []
+            for i in range(1, 3):  # -> range in which the insect can eat
+                direction.append((self.a, self.b - i))
+            # add it to the other directions
+            directions_eat.append(direction)
+
+        else:  # black
+
+            # ways that mean the insect can only go if there is nobody on these tile
+            directions_way = []
+
+            # one of the direction the insect can go
+            # each direction is stopped by the first opponent they see
+            direction = []
+            for i in range(1, 2):  # -> range in which the insect can go
+                direction.append((self.a - i, self.b - i))
+            # add it to the other directions
+            directions_way.append(direction)
+
+            # other direction this insect can go
+            direction = []
+            for i in range(1, 3):
+                direction.append((self.a - i, self.b))
+            # add it to the other directions
+            directions_way.append(direction)
+
+            # other direction this insect can go
+            direction = []
+            for i in range(1, 3):
+                direction.append((self.a, self.b - i))
+            # add it to the other directions
+            directions_way.append(direction)
+
+            # eat that mean the insect can only go if there is an opponent on these tile
+            directions_eat = []
+
+            direction = []
+            for i in range(1, 2):  # -> range in which the insect can eat
+                direction.append((self.a + i, self.b + i))
+            # add it to the other directions
+            directions_eat.append(direction)
+
+            direction = []
+            for i in range(1, 3):  # -> range in which the insect can eat
+                direction.append((self.a + i, self.b))
+            # add it to the other directions
+            directions_eat.append(direction)
+
+            direction = []
+            for i in range(1, 3):  # -> range in which the insect can eat
+                direction.append((self.a, self.b + i))
+            # add it to the other directions
+            directions_eat.append(direction)
 
         return directions_way, directions_eat, False

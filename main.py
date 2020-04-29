@@ -48,19 +48,20 @@ def main():
                      (Beetle, (1, 0), "white"), (Beetle, (0, 1), "white"),\
                      (Bee, (1, 1), "white"), (Bee, (2, 2), "white"),\
                      (Ant, (0, 0), "white"),\
-                     (Bug, (6, 9), "black"), (Bug, (6, 8), "black"), (Bug, (6, 7), "black"), \
+                     (Custom, (5, 5), "white"),\
+                     (Bug, (6, 9), "black"), (Bug, (6, 8), "black"), (Bug, (6, 7), "black"),\
                      (Bug, (9, 6), "black"), (Bug, (8, 6), "black"), (Bug, (7, 6), "black"), (Bug, (6, 6), "black"),\
                      (Locust, (7, 8), "black"), (Locust, (8, 7), "black"),\
                      (Spider, (7, 9), "black"), (Spider, (9, 7), "black"),\
-                     (Beetle, (9, 8), "black"), (Beetle, (8, 9), "black"), \
-                     (Bee, (8, 8), "black"), (Bee, (7, 7), "black"), \
-                     (Ant, (9, 9), "black"), \
+                     (Beetle, (9, 8), "black"), (Beetle, (8, 9), "black"),\
+                     (Bee, (8, 8), "black"), (Bee, (7, 7), "black"),\
+                     (Ant, (9, 9), "black"),\
 
     # creating the board for the first time
     textures.save_board(board.create_board(
         textures.colors["COLOR_TILE_OUTLINE"],
         textures.dflt["tile_1"],
-        textures.dflt["tile_1"],
+        textures.dflt["tile_2"],
         textures.dflt["tile_mask"]))
 
     game = Game()
