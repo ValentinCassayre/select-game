@@ -4,6 +4,7 @@ Stuff for displaying stuff
 
 import pygame
 
+import assets.consts as c
 from assets.insects import *
 from assets.textures import *
 
@@ -29,14 +30,17 @@ class PyDisp:
         """
         Create white background on the screen
         """
-        self.screen.fill(BACKGROUND_COLOR)
+        self.screen.fill(c.BACKGROUND_COLOR)
 
-    def draw_menu(self):
+    def draw_menu(self, title, sub_title1, sub_title2):
         """
         Draw the menu screen
         """
         # Need to add the menu textures
         self.draw_screen()
+        self.draw_surface(None, title, TITLE_POS)
+        self.draw_surface(None, sub_title1, SUB1_POS)
+        self.draw_surface(None, sub_title2, SUB2_POS)
 
     def draw_surface(self, image, surface, disp_pos, center=True):
         """

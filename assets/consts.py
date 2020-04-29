@@ -55,8 +55,17 @@ TURN_STATE = {"white": 0, "black": 1}
 ICON = 'assets/other/icon.png'
 
 # TEST COLORS
-BACKGROUND_COLOR = (255, 255, 255)
+BACKGROUND_COLOR = (200, 200, 200)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)
 GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
+
+# TEXT PLACEMENTS
+TITLE_POS = (X_MID, Y_SIZE//2.5)
+SUB1_POS = (X_MID, Y_SIZE/2)
+SUB2_POS = (X_MID, Y_SIZE/1.5)
+
+# TEXTS
+SUB1 = "Game made by Valentin Cassayre"
+SUB2 = "Press SPACE to play"

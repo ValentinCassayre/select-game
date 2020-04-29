@@ -12,9 +12,9 @@ except ModuleNotFoundError:
     os.system("pause")
     exit()
 
-from assets.consts import *
+import assets.consts as c
 from assets.display import PyDisp, Board
-from assets.insects import *
+from assets.insects import Bug, Locust, Spider, Beetle, Bee, Ant, Custom
 from assets.textures import Textures
 from assets.game import Game
 
@@ -72,7 +72,7 @@ def main():
         if game.loop and game.state == "menu":
             # initialize the menu
             # use disp class to draw the menu page
-            disp.draw_menu()
+            disp.draw_menu(textures.dflt["menu_title"], textures.dflt["menu_sub_1"], textures.dflt["menu_sub_2"])
             # update the screen
             pygame.display.flip()
 
@@ -96,12 +96,13 @@ def main():
                             game.state = "game"
 
                 # limit the frame rate
-                disp.clock.tick(FPS)
+                disp.clock.tick(c.FPS)
 
         # game
         if game.loop and game.state == "game":
 
-            disp.draw_surface(disp.screen, textures.dflt["board"], CENTER, False)
+            disp.draw_screen()
+            disp.draw_surface(disp.screen, textures.dflt["board"], c.CENTER, False)
 
             # initialize the game
             if not game.started:
@@ -126,7 +127,7 @@ def main():
             while game.loop and game.state == "game":
 
                 # limit the frame rate
-                disp.clock.tick(FPS)
+                disp.clock.tick(c.FPS)
 
                 # get the position of the mouse
                 x, y = pygame.mouse.get_pos()
@@ -250,9 +251,9 @@ def main():
 
                 if update:
                     # draw the ways_surface
-                    disp.draw_surface(disp.screen, board.ways_surface, CENTER, False)
+                    disp.draw_surface(disp.screen, board.ways_surface, c.CENTER, False)
                     # draw the mouse tile pos
-                    disp.draw_surface(disp.screen, board.mouse_interaction_surface, CENTER, False)
+                    disp.draw_surface(disp.screen, board.mouse_interaction_surface, c.CENTER, False)
 
                     # draw the insects
                     for insect in game.insects:
@@ -260,10 +261,10 @@ def main():
 
                     # update
                     pygame.display.flip()
-                    disp.clock.tick(FPS)
+                    disp.clock.tick(c.FPS)
 
                     # draw the board to erase old position of the insects for the next update
-                    disp.draw_surface(disp.screen, textures.dflt["board"], MIDDLE)
+                    disp.draw_surface(disp.screen, textures.dflt["board"], c.MIDDLE)
 
                     # reset
                     update = False

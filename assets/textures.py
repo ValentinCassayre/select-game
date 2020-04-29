@@ -3,6 +3,7 @@ Stuff for displaying stuff
 """
 
 from pygame import gfxdraw
+import os
 
 from assets.consts import *
 from assets.display import *
@@ -22,8 +23,11 @@ class Textures:
         self.insect_path = None
         self.import_colors()
 
+        self.font = self.create_font()
+
         self.dflt = {}
-        for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat"]:
+        for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat",
+                     "menu_title", "menu_sub_1", "menu_sub_2"]:
             self.dflt[name] = self.create_dflt(name)
 
     def import_colors(self):
@@ -74,6 +78,14 @@ class Textures:
                 image = self.draw_tile(self.colors["COLOR_TILE_EAT"]).convert_alpha()
             elif name.endswith("mask"):
                 image = self.draw_tile(BLACK).convert_alpha()
+
+        if name.startswith("menu"):
+            if name.endswith("title"):
+                image = self.font["menu title"].render(GAME_NAME, True, self.colors["COLOR_TILE_2"])
+            elif name.endswith("sub_1"):
+                image = self.font["menu sub 1"].render(SUB1, True, self.colors["COLOR_TILE_1"])
+            elif name.endswith("sub_2"):
+                image = self.font["menu sub 2"].render(SUB2, True, self.colors["COLOR_TEXT_1"])
 
         if image != None:
             pygame.image.save(image, "assets/screenshots/" + name + ".png")
@@ -144,7 +156,8 @@ class Textures:
         image = self.draw_hexagon(image, color, rect, RADIUS)
         return image
 
-    def draw_insect(self, path, radius=RADIUS, unit=UNIT):
+    @staticmethod
+    def draw_insect(path, radius=RADIUS, unit=UNIT):
         """
         Draw the insects
         """
@@ -157,3 +170,13 @@ class Textures:
         # if image come from an png
         image = pygame.image.load(path).convert_alpha()
         return image
+
+    @staticmethod
+    def create_font():
+        fonts = {}
+        font_path = os.path.join("assets/fonts", "mysteron.ttf")
+        font_size = 20
+        fonts["menu title"] = pygame.font.Font(font_path, round(font_size * 6))
+        fonts["menu sub 1"] = pygame.font.Font(font_path, round(font_size * 2))
+        fonts["menu sub 2"] = pygame.font.Font(font_path, round(font_size * 1.6))
+        return fonts
