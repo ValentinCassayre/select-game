@@ -60,9 +60,9 @@ def main():
     # creating the board for the first time
     textures.save_board(board.create_board(
         textures.colors["COLOR_TILE_OUTLINE"],
-        textures.dflt["tile_1"],
-        textures.dflt["tile_2"],
-        textures.dflt["tile_mask"]))
+        textures.game["tile_1"],
+        textures.game["tile_2"],
+        textures.game["tile_mask"]))
 
     game = Game(disp, board, textures)
 
@@ -160,7 +160,7 @@ def main():
                                 board.reset_surface("mouse_interaction_surface")
                                 disp.draw_surface(
                                     board.mouse_interaction_surface,
-                                    textures.dflt["tile_overview"],
+                                    textures.game["tile_overview"],
                                     disp_pos)
 
                                 update = True
@@ -187,13 +187,13 @@ def main():
                             for way_cell in ways:
                                 disp.draw_surface(
                                     board.ways_surface,
-                                    textures.dflt["tile_way"],
+                                    textures.game["tile_way"],
                                     board.position(way_cell))
 
                             for eat_cell in eat:
                                 disp.draw_surface(
                                     board.ways_surface,
-                                    textures.dflt["tile_eat"],
+                                    textures.game["tile_eat"],
                                     board.position(eat_cell))
 
                             update = True
@@ -211,7 +211,7 @@ def main():
                         elif tile_pos in eat:
                             for insect in game.insects:
                                 if insect.pos == tile_pos:
-                                    game.kill(insect, tile_insect)
+                                    game.insects.remove(insect)
 
                             # update tile before
                             board.tile(tile_insect.pos, None)

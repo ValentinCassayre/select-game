@@ -101,3 +101,10 @@ class Game:
 
                     return tile_insect
 
+    def run(self):
+        """
+        run the game
+        """
+
+        pass
+
