@@ -13,6 +13,7 @@ except ModuleNotFoundError:
     exit()
 
 import assets.consts as c
+from assets.events import Events
 from assets.display import PyDisp, Board
 from assets.insects import Bug, Locust, Spider, Beetle, Bee, Ant, Custom
 from assets.textures import Textures
@@ -24,6 +25,7 @@ def main():
     pygame.init()
 
     # importing the classes
+    events = Events
     disp = PyDisp()
     board = Board()
     textures = Textures()  # create all the textures
@@ -71,6 +73,7 @@ def main():
         # menu
         if game.loop and game.state == "menu":
             # initialize the menu
+
             # use disp class to draw the menu page
             disp.draw_menu(textures.dflt["menu_title"], textures.dflt["menu_sub_1"], textures.dflt["menu_sub_2"])
             # update the screen
@@ -78,22 +81,14 @@ def main():
 
             while game.loop and game.state == "menu":
 
-                for event in pygame.event.get():
+                # check events
+                event = events.check_ev()
 
-                    # normal closing
-                    if event.type == pygame.QUIT:
-                        game.stop()
+                if event in ["leave", "escape"]:
+                    game.stop()
 
-                    # check keyboard and mouse
-                    elif event.type == pygame.KEYDOWN:
-
-                        # close windows
-                        if event.key == pygame.K_ESCAPE:
-                            game.stop()
-
-                        # enter game
-                        if event.key in [pygame.K_RETURN, pygame.K_SPACE, pygame.K_KP_ENTER]:
-                            game.state = "game"
+                if event in ["space", "enter"]:
+                    game.state = "game"
 
                 # limit the frame rate
                 disp.clock.tick(c.FPS)
