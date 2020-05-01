@@ -8,7 +8,7 @@ import os
 try:
     import pygame
 except ModuleNotFoundError:
-    print("- Missing pygame module, try pip install pygame")
+    print("- Missing Pygame module, try pip install Pygame")
     os.system("pause")
     exit()
 
@@ -29,19 +29,11 @@ def main():
     disp = PyDisp()
     board = Board()
     textures = Textures()  # create all the textures
+    game = Game(board)
 
     # variables
     # booleans
     update = True
-    click = False
-    # lists
-    ways = []
-    eat = []
-
-    # other
-    insect = None
-    tile_insect = None
-    tile_pos = None
 
     initial_layout = (Bug, (0, 3), "white"), (Bug, (1, 3), "white"), (Bug, (2, 3), "white"),\
                      (Bug, (3, 0), "white"), (Bug, (3, 1), "white"), (Bug, (3, 2), "white"), (Bug, (3, 3), "white"),\
@@ -64,8 +56,6 @@ def main():
         textures.game["tile_1"],
         textures.game["tile_2"],
         textures.game["tile_mask"]))
-
-    game = Game(disp, board, textures)
 
     # loop while game is open
     while game.loop:
@@ -142,6 +132,8 @@ def main():
                     # importing insect texture
                     textures.save_insect(insect.full_name, insect.pict)
 
+                game.update_ways()
+
             # real game main loop
             while game.loop and game.state == "game":
 
@@ -161,67 +153,22 @@ def main():
 
                     if touched_mask[3] == "tile":
 
-                        update, tile_pos = board.draw_tile_overview(touched_mask, textures)
+                        update, game.tile_pos = board.draw_tile_overview(touched_mask, textures)
 
                 # act after a click
                 if click:
-                    click = False
 
                     if game.process == "choose insect":
 
-                        # return the object of the tile insect if the insect can be selected
-                        tile_insect = game.select_insect(tile_pos)
-
-                        # check is something has been selected
-                        if tile_insect is not None:
-
-                            ways, eat = board.check_tiles(tile_insect)
-
-                            for way_cell in ways:
-                                disp.draw_surface(
-                                    board.ways_surface,
-                                    textures.game["tile_way"],
-                                    board.position(way_cell))
-
-                            for eat_cell in eat:
-                                disp.draw_surface(
-                                    board.ways_surface,
-                                    textures.game["tile_eat"],
-                                    board.position(eat_cell))
-
-                            update = True
-                            game.process = "choose way"
+                        update = game.choose_insect(board, textures)
 
                     elif game.process == "choose way":
 
-                        if tile_pos in ways:
-                            board.tile(tile_insect.pos, None)
-                            tile_insect.pos = tile_pos
-                            board.tile(tile_insect.pos, tile_insect)
-                            update = True
-                            game.process = "next turn"
-
-                        elif tile_pos in eat:
-                            for insect in game.insects:
-                                if insect.pos == tile_pos:
-                                    game.insects.remove(insect)
-
-                            # update tile before
-                            board.tile(tile_insect.pos, None)
-                            # move insect
-                            tile_insect.pos = tile_pos
-                            # update tile after
-                            board.tile(tile_insect.pos, tile_insect)
-                            update = True
-                            game.process = "next turn"
-
-                        else:
-                            update = True
-                            game.process = "choose insect"
-
-                        board.reset_surface("ways_surface")
+                        update = game.choose_way(board, textures)
 
                 if update:
+                    # update the screen
+
                     # draw the ways_surface
                     disp.draw_surface(disp.screen, board.ways_surface, c.CENTER, False)
                     # draw the mouse tile pos
@@ -248,28 +195,6 @@ def main():
             """
             # temporary close
             game.stop()
-
-
-def calc_ways(lists, insect_list, turn):
-    ways, eat = lists
-    ways2 = []
-    eat2 = []
-
-    # remove all ways_surface that are not possible
-    for cell in ways:
-        if cell in map(lambda ins: ins.pos, insect_list):
-            # another insect is on this tile so it cant go
-            pass
-        else:
-            ways2.append(cell)
-
-    # check if he can eat insects around
-    for cell in eat:
-        for insect in insect_list:
-            # another insect is on this tile so it can eat it
-            if insect.pos == cell and insect.color != turn:
-                eat2.append(cell)
-    return ways2, eat2
 
 
 # everything starts here

@@ -10,17 +10,26 @@ class Game:
     Class used to clean the main.py and allow to store the data and say what to do
     """
 
-    def __init__(self, disp, board, textures):
+    def __init__(self, board):
         # variables and default state
         self.state_string = "menu"
         self.process_string = "choose insect"
 
         self.turn = "white"
 
+        self.color_dict = {"white": 0, "black": 1}
+
         self.loop = True  # main loop
         self.started = False  # game started ?
 
         self.insect_list = []
+        self.ways_list = []
+        self.eat_list = []
+
+        self.tile_pos = None
+        self.tile_insect = None
+
+        self.board = board
 
     # strings
     # state
@@ -70,6 +79,7 @@ class Game:
         elif self.turn == "black":
             self.turn = "white"
         self.update_name()
+        self.update_ways()
 
     def update_name(self):
         """
@@ -111,3 +121,78 @@ class Game:
     def start(self):
         pass
 
+    def update_ways(self):
+        """
+        update all the possible ways the insects can go
+        """
+
+        total_ways = [0, 0]
+
+        for insect in self.insect_list:
+            ways, eat = self.board.check_tiles(insect)
+            insect.update_directions((ways, eat))
+
+            total_ways[self.color_dict[insect.color]] = total_ways[self.color_dict[insect.color]] + len(ways) + len(eat)
+
+        # check if the one who needs to play can play
+        if total_ways[self.color_dict[self.turn]] == 0:
+            print("Game stopped ! {} cannot move".format(self.turn))
+            self.stop()
+
+    def choose_insect(self, board, textures):
+        # return the object of the tile insect if the insect can be selected
+        self.tile_insect = self.select_insect(self.tile_pos)
+
+        update = False
+
+        # check is something has been selected
+        if self.tile_insect is not None:
+
+            ways, eat = self.tile_insect.ways, self.tile_insect.eat
+
+            for way_cell in ways:
+                board.draw_surface(
+                    board.ways_surface,
+                    textures.game["tile_way"],
+                    board.position(way_cell))
+
+            for eat_cell in eat:
+                board.draw_surface(
+                    board.ways_surface,
+                    textures.game["tile_eat"],
+                    board.position(eat_cell))
+
+            update = True
+            self.process = "choose way"
+
+        return update
+
+    def choose_way(self, board, textures):
+
+        if self.tile_pos in self.tile_insect.ways:
+            board.tile(self.tile_insect.pos, None)
+            self.tile_insect.pos = self.tile_pos
+            board.tile(self.tile_insect.pos, self.tile_insect)
+            update = True
+            self.process = "next turn"
+
+        elif self.tile_pos in self.tile_insect.eat:
+            for insect in self.insects:
+                if insect.pos == self.tile_pos:
+                    self.insects.remove(insect)
+
+            # update tile before
+            board.tile(self.tile_insect.pos, None)
+            # move insect
+            self.tile_insect.pos = self.tile_pos
+            # update tile after
+            board.tile(self.tile_insect.pos, self.tile_insect)
+            update = True
+            self.process = "next turn"
+
+        else:
+            update = True
+            self.process = "choose insect"
+
+        board.reset_surface("ways_surface")
+        return update

@@ -38,6 +38,10 @@ class Insect:
     def killed(self):
         del self
 
+    def update_directions(self, new_dir):
+        self.ways, self.eat = new_dir
+
+
 class Bug(Insect):
     """
     the smallest insect
