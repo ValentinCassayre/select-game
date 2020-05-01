@@ -108,3 +108,6 @@ class Game:
 
         pass
 
+    def start(self):
+        pass
+

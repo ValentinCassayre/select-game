@@ -26,21 +26,67 @@ class PyDisp:
         # Create the clock used to control the frame rate
         self.clock = pygame.time.Clock()
 
+        self.menu_but_masks = []
+
+    def mask_hexagon(self, mask_surface, disp_pos, type, b_pos=None):
+        """
+        create and return the mask of a tile with the position of the tile in the display and not in the board
+        """
+        x, y = disp_pos
+        tile_rect = mask_surface.get_rect(center=(x, y))
+        # place mask itself
+        tile_mask = pygame.mask.from_surface(mask_surface)
+        return tile_rect, tile_mask, (x, y), type, b_pos
+
     def draw_screen(self):
         """
         Create white background on the screen
         """
         self.screen.fill(c.BACKGROUND_COLOR)
 
-    def draw_menu(self, title, sub_title1, sub_title2):
+    def draw_menu(self, textures):
         """
         Draw the menu screen
         """
         # Need to add the menu textures
         self.draw_screen()
-        self.draw_surface(None, title, TITLE_POS)
-        self.draw_surface(None, sub_title1, SUB1_POS)
-        self.draw_surface(None, sub_title2, SUB2_POS)
+        text_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
+        bg = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
+
+        r = 128
+        u = math.sqrt(5)*r/2
+
+        for i in range(7):
+            for j in range(-2, 5):
+                text = None
+                x = 80 + (i * 3 * r / 2 - j * 3 * r / 2) * 1.2
+                y = 40 + (i * u / 2 + j * u / 2) * 1.2
+                if (i, j) == (3, 1):
+                    self.draw_surface(bg, textures.dflt["button"], (x, y))
+                    text = textures.font["menu sub 2"].render("Tutorial", True, textures.colors["COLOR_TEXT_1"])
+                    self.menu_but_masks.append(self.mask_hexagon(textures.dflt["button"], (x, y), "but_1"))
+                elif (i, j) == (3, 2):
+                    self.draw_surface(bg, textures.dflt["button"], (x, y))
+                    text = textures.font["menu sub 2"].render("Play offline", True, textures.colors["COLOR_TEXT_1"])
+                    self.menu_but_masks.append(self.mask_hexagon(textures.dflt["button"], (x, y), "but_2"))
+                elif (i, j) == (4, 1):
+                    self.draw_surface(bg, textures.dflt["button"], (x, y))
+                    text = textures.font["menu sub 2"].render("Play online", True, textures.colors["COLOR_TEXT_1"])
+                    self.menu_but_masks.append(self.mask_hexagon(textures.dflt["button"], (x, y), "but_3"))
+                elif (i, j) == (4, 2):
+                    self.draw_surface(bg, textures.dflt["button"], (x, y))
+                    text = textures.font["menu sub 2"].render("Settings", True, textures.colors["COLOR_TEXT_1"])
+                    self.menu_but_masks.append(self.mask_hexagon(textures.dflt["button"], (x, y), "but_4"))
+                else:
+                    self.draw_surface(bg, textures.dflt["bg_hex"], (x, y))
+
+                if text is not None:
+                    self.draw_surface(text_surface, text, (x, y))
+
+        self.draw_surface(text_surface, textures.dflt["menu_title"], TITLE_POS)
+        self.draw_surface(text_surface, textures.dflt["menu_sub_1"], SUB1_POS)
+
+        return self.menu_but_masks, bg, text_surface
 
     def draw_surface(self, image, surface, disp_pos, center=True):
         """
@@ -54,6 +100,10 @@ class PyDisp:
         else:
             image.blit(surface, (x, y))
         return image
+
+    def draw_surfaces(self, surface_list):
+        for surface in surface_list:
+            self.draw_surface(None, surface, CENTER, False)
 
 
 class Board(PyDisp):
@@ -85,16 +135,6 @@ class Board(PyDisp):
         self.last_tile_pos = pos
 
     last_tile = property(_get_last_tile, _set_last_tile)
-
-    def mask_hexagon(self, mask_surface, b_pos):
-        """
-        create and return the mask of a tile with the position of the tile in the display and not in the board
-        """
-        x, y = self.position(b_pos)
-        tile_rect = mask_surface.get_rect(center=(x, y))
-        # place mask itself
-        tile_mask = pygame.mask.from_surface(mask_surface)
-        return tile_rect, tile_mask, (x, y), b_pos
 
     def position(self, b_pos, xo=B_XO, yo=B_YO):
         """
@@ -137,7 +177,7 @@ class Board(PyDisp):
                     self.disp_list.append(disp_pos)
 
                     # create masks to detect if the mouse interact with the tiles
-                    self.mask_list.append(self.mask_hexagon(tile_mask, cell))
+                    self.mask_list.append(self.mask_hexagon(tile_mask, disp_pos, "tile", b_pos=cell))
 
                     # create dict of all the states of the cells, by default False (no insect on it)
                     self.tile_state.update({cell: None})
@@ -196,3 +236,22 @@ class Board(PyDisp):
             self.ways_surface = pygame.Surface(SCREEN_SIZE, pygame.SRCALPHA, 32)
         else:
             print("Error")
+
+    def draw_tile_overview(self, mask_infos, textures):
+
+        update = False
+        disp_pos = mask_infos[2]
+        tile_pos = mask_infos[4]
+
+        # check if the tile is a new tile, else no update of the screen
+        if self.last_tile != mask_infos[4]:
+            self.reset_surface("mouse_interaction_surface")
+            self.draw_surface(
+                self.mouse_interaction_surface,
+                textures.game["tile_overview"],
+                disp_pos)
+
+            update = True
+        self.last_tile_pos = mask_infos[4]
+
+        return update, tile_pos

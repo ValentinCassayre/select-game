@@ -28,7 +28,7 @@ class Textures:
         self.game = {}
 
         self.dflt = {}
-        for name in ["menu_title", "menu_sub_1", "menu_sub_2"]:
+        for name in ["menu_title", "menu_sub_1", "menu_sub_2", "button", "button_overlay", "bg_hex"]:
             self.dflt[name] = self.create_dflt(name)
 
         for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat"]:
@@ -75,6 +75,15 @@ class Textures:
             elif name.endswith("sub_2"):
                 image = self.font["menu sub 2"].render(SUB2, True, self.colors["COLOR_TEXT_1"])
 
+        if name == "button":
+            image = self.draw_tile(self.colors["BUTTON"], radius=128, unit=math.sqrt(5)*128/2, mult=1)
+
+        if name == "button_overlay":
+            image = self.draw_tile(self.colors["COLOR_TILE_OVERVIEW"], radius=128, unit=math.sqrt(5)*128/2, mult=1)
+
+        if name == "bg_hex":
+            image = self.draw_tile(self.colors["BG2"], radius=128, unit=math.sqrt(5) * 128 / 2, mult=1)
+
         if image is not None:
             pygame.image.save(image, "assets/screenshots/" + name + ".png")
             return image
@@ -104,7 +113,7 @@ class Textures:
 
 
     def save_board(self, board):
-        self.dflt["board"] = board.convert_alpha()
+        self.game["board"] = board.convert_alpha()
         pygame.image.save(board, "assets/screenshots/board.png")
 
     def save_insect(self, insect_full_name, insect):

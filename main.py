@@ -50,7 +50,6 @@ def main():
                      (Beetle, (1, 0), "white"), (Beetle, (0, 1), "white"),\
                      (Bee, (1, 1), "white"), (Bee, (2, 2), "white"),\
                      (Ant, (0, 0), "white"),\
-                     (Custom, (5, 5), "white"),\
                      (Bug, (6, 9), "black"), (Bug, (6, 8), "black"), (Bug, (6, 7), "black"),\
                      (Bug, (9, 6), "black"), (Bug, (8, 6), "black"), (Bug, (7, 6), "black"), (Bug, (6, 6), "black"),\
                      (Locust, (7, 8), "black"), (Locust, (8, 7), "black"),\
@@ -72,23 +71,52 @@ def main():
     while game.loop:
         # menu
         if game.loop and game.state == "menu":
-            # initialize the menu
 
+            # initialize the menu
             # use disp class to draw the menu page
-            disp.draw_menu(textures.dflt["menu_title"], textures.dflt["menu_sub_1"], textures.dflt["menu_sub_2"])
+            menu_masks, bg_surface, texts_surface = disp.draw_menu(textures)
+            button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
             # update the screen
             pygame.display.flip()
+
+            last_touched_mask = None
 
             while game.loop and game.state == "menu":
 
                 # check events
-                event = events.check_ev()
+                event, mask_touching, click = events.check(menu_masks)
 
                 if event in ["leave", "escape"]:
                     game.stop()
 
                 if event in ["space", "enter"]:
                     game.state = "game"
+
+                for touched_mask in mask_touching:
+
+                    if touched_mask[3].startswith("but"):
+
+                        if click:
+                            if touched_mask[3] == "but_1":
+                                pass
+                            elif touched_mask[3] == "but_2":
+                                game.state = "game"
+                            elif touched_mask[3] == "but_3":
+                                pass
+                            elif touched_mask[3] == "but_3":
+                                pass
+
+                        elif last_touched_mask is not touched_mask[3]:
+                            button = disp.draw_surface(button, textures.dflt["button_overlay"], touched_mask[2])
+                            update = True
+                            last_touched_mask = touched_mask[3]
+
+                if update:
+
+                    disp.draw_surfaces([bg_surface, button, texts_surface])
+                    button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+                    pygame.display.flip()
+                    update = False
 
                 # limit the frame rate
                 disp.clock.tick(c.FPS)
@@ -97,7 +125,8 @@ def main():
         if game.loop and game.state == "game":
 
             disp.draw_screen()
-            disp.draw_surface(disp.screen, textures.dflt["board"], c.CENTER, False)
+            disp.draw_surface(disp.screen, textures.game["board"], c.CENTER, False)
+            update = True
 
             # initialize the game
             if not game.started:
@@ -119,51 +148,20 @@ def main():
                 # limit the frame rate
                 disp.clock.tick(c.FPS)
 
-                # get the position of the mouse
-                x, y = pygame.mouse.get_pos()
+                # find the event
+                event, mask_touching, click = events.check(mask_list=board.mask_list)
 
-                # get all events
-                ev = pygame.event.get()
+                if event == "leave":
+                    game.stop()
 
-                # check them all one by one
-                for event in ev:
+                if event == "escape":
+                    game.state = "interrupt"
 
-                    # click on close tab
-                    if event.type == pygame.QUIT:
-                        # stop the script
-                        game.stop()
+                for touched_mask in mask_touching:
 
-                    # check keyboard
-                    elif event.type == pygame.KEYDOWN:
-                        # escape button is pressed
-                        if event.key == pygame.K_ESCAPE:
-                            # interrupt mode (pause)
-                            game.state = "interrupt"
+                    if touched_mask[3] == "tile":
 
-                    # check mouse
-                    for tile in board.mask_list:
-                        # tile[n] : 0 rect 1 mask 2 disp pos 3 board pos
-                        pos_in_mask = x - tile[0].x, y - tile[0].y
-                        touching = tile[0].collidepoint(*(x, y)) and tile[1].get_at(pos_in_mask)
-
-                        if touching:
-                            disp_pos = tile[2]
-                            tile_pos = tile[3]
-
-                            # check if the tile is a new tile, else no update of the screen
-                            if board.last_tile != tile[3]:
-                                board.reset_surface("mouse_interaction_surface")
-                                disp.draw_surface(
-                                    board.mouse_interaction_surface,
-                                    textures.game["tile_overview"],
-                                    disp_pos)
-
-                                update = True
-                            board.last_tile = tile[3]
-
-                            if event.type == pygame.MOUSEBUTTONDOWN:
-                                # tile clicked
-                                click = True
+                        update, tile_pos = board.draw_tile_overview(touched_mask, textures)
 
                 # act after a click
                 if click:
@@ -238,7 +236,7 @@ def main():
                     disp.clock.tick(c.FPS)
 
                     # draw the board to erase old position of the insects for the next update
-                    disp.draw_surface(disp.screen, textures.dflt["board"], c.MIDDLE)
+                    disp.draw_surface(disp.screen, textures.game["board"], c.MIDDLE)
 
                     # reset
                     update = False
