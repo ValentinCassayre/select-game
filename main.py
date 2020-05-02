@@ -4,6 +4,7 @@ Github : https://github.com/V-def/select-game
 """
 
 import os
+import webbrowser
 
 try:
     import pygame
@@ -52,7 +53,7 @@ def main():
 
     # creating the board for the first time
     textures.save_board(board.create_board(
-        textures.colors["COLOR_TILE_OUTLINE"],
+        textures.colors["tile_outline"],
         textures.game["tile_1"],
         textures.game["tile_2"],
         textures.game["tile_mask"]))
@@ -93,8 +94,12 @@ def main():
                                 game.state = "game"
                             elif touched_mask[3] == "but_3":
                                 pass
-                            elif touched_mask[3] == "but_3":
+                            elif touched_mask[3] == "but_4":
                                 pass
+                            elif touched_mask[3] == "but_5":
+                                webbrowser.open('http://valentin.cassayre.me/select')
+                            elif touched_mask[3] == "but_6":
+                                webbrowser.open('https://github.com/V-def/select-game')
 
                         elif last_touched_mask is not touched_mask[3]:
                             button = disp.draw_surface(button, textures.dflt["button_overlay"], touched_mask[2])
@@ -103,6 +108,7 @@ def main():
 
                 if update:
 
+                    disp.draw_screen()
                     disp.draw_surfaces([bg_surface, button, texts_surface])
                     button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
                     pygame.display.flip()

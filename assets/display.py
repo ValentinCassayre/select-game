@@ -56,32 +56,29 @@ class PyDisp:
         r = 128
         u = math.sqrt(5)*r/2
 
-        for i in range(7):
-            for j in range(-2, 5):
-                text = None
-                x = 80 + (i * 3 * r / 2 - j * 3 * r / 2) * 1.2
-                y = 40 + (i * u / 2 + j * u / 2) * 1.2
-                if (i, j) == (3, 1):
+        for i in range(-3, 4):
+            for j in range(-3, 4):
+
+                text_str = None
+                n = 0
+                x = X_MID + (i * 3 * r / 2 - j * 3 * r / 2) * 1.2
+                y = Y_MID + (i * u / 2 + j * u / 2) * 1.2
+
+                for k, pos in enumerate([(0, 1), (0, 0), (1, 1), (1, 0), (1, 2), (2, 1)]):
+                    if (i, j) == pos:
+                        n = k+1
+                        text_str = ["Tutorial", "Play offline", "Play online", "Settings", "More infos", "Git Hub"][k]
+                        continue
+
+                if n > 0:
+                    but_tag = "but_" + str(n)
                     self.draw_surface(bg, textures.dflt["button"], (x, y))
-                    text = textures.font["menu sub 2"].render("Tutorial", True, textures.colors["COLOR_TEXT_1"])
-                    self.menu_but_masks.append(self.mask_hexagon(textures.dflt["button"], (x, y), "but_1"))
-                elif (i, j) == (3, 2):
-                    self.draw_surface(bg, textures.dflt["button"], (x, y))
-                    text = textures.font["menu sub 2"].render("Play offline", True, textures.colors["COLOR_TEXT_1"])
-                    self.menu_but_masks.append(self.mask_hexagon(textures.dflt["button"], (x, y), "but_2"))
-                elif (i, j) == (4, 1):
-                    self.draw_surface(bg, textures.dflt["button"], (x, y))
-                    text = textures.font["menu sub 2"].render("Play online", True, textures.colors["COLOR_TEXT_1"])
-                    self.menu_but_masks.append(self.mask_hexagon(textures.dflt["button"], (x, y), "but_3"))
-                elif (i, j) == (4, 2):
-                    self.draw_surface(bg, textures.dflt["button"], (x, y))
-                    text = textures.font["menu sub 2"].render("Settings", True, textures.colors["COLOR_TEXT_1"])
-                    self.menu_but_masks.append(self.mask_hexagon(textures.dflt["button"], (x, y), "but_4"))
+                    text = textures.font["menu button"].render(text_str, True, textures.colors["button_text"])
+                    self.menu_but_masks.append(self.mask_hexagon(textures.dflt["button"], (x, y), but_tag))
+                    self.draw_surface(text_surface, text, (x, y))
+
                 else:
                     self.draw_surface(bg, textures.dflt["bg_hex"], (x, y))
-
-                if text is not None:
-                    self.draw_surface(text_surface, text, (x, y))
 
         self.draw_surface(text_surface, textures.dflt["menu_title"], TITLE_POS)
         self.draw_surface(text_surface, textures.dflt["menu_sub_1"], SUB1_POS)
@@ -189,9 +186,12 @@ class Board(PyDisp):
         """
         self.tile_state.update({b_pos: insect})
 
-    def check_tiles(self, insect_moving):
+    def check_tiles(self, insect_moving, tile_state=None):
         ways = []
         eats = []
+
+        if tile_state is None:
+            tile_state = self.tile_state
 
         ant_attacked = None
 
@@ -203,12 +203,12 @@ class Board(PyDisp):
             while cond is True and i < len(direction):
                 cell = direction[i]
                 if cell in self.pos_list:
-                    if self.tile_state[direction[i]] is None:
+                    if tile_state[direction[i]] is None:
                         ways.append(direction[i])
                         i = i + 1
-                    elif eat_last is True and self.tile_state[direction[i]].color != insect_moving.color:
-                        if self.tile_state[direction[i]].king:
-                            ant_attacked = self.tile_state[direction[i]]
+                    elif eat_last is True and tile_state[direction[i]].color != insect_moving.color:
+                        if tile_state[direction[i]].king:
+                            ant_attacked = tile_state[direction[i]]
                         else:
                             eats.append(direction[i])
                         cond = False
@@ -223,10 +223,10 @@ class Board(PyDisp):
             while cond is True and i < len(direction):
                 cell = direction[i]
                 if cell in self.pos_list:
-                    insect_on_way = self.tile_state[direction[i]]
+                    insect_on_way = tile_state[direction[i]]
                     if insect_on_way is not None and insect_on_way.color != insect_moving.color:
-                        if self.tile_state[direction[i]].king:
-                            ant_attacked = self.tile_state[direction[i]]
+                        if tile_state[direction[i]].king:
+                            ant_attacked = tile_state[direction[i]]
                         else:
                             eats.append(direction[i])
                         i = i + 1
@@ -236,6 +236,17 @@ class Board(PyDisp):
                     cond = False
 
         return ways, eats, ant_attacked
+
+    def check_tile_move(self, insect_moving, new_pos):
+        """
+        check if the insect can go on this tile without his ant beeing attacked
+        """
+        # create a copy of the actual board pos
+        temp_board = self.tile_state
+        # replacing pos on this copy
+        temp_board[insect_moving.pos] = None
+        temp_board[new_pos] = insect_moving
+        self.check_tiles(insect_moving, temp_board)
 
     def reset_surface(self, name):
         if name == "mouse_interaction_surface":

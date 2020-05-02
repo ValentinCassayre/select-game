@@ -28,7 +28,7 @@ class Textures:
         self.game = {}
 
         self.dflt = {}
-        for name in ["menu_title", "menu_sub_1", "menu_sub_2", "button", "button_overlay", "bg_hex"]:
+        for name in ["menu_title", "menu_sub_1", "button", "button_overlay", "bg_hex"]:
             self.dflt[name] = self.create_dflt(name)
 
         for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat"]:
@@ -69,20 +69,18 @@ class Textures:
 
         if name.startswith("menu"):
             if name.endswith("title"):
-                image = self.font["menu title"].render(GAME_NAME, True, self.colors["COLOR_TILE_2"])
+                image = self.font["menu title"].render(GAME_NAME, True, self.colors["tile_2"])
             elif name.endswith("sub_1"):
-                image = self.font["menu sub 1"].render(SUB1, True, self.colors["COLOR_TILE_1"])
-            elif name.endswith("sub_2"):
-                image = self.font["menu sub 2"].render(SUB2, True, self.colors["COLOR_TEXT_1"])
+                image = self.font["menu sub 1"].render(SUB1, True, self.colors["tile_1"])
 
         if name == "button":
-            image = self.draw_tile(self.colors["BUTTON"], radius=128, unit=math.sqrt(5)*128/2, mult=1)
+            image = self.draw_tile(self.colors["button"], radius=128, unit=math.sqrt(5)*128/2, mult=1)
 
         if name == "button_overlay":
-            image = self.draw_tile(self.colors["COLOR_TILE_OVERVIEW"], radius=128, unit=math.sqrt(5)*128/2, mult=1)
+            image = self.draw_tile(self.colors["button_overview"], radius=128, unit=math.sqrt(5)*128/2, mult=1)
 
         if name == "bg_hex":
-            image = self.draw_tile(self.colors["BG2"], radius=128, unit=math.sqrt(5) * 128 / 2, mult=1)
+            image = self.draw_tile(self.colors["background_2"], radius=128, unit=math.sqrt(5) * 128 / 2, mult=1)
 
         if image is not None:
             pygame.image.save(image, "assets/screenshots/" + name + ".png")
@@ -92,20 +90,12 @@ class Textures:
 
         image = None
 
-        if name.endswith("1"):
-            image = self.draw_tile(self.colors["COLOR_TILE_1"]).convert_alpha()
-        elif name.endswith("2"):
-            image = self.draw_tile(self.colors["COLOR_TILE_2"]).convert_alpha()
-        elif name.endswith("overview"):
-            image = self.draw_tile(self.colors["COLOR_TILE_OVERVIEW"]).convert_alpha()
-        elif name.endswith("select"):
-            image = self.draw_tile(self.colors["COLOR_TILE_SELECT"]).convert_alpha()
-        elif name.endswith("way"):
-            image = self.draw_tile(self.colors["COLOR_TILE_WAY"]).convert_alpha()
-        elif name.endswith("eat"):
-            image = self.draw_tile(self.colors["COLOR_TILE_EAT"]).convert_alpha()
-        elif name.endswith("mask"):
-            image = self.draw_tile(BLACK).convert_alpha()
+        try:
+            image = self.draw_tile(self.colors[name]).convert_alpha()
+
+        except KeyError:
+            if name == "tile_mask":
+                image = self.draw_tile(BLACK).convert_alpha()
 
         if image is not None:
             pygame.image.save(image, "assets/screenshots/" + name + ".png")
@@ -198,6 +188,6 @@ class Textures:
         font_path = os.path.join("assets/fonts", "mysteron.ttf")
         font_size = 20
         fonts["menu title"] = pygame.font.Font(font_path, round(font_size * 6))
-        fonts["menu sub 1"] = pygame.font.Font(font_path, round(font_size * 2))
-        fonts["menu sub 2"] = pygame.font.Font(font_path, round(font_size * 1.6))
+        fonts["menu sub 1"] = pygame.font.Font(font_path, round(font_size * 1.5))
+        fonts["menu button"] = pygame.font.Font(font_path, round(font_size * 1.6))
         return fonts
