@@ -39,10 +39,15 @@ GAME_NAME = "Select!"
 GAME_STATE = {"choose insect": 0, "choose way": 1}
 TURN_STATE = {"white": 0, "black": 1}
 
-# ICON
+# PATHS
 ICON = 'assets/other/icon.png'
+FONTS = 'assets/fonts'
+COLORS_DFLT = 'assets/default textures/colors.txt'
+COLORS_CUST = 'assets/textures/colors.txt'
+INSECTS = 'assets/default textures/insects/'
+SCREENSHOTS = 'assets/screenshots/'
 
-# TEST COLORS
+# TEST COLORS_DFLT
 BACKGROUND_COLOR = (200, 200, 200)
 BLACK = (0, 0, 0)
 RED = (255, 0, 0)

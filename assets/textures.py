@@ -1,5 +1,5 @@
 """
-Stuff for displaying stuff
+Textures of the game
 """
 
 from pygame import gfxdraw
@@ -39,7 +39,7 @@ class Textures:
         import the colors from the "colors.txt" file
         """
         try:
-            with open("assets/textures/colors.txt", "r") as colors:
+            with open(c.COLORS_DFLT, "r") as colors:
                 for line in colors:
                     if line.startswith("# ") or line.startswith("\n"):
                         continue
@@ -48,10 +48,10 @@ class Textures:
                         name = line[0]
                         color = tuple(map(int, line[2].split(",")))
                         self.colors.update({name: color})
-                        self.insect_path = 'assets/textures/insects/'
+                        self.insect_path = c.INSECTS
                 colors.close()
         except:
-            with open("assets/default textures/colors.txt", "r") as colors:
+            with open("default textures/colors.txt", "r") as colors:
                 for line in colors:
                     if line.startswith("# ") or line.startswith("\n"):
                         continue
@@ -60,7 +60,7 @@ class Textures:
                         name = line[0]
                         color = tuple(map(int, line[2].split(",")))
                         self.colors.update({name: color})
-                        self.insect_path = 'assets/default textures/insects/'
+                        self.insect_path = c.INSECTS
                 colors.close()
 
     def create_dflt(self, name):
@@ -83,7 +83,7 @@ class Textures:
             image = self.draw_tile(self.colors["background_2"], radius=128, unit=math.sqrt(5) * 128 / 2, mult=1)
 
         if image is not None:
-            pygame.image.save(image, "assets/screenshots/" + name + ".png")
+            pygame.image.save(image, c.SCREENSHOTS + name + ".png")
             return image
 
     def create_game(self, name):
@@ -98,13 +98,12 @@ class Textures:
                 image = self.draw_tile(BLACK).convert_alpha()
 
         if image is not None:
-            pygame.image.save(image, "assets/screenshots/" + name + ".png")
+            pygame.image.save(image, c.SCREENSHOTS + name + ".png")
             return image
-
 
     def save_board(self, board):
         self.game["board"] = board.convert_alpha()
-        pygame.image.save(board, "assets/screenshots/board.png")
+        pygame.image.save(board, c.SCREENSHOTS + "/board.png")
 
     def save_insect(self, insect_full_name, insect):
         self.dflt[insect_full_name] = insect.convert_alpha()
@@ -185,7 +184,7 @@ class Textures:
     @staticmethod
     def create_font():
         fonts = {}
-        font_path = os.path.join("assets/fonts", "mysteron.ttf")
+        font_path = os.path.join(c.FONTS, "mysteron.ttf")
         font_size = 20
         fonts["menu title"] = pygame.font.Font(font_path, round(font_size * 6))
         fonts["menu sub 1"] = pygame.font.Font(font_path, round(font_size * 1.5))

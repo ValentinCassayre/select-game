@@ -3,5 +3,5 @@ Texture pack file
 Default texture pack
 """
 
-# COLORS
+# COLORS_DFLT
 

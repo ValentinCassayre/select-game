@@ -1,6 +1,8 @@
 """
-Game class
+Main game program files
+Used only during a game
 """
+
 import pygame
 import assets.consts as c
 
@@ -171,16 +173,15 @@ class Game:
 
         # just moove
         if self.tile_pos in self.tile_insect.ways:
-            board.tile(self.tile_insect.pos, None)
-            self.tile_insect.pos = self.tile_pos
-            board.tile(self.tile_insect.pos, self.tile_insect)
+            self.move(self.tile_insect, self.tile_pos)
+
             update = True
             self.process = "next turn"
 
         # moove and kill
         elif self.tile_pos in self.tile_insect.eat:
             dead_insect = board.tile_state[self.tile_pos]
-            self.tile_insect.kill(dead_insect)
+            self.kill(self.tile_insect, dead_insect)
 
             # update tile before
             board.tile(self.tile_insect.pos, None)
@@ -197,3 +198,13 @@ class Game:
 
         board.reset_surface("ways_surface")
         return update
+
+    def move(self, insect, new_pos):
+        self.board.tile(self.tile_insect.pos, None)
+        insect.pos = new_pos
+        self.board.tile(self.tile_insect.pos, self.tile_insect)
+
+
+    def kill(self, murderer, dead):
+        self.board.tile(murderer.pos, None)
+        murderer.kill(dead)

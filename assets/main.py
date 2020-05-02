@@ -1,6 +1,6 @@
 """
-Prototype game by Valentin Cassayre
-Github : https://github.com/V-def/select-game
+Main program file
+Coordinates actions
 """
 
 import os
