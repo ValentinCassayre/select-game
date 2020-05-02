@@ -80,6 +80,7 @@ class Game:
             self.turn = "white"
         self.update_name()
         self.update_ways()
+        self.update_list()
 
     def update_name(self):
         """
@@ -94,6 +95,11 @@ class Game:
         else:
             pygame.display.set_caption(c.GAME_NAME + bond +
                                        self.state_string.capitalize())
+
+    def update_list(self):
+        for insect in self.insects:
+            if insect.alive is False:
+                self.insects.remove(insect)
 
     def select_insect(self, tile_pos):
         """
@@ -111,28 +117,22 @@ class Game:
 
                     return tile_insect
 
-    def run(self):
-        """
-        run the game
-        """
-
-        pass
-
-    def start(self):
-        pass
-
     def update_ways(self):
         """
         update all the possible ways the insects can go
         """
 
         total_ways = [0, 0]
+        ins_a = None
 
-        for insect in self.insect_list:
-            ways, eat = self.board.check_tiles(insect)
+        for insect in self.insects:
+            ways, eat, insect_attacked = self.board.check_tiles(insect)
             insect.update_directions((ways, eat))
 
             total_ways[self.color_dict[insect.color]] = total_ways[self.color_dict[insect.color]] + len(ways) + len(eat)
+
+            if insect_attacked is not None:
+                ins_a = insect_attacked
 
         # check if the one who needs to play can play
         if total_ways[self.color_dict[self.turn]] == 0:
@@ -167,8 +167,9 @@ class Game:
 
         return update
 
-    def choose_way(self, board, textures):
+    def choose_way(self, board):
 
+        # just moove
         if self.tile_pos in self.tile_insect.ways:
             board.tile(self.tile_insect.pos, None)
             self.tile_insect.pos = self.tile_pos
@@ -176,10 +177,10 @@ class Game:
             update = True
             self.process = "next turn"
 
+        # moove and kill
         elif self.tile_pos in self.tile_insect.eat:
-            for insect in self.insects:
-                if insect.pos == self.tile_pos:
-                    self.insects.remove(insect)
+            dead_insect = board.tile_state[self.tile_pos]
+            self.tile_insect.kill(dead_insect)
 
             # update tile before
             board.tile(self.tile_insect.pos, None)

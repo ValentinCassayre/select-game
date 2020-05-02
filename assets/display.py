@@ -193,6 +193,8 @@ class Board(PyDisp):
         ways = []
         eats = []
 
+        ant_attacked = None
+
         directions_way, directions_eat, eat_last = insect_moving.calc_directions()
 
         for direction in directions_way:
@@ -205,7 +207,10 @@ class Board(PyDisp):
                         ways.append(direction[i])
                         i = i + 1
                     elif eat_last is True and self.tile_state[direction[i]].color != insect_moving.color:
-                        eats.append(direction[i])
+                        if self.tile_state[direction[i]].king:
+                            ant_attacked = self.tile_state[direction[i]]
+                        else:
+                            eats.append(direction[i])
                         cond = False
                     else:
                         cond = False
@@ -220,14 +225,17 @@ class Board(PyDisp):
                 if cell in self.pos_list:
                     insect_on_way = self.tile_state[direction[i]]
                     if insect_on_way is not None and insect_on_way.color != insect_moving.color:
-                        eats.append(direction[i])
+                        if self.tile_state[direction[i]].king:
+                            ant_attacked = self.tile_state[direction[i]]
+                        else:
+                            eats.append(direction[i])
                         i = i + 1
                     else:
                         cond = False
                 else:
                     cond = False
 
-        return ways, eats
+        return ways, eats, ant_attacked
 
     def reset_surface(self, name):
         if name == "mouse_interaction_surface":

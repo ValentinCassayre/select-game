@@ -164,7 +164,7 @@ def main():
 
                     elif game.process == "choose way":
 
-                        update = game.choose_way(board, textures)
+                        update = game.choose_way(board)
 
                 if update:
                     # update the screen

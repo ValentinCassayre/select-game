@@ -3,10 +3,7 @@ The classes of the insects : How do they move ?
 Insects are the pieces of the game
 """
 
-from assets.consts import *
 from assets.display import *
-
-from assets.textures import *
 
 
 # this was just some idea not touched since long time
@@ -21,6 +18,14 @@ class Insect:
         self.path = path
         self.ways = []
         self.eat = []
+        self.alive = True
+
+        # special perks
+        self.king = False
+        self.kamikaze = False
+
+    def __del__(self):
+        pass
 
     def _get_position(self):
         return self.position
@@ -32,10 +37,14 @@ class Insect:
     pos = property(_get_position, _set_position)
 
     def kill(self, insect_killed):
-        self.position = insect_killed.pos
+        if self.kamikaze:
+            self.killed()
+        else:
+            self.position = insect_killed.pos
         insect_killed.killed()
 
     def killed(self):
+        self.alive = False
         del self
 
     def update_directions(self, new_dir):
@@ -112,12 +121,12 @@ class Locust(Insect):
         # this insect ways does not depends of its color
 
         # ways
-        directions_way = [[(self.a + 2, self.b)], [(self.a, self.b + 2)], [(self.a + 2, self.b + 2)],
-                          [(self.a - 2, self.b)], [(self.a, self.b - 2)], [(self.a - 2, self.b - 2)]]
+        directions_way = [[(self.a + 1, self.b + 2)], [(self.a - 1, self.b - 2)], [(self.a + 1, self.b - 1)],
+                          [(self.a + 2, self.b + 1)], [(self.a - 2, self.b - 1)], [(self.a - 1, self.b + 1)]]
 
         # eat
-        directions_eat = [[(self.a + 2, self.b)], [(self.a, self.b + 2)], [(self.a + 2, self.b + 2)],
-                          [(self.a - 2, self.b)], [(self.a, self.b - 2)], [(self.a - 2, self.b - 2)]]
+        directions_eat = [[(self.a + 1, self.b + 2)], [(self.a - 1, self.b - 2)], [(self.a + 1, self.b - 1)],
+                          [(self.a + 2, self.b + 1)], [(self.a - 2, self.b - 1)], [(self.a - 1, self.b + 1)]]
 
         return directions_way, directions_eat, False
 
@@ -207,6 +216,7 @@ class Bee(Insect):
         self.name = "bee"
         self.full_name = self.name + "_" + self.color
         self.pict = pygame.image.load(self.path + self.full_name + ".png")
+        self.kamikaze = True
 
     def calc_directions(self):
         # (ways, eat) both are directions list composed by direction
@@ -255,6 +265,7 @@ class Ant(Insect):
         self.name = "ant"
         self.full_name = self.name + "_" + self.color
         self.pict = pygame.image.load(self.path + self.full_name + ".png")
+        self.king = True
 
     def calc_directions(self):
         # (ways, eat) both are directions list composed by direction
