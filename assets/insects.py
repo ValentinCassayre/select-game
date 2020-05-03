@@ -35,10 +35,6 @@ class Insect:
     pos = property(_get_position, _set_position)
 
     def kill(self, insect_killed):
-        if self.kamikaze:
-            self.killed()
-        else:
-            self.position = insect_killed.pos
         insect_killed.killed()
 
     def killed(self):
@@ -205,11 +201,11 @@ class Beetle(Insect):
 
         # front
         direction = []
-        for i in range(1, 10):
+        for i in range(1, 6):
             direction.append((a + i, b + i))
         directions_way.append(direction)
         direction = []
-        for i in range(1, 10):
+        for i in range(1, 6):
             direction.append((a - i, b - i))
         directions_way.append(direction)
 

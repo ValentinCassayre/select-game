@@ -19,6 +19,7 @@ from assets.display import PyDisp, Board
 from assets.insects import Bug, Locust, Spider, Beetle, Bee, Ant, Custom
 from assets.textures import Textures
 from assets.game import Game
+from assets.initial_layout import InitialLayout
 
 
 def main():
@@ -35,21 +36,6 @@ def main():
     # variables
     # booleans
     update = True
-
-    initial_layout = (Bug, (0, 3), "white"), (Bug, (1, 3), "white"), (Bug, (2, 3), "white"),\
-                     (Bug, (3, 0), "white"), (Bug, (3, 1), "white"), (Bug, (3, 2), "white"), (Bug, (3, 3), "white"),\
-                     (Locust, (1, 2), "white"), (Locust, (2, 1), "white"),\
-                     (Spider, (0, 2), "white"), (Spider, (2, 0), "white"),\
-                     (Beetle, (1, 0), "white"), (Beetle, (0, 1), "white"),\
-                     (Bee, (1, 1), "white"), (Bee, (2, 2), "white"),\
-                     (Ant, (0, 0), "white"),\
-                     (Bug, (6, 9), "black"), (Bug, (6, 8), "black"), (Bug, (6, 7), "black"),\
-                     (Bug, (9, 6), "black"), (Bug, (8, 6), "black"), (Bug, (7, 6), "black"), (Bug, (6, 6), "black"),\
-                     (Locust, (7, 8), "black"), (Locust, (8, 7), "black"),\
-                     (Spider, (7, 9), "black"), (Spider, (9, 7), "black"),\
-                     (Beetle, (9, 8), "black"), (Beetle, (8, 9), "black"),\
-                     (Bee, (8, 8), "black"), (Bee, (7, 7), "black"),\
-                     (Ant, (9, 9), "black"),\
 
     # creating the board for the first time
     textures.save_board(board.create_board(
@@ -128,7 +114,7 @@ def main():
             if not game.started:
 
                 # prepare the initial position of the insects
-                for insect_data in initial_layout:
+                for insect_data in InitialLayout.classic():
 
                     insect = insect_data[0](insect_data[1], insect_data[2], textures.insect_path)
                     # update tile
@@ -174,6 +160,9 @@ def main():
 
                 if update:
                     # update the screen
+                    log_text = str(game.tile_pos)
+                    log = textures.font["menu button"].render(log_text, True, textures.colors["button_text"])
+                    disp.draw_surface(disp.screen, log, c.CENTER, False)
 
                     # draw the ways_surface
                     disp.draw_surface(disp.screen, board.ways_surface, c.CENTER, False)
@@ -187,6 +176,8 @@ def main():
                     # update
                     pygame.display.flip()
                     disp.clock.tick(c.FPS)
+
+                    disp.draw_screen()
 
                     # draw the board to erase old position of the insects for the next update
                     disp.draw_surface(disp.screen, textures.game["board"], c.MIDDLE)
@@ -204,5 +195,5 @@ def main():
 
 
 # everything starts here
-if __name__ == '__main__':
+if __name__ == '__Select__':
     main()

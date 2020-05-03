@@ -152,6 +152,10 @@ class Game:
 
             ways, eat = self.tile_insect.ways, self.tile_insect.eat
 
+            # if the insect can't move
+            if len(ways+eat) == 0:
+                return False
+
             for way_cell in ways:
                 board.draw_surface(
                     board.ways_surface,
@@ -183,10 +187,6 @@ class Game:
             dead_insect = board.tile_state[self.tile_pos]
             self.kill(self.tile_insect, dead_insect)
 
-            # update tile before
-            board.tile(self.tile_insect.pos, None)
-            # move insect
-            self.tile_insect.pos = self.tile_pos
             # update tile after
             board.tile(self.tile_insect.pos, self.tile_insect)
             update = True
@@ -204,7 +204,14 @@ class Game:
         insect.pos = new_pos
         self.board.tile(self.tile_insect.pos, self.tile_insect)
 
-
     def kill(self, murderer, dead):
         self.board.tile(murderer.pos, None)
         murderer.kill(dead)
+        self.insects.remove(dead)
+        if murderer.kamikaze:
+            self.board.tile(dead.pos, None)
+            murderer.killed()
+            self.insects.remove(murderer)
+        else:
+            murderer.pos = dead.pos
+            self.board.tile(murderer.pos, murderer)

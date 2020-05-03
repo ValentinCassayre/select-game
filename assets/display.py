@@ -267,3 +267,4 @@ class Board(PyDisp):
         self.last_tile_pos = mask_infos[4]
 
         return update, tile_pos
+
