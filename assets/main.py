@@ -3,19 +3,19 @@ Main program file
 Coordinates actions
 """
 
-import os
-import webbrowser
+from os import system
+from webbrowser import open as open_url
 
 try:
     import pygame
 except ModuleNotFoundError:
     print("- Missing Pygame module, try pip install Pygame")
-    os.system("pause")
+    system("pause")
     exit()
 
 import assets.consts as c
 from assets.events import Events
-from assets.display import PyDisp, Board
+from assets.display import Display, Board
 from assets.textures import Textures
 from assets.game import Game, Tutorial
 from assets.initial_layout import InitialLayout
@@ -27,7 +27,7 @@ def main():
 
     # importing the classes
     events = Events
-    disp = PyDisp()
+    disp = Display()
     board = Board()
     textures = Textures()  # create all the textures
     game = Game(board)
@@ -83,12 +83,13 @@ def main():
                             elif touched_mask[3] == "but_4":
                                 pass
                             elif touched_mask[3] == "but_5":
-                                webbrowser.open('http://valentin.cassayre.me/select')
+                                open_url('http://valentin.cassayre.me/select')
                             elif touched_mask[3] == "but_6":
-                                webbrowser.open('https://github.com/V-def/select-game')
+                                open_url('https://github.com/V-def/select-game')
 
                         elif last_touched_mask is not touched_mask[3]:
-                            button = disp.draw_surface(button, textures.dflt["button_overlay"], touched_mask[2])
+                            button = disp.draw_surface(textures.dflt["button_overlay"],
+                                                       touched_mask[2], on_this_surface=button)
                             update = True
                             last_touched_mask = touched_mask[3]
 
@@ -107,7 +108,7 @@ def main():
         if game.loop and game.state == "game" or game.state == "tutorial":
 
             disp.draw_screen()
-            disp.draw_surface(disp.screen, textures.game["board"], c.CENTER, False)
+            disp.draw_surface(textures.game["board"], c.CENTER, False)
             update = True
 
             # initialize the game
@@ -162,16 +163,16 @@ def main():
                     # update the screen
                     log_text = str(game.tile_pos)
                     log = textures.font["menu button"].render(log_text, True, textures.colors["button_text"])
-                    disp.draw_surface(disp.screen, log, c.CENTER, False)
+                    disp.draw_surface(log, c.CENTER, False)
 
                     # draw the ways_surface
-                    disp.draw_surface(disp.screen, board.ways_surface, c.CENTER, False)
+                    disp.draw_surface(board.ways_surface, c.CENTER, False)
                     # draw the mouse tile pos
-                    disp.draw_surface(disp.screen, board.mouse_interaction_surface, c.CENTER, False)
+                    disp.draw_surface(board.mouse_interaction_surface, c.CENTER, False)
 
                     # draw the insects
                     for insect in game.insects:
-                        disp.draw_surface(disp.screen, textures.dflt[insect.full_name], board.position(insect.pos))
+                        disp.draw_surface(textures.dflt[insect.full_name], board.position(insect.pos))
 
                     # update
                     pygame.display.flip()
@@ -180,7 +181,7 @@ def main():
                     disp.draw_screen()
 
                     # draw the board to erase old position of the insects for the next update
-                    disp.draw_surface(disp.screen, textures.game["board"], c.MIDDLE)
+                    disp.draw_surface(textures.game["board"], c.MIDDLE)
 
                     # reset
                     update = False

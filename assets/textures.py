@@ -4,11 +4,10 @@ Textures of the game
 
 import pygame
 from pygame import gfxdraw
-import os
+from os import path
+from math import cos, sin, pi
 
 import assets.consts as c
-from assets.math import Math
-import math
 
 
 class Textures:
@@ -51,7 +50,7 @@ class Textures:
                         self.colors.update({name: color})
                         self.insect_path = c.INSECTS
                 colors.close()
-        except:
+        except NameError:
             with open("default textures/colors.txt", "r") as colors:
                 for line in colors:
                     if line.startswith("# ") or line.startswith("\n"):
@@ -109,20 +108,6 @@ class Textures:
     def save_insect(self, insect_full_name, insect):
         self.dflt[insect_full_name] = insect.convert_alpha()
 
-    def coords(self, pos, radius=c.RADIUS, mult=1.0):
-        """
-        create the coordinates of the 6 points of the hexagon calculated with the pi/3 modulo
-        pos is a tuple of the coordinates on the screen and not on the board
-        to convert position from board to screen use position()
-        :return: list of coords (tuples)
-        """
-        x, y = pos
-        coords = []
-        for k in range(6):
-            coords.append((x + mult * radius * math.cos(k * math.pi / 3),
-                           y + mult * radius * math.sin(k * math.pi / 3)))
-        return coords
-
     def draw_hexagon(self, image, color_in, rect, radius=c.RADIUS, mult=1.0, fill=True):
         """
         return a surface with the shape of an hexagon
@@ -168,24 +153,33 @@ class Textures:
         return image
 
     @staticmethod
-    def draw_insect(path, radius=c.RADIUS, unit=c.UNIT):
+    def coords(pos, radius=c.RADIUS, mult=1.0):
+        """
+        create the coordinates of the 6 points of the hexagon calculated with the pi/3 modulo
+        pos is a tuple of the coordinates on the screen and not on the board
+        to convert position from board to screen use position()
+        :return: list of coords (tuples)
+        """
+        x, y = pos
+        coords = []
+        for k in range(6):
+            coords.append((x + mult * radius * cos(k * pi / 3),
+                           y + mult * radius * sin(k * pi / 3)))
+        return coords
+
+    @staticmethod
+    def draw_insect(path_str):
         """
         Draw the insects
         """
-        # create a selection of the area
-        rect = pygame.Rect((0, 0), (2 * radius, unit))
-
-        # if image is drawn
-        image = pygame.Surface(rect.size, pygame.SRCALPHA)
-
-        # if image come from an png
-        image = pygame.image.load(path).convert_alpha()
+        # load pygame and convert alpha
+        image = pygame.image.load(path_str).convert_alpha()
         return image
 
     @staticmethod
     def create_font():
         fonts = {}
-        font_path = os.path.join(c.FONTS, "mysteron.ttf")
+        font_path = path.join(c.FONTS, "mysteron.ttf")
         font_size = 20
         fonts["menu title"] = pygame.font.Font(font_path, round(font_size * 6))
         fonts["menu sub 1"] = pygame.font.Font(font_path, round(font_size * 1.5))

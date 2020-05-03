@@ -125,16 +125,12 @@ class Game:
         """
 
         total_ways = [0, 0]
-        ins_a = None
 
         for insect in self.insects:
             ways, eat, insect_attacked = self.board.check_tiles(insect)
             insect.update_directions((ways, eat))
 
             total_ways[self.color_dict[insect.color]] = total_ways[self.color_dict[insect.color]] + len(ways) + len(eat)
-
-            if insect_attacked is not None:
-                ins_a = insect_attacked
 
         # check if the one who needs to play can play
         if total_ways[self.color_dict[self.turn]] == 0:
@@ -158,15 +154,11 @@ class Game:
 
             for way_cell in ways:
                 board.draw_surface(
-                    board.ways_surface,
-                    textures.game["tile_way"],
-                    board.position(way_cell))
+                    textures.game["tile_way"], board.position(way_cell), on_this_surface=board.ways_surface)
 
             for eat_cell in eat:
                 board.draw_surface(
-                    board.ways_surface,
-                    textures.game["tile_eat"],
-                    board.position(eat_cell))
+                    textures.game["tile_eat"], board.position(eat_cell), on_this_surface=board.ways_surface)
 
             update = True
             self.process = "choose way"

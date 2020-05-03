@@ -11,7 +11,10 @@ class Events:
         pass
 
     @staticmethod
-    def check(mask_list=[]):
+    def check(mask_list=None):
+
+        if mask_list is None:
+            mask_list = []
 
         event_key = None
         mask_touching = []
@@ -36,6 +39,7 @@ class Events:
                     event_key = "return"
 
             for mask in mask_list:
+
                 # tile[n] : 0 rect 1 mask 2 disp pos 3 type 4 optional if board : board pos
                 pos_in_mask = x - mask[0].x, y - mask[0].y
                 touching = mask[0].collidepoint(*(x, y)) and mask[1].get_at(pos_in_mask)

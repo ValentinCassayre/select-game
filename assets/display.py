@@ -2,12 +2,11 @@
 Display
 """
 
-import assets.consts as c
 import pygame
-from assets.math import Math
+import assets.consts as c
 
 
-class PyDisp:
+class Display:
     """
     Display mother class
     """
@@ -25,16 +24,6 @@ class PyDisp:
         self.clock = pygame.time.Clock()
 
         self.menu_but_masks = []
-
-    def mask_hexagon(self, mask_surface, disp_pos, type, b_pos=None):
-        """
-        create and return the mask of a tile with the position of the tile in the display and not in the board
-        """
-        x, y = disp_pos
-        tile_rect = mask_surface.get_rect(center=(x, y))
-        # place mask itself
-        tile_mask = pygame.mask.from_surface(mask_surface)
-        return tile_rect, tile_mask, (x, y), type, b_pos
 
     def draw_screen(self):
         """
@@ -67,38 +56,50 @@ class PyDisp:
 
                 if n > 0:
                     but_tag = "but_" + str(n)
-                    self.draw_surface(bg, textures.dflt["button"], (x, y))
+                    self.draw_surface(textures.dflt["button"], (x, y), on_this_surface=bg)
                     text = textures.font["menu button"].render(text_str, True, textures.colors["button_text"])
-                    self.menu_but_masks.append(self.mask_hexagon(textures.dflt["button"], (x, y), but_tag))
-                    self.draw_surface(text_surface, text, (x, y))
+                    self.menu_but_masks.append(self.convert_to_mask(textures.dflt["button"], (x, y), but_tag))
+                    self.draw_surface(text, (x, y), on_this_surface=text_surface)
 
                 else:
-                    self.draw_surface(bg, textures.dflt["bg_hex"], (x, y))
+                    self.draw_surface(textures.dflt["bg_hex"], (x, y), on_this_surface=bg)
 
-        self.draw_surface(text_surface, textures.dflt["menu_title"], c.TITLE_POS)
-        self.draw_surface(text_surface, textures.dflt["menu_sub_1"], c.SUB1_POS)
+        self.draw_surface(textures.dflt["menu_title"], c.TITLE_POS, on_this_surface=text_surface)
+        self.draw_surface(textures.dflt["menu_sub_1"], c.SUB1_POS, on_this_surface=text_surface)
 
         return self.menu_but_masks, bg, text_surface
 
-    def draw_surface(self, image, surface, disp_pos, center=True):
+    def draw_surface(self, draw_this_surface, disp_pos, center=True, on_this_surface=None):
         """
-        draw a surface centered in the given coords
+        draw a draw_this_surface centered (or not) in the given coords
         """
-        if image is None:
-            image = self.screen
+        if on_this_surface is None:
+            on_this_surface = self.screen
         x, y = disp_pos
         if center:
-            image.blit(surface, (x - surface.get_width() // 2, y - surface.get_height() // 2))
+            on_this_surface.blit(draw_this_surface,
+                                 (x - draw_this_surface.get_width() // 2, y - draw_this_surface.get_height() // 2))
         else:
-            image.blit(surface, (x, y))
-        return image
+            on_this_surface.blit(draw_this_surface, (x, y))
+        return on_this_surface
 
     def draw_surfaces(self, surface_list):
         for surface in surface_list:
-            self.draw_surface(None, surface, c.CENTER, False)
+            self.draw_surface(surface, c.CENTER, False)
+
+    @staticmethod
+    def convert_to_mask(mask_surface, disp_pos, type_name, b_pos=None):
+        """
+        create and return the mask of a tile with the position of the tile in the display and not in the board
+        """
+        x, y = disp_pos
+        tile_rect = mask_surface.get_rect(center=(x, y))
+        # place mask itself
+        tile_mask = pygame.mask.from_surface(mask_surface)
+        return tile_rect, tile_mask, (x, y), type_name, b_pos
 
 
-class Board(PyDisp):
+class Board(Display):
     """
     Class about everything related to the board
     """
@@ -107,7 +108,7 @@ class Board(PyDisp):
         """
         Constructor
         """
-        PyDisp.__init__(self)
+        Display.__init__(self)
         self.coordinate_list = []
         self.pos_list = []
         self.disp_list = []
@@ -167,15 +168,15 @@ class Board(PyDisp):
                     disp_pos = self.position(cell)
 
                     if i % 5 == 2 or j % 5 == 2:
-                        self.draw_surface(image, tile_1, disp_pos)
+                        self.draw_surface(tile_1, disp_pos, on_this_surface=image)
                     else:
-                        self.draw_surface(image, tile_2, disp_pos)
+                        self.draw_surface(tile_2, disp_pos, on_this_surface=image)
 
                     self.pos_list.append(cell)
                     self.disp_list.append(disp_pos)
 
                     # create masks to detect if the mouse interact with the tiles
-                    self.mask_list.append(self.mask_hexagon(tile_mask, disp_pos, "tile", b_pos=cell))
+                    self.mask_list.append(self.convert_to_mask(tile_mask, disp_pos, "tile", b_pos=cell))
 
                     # create dict of all the states of the cells, by default False (no insect on it)
                     self.tile_state.update({cell: None})
@@ -262,12 +263,9 @@ class Board(PyDisp):
         if self.last_tile != mask_infos[4]:
             self.reset_surface("mouse_interaction_surface")
             self.draw_surface(
-                self.mouse_interaction_surface,
-                textures.game["tile_overview"],
-                disp_pos)
+                textures.game["tile_overview"], disp_pos, on_this_surface=self.mouse_interaction_surface)
 
             update = True
         self.last_tile_pos = mask_infos[4]
 
         return update, tile_pos
-

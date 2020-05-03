@@ -20,7 +20,7 @@ class InitialLayout:
         new_layout = []
 
         for insect_infos in layout:
-            type = insect_infos[0]
+            i_type = insect_infos[0]
             pos = insect_infos[1]
             color = insect_infos[2]
 
@@ -30,7 +30,7 @@ class InitialLayout:
             # append old insect
             new_layout.append(insect_infos)
             # append new insect
-            new_layout.append((type, new_pos, new_color))
+            new_layout.append((i_type, new_pos, new_color))
 
         new_layout = tuple(new_layout)
 
@@ -105,4 +105,3 @@ class InitialLayout:
             return layout
         else:
             pass
-

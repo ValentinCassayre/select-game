@@ -15,5 +15,3 @@ class Math:
         radius of the inscribed circle that contain the sides of the hexagon from a circumscribed circle radius
         """
         return Math.sqrt(3)*radius/2
-
-

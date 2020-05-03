@@ -34,7 +34,8 @@ class Insect:
 
     pos = property(_get_position, _set_position)
 
-    def kill(self, insect_killed):
+    @staticmethod
+    def kill(insect_killed):
         insect_killed.killed()
 
     def killed(self):
@@ -408,4 +409,3 @@ class Custom(Insect):
             directions_eat.append(direction)
 
         return directions_way, directions_eat, False
-
