@@ -3,7 +3,7 @@ All the constants of the game
 Fact : i use // instead of / to avoid float
 """
 
-import math
+from assets.math import Math
 
 # WINDOW
 X_SIZE = 1080
@@ -20,7 +20,7 @@ FPS = 100
 # BOARD
 # CELLS
 RADIUS = 32  # radius of the conscript circle that contain the apexes of the hexagon
-UNIT = (2**5)*math.sqrt(3)  # radius of the circumscribed circle that contain the edges of the hexagon
+UNIT = Math.inscribed_rad(RADIUS)  # radius of the inscribed circle
 EDGE_WIDTH = 1.1  # multiply radius by this to get the space between two tiles
 # BOARD SIZE
 B_W = 540
@@ -28,7 +28,7 @@ B_H = 614
 BOARD_SIZE = (B_W, B_H)
 # BOARD FIRST TILE POS (0, 0)
 B_XO = X_MID
-B_YO = (Y_SIZE - B_H)//2 + 1.2*UNIT/2
+B_YO = (Y_SIZE - B_H)//2 + 1.2*UNIT
 B_O = (B_XO, B_YO)
 # BOARD PLACE POSITION (top left rect edge)
 B_RECT_POS = (X_MID-B_W//2, Y_MID-B_H//2)
@@ -60,3 +60,7 @@ SUB1_POS = (X_MID, Y_SIZE/3.4)
 
 # TEXTS
 SUB1 = "Game made by Valentin Cassayre"
+
+MENU_RADIUS = 100
+MENU_UNIT = Math.inscribed_rad(MENU_RADIUS)
+MENU_EDGE = 1.1

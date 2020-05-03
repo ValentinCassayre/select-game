@@ -16,9 +16,8 @@ except ModuleNotFoundError:
 import assets.consts as c
 from assets.events import Events
 from assets.display import PyDisp, Board
-from assets.insects import Bug, Locust, Spider, Beetle, Bee, Ant, Custom
 from assets.textures import Textures
-from assets.game import Game
+from assets.game import Game, Tutorial
 from assets.initial_layout import InitialLayout
 
 
@@ -32,6 +31,7 @@ def main():
     board = Board()
     textures = Textures()  # create all the textures
     game = Game(board)
+    tutorial = Tutorial(board)
 
     # variables
     # booleans
@@ -75,7 +75,7 @@ def main():
 
                         if click:
                             if touched_mask[3] == "but_1":
-                                pass
+                                tutorial.start()
                             elif touched_mask[3] == "but_2":
                                 game.state = "game"
                             elif touched_mask[3] == "but_3":
@@ -104,7 +104,7 @@ def main():
                 disp.clock.tick(c.FPS)
 
         # game
-        if game.loop and game.state == "game":
+        if game.loop and game.state == "game" or game.state == "tutorial":
 
             disp.draw_screen()
             disp.draw_surface(disp.screen, textures.game["board"], c.CENTER, False)

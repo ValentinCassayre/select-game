@@ -4,7 +4,7 @@ Display
 
 import assets.consts as c
 import pygame
-import math
+from assets.math import Math
 
 
 class PyDisp:
@@ -51,18 +51,15 @@ class PyDisp:
         text_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         bg = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
 
-        r = 128
-        u = math.sqrt(5)*r/2
-
         for i in range(-3, 4):
             for j in range(-3, 4):
 
                 text_str = None
                 n = 0
-                x = c.X_MID + (i * 3 * r / 2 - j * 3 * r / 2) * 1.2
-                y = c.Y_MID + (i * u / 2 + j * u / 2) * 1.2
+                x = c.X_MID + (i * 3 * c.MENU_RADIUS / 2 - j * 3 * c.MENU_RADIUS / 2)*c.MENU_EDGE
+                y = c.Y_MID + (i * c.MENU_UNIT + j * c.MENU_UNIT)*c.MENU_EDGE
 
-                for k, pos in enumerate([(0, 1), (0, 0), (1, 1), (1, 0), (1, 2), (2, 1)]):
+                for k, pos in enumerate([(0, 1), (0, 0), (1, 1), (1, 0), (0, 2), (2, 0)]):
                     if (i, j) == pos:
                         n = k+1
                         text_str = ["Tutorial", "Play offline", "Play online", "Settings", "More infos", "Git Hub"][k]
@@ -123,6 +120,9 @@ class Board(PyDisp):
         self.mouse_interaction_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.ways_surface = self.screen_copy
 
+        # find were to draw the board to fit in the middle
+        self.board_origin = c.X_MID, (c.Y_SIZE-self.position((9, 9), origin=(0, 0))[1])/2
+
     def _get_last_tile(self):
         return self.last_tile_pos
 
@@ -131,14 +131,17 @@ class Board(PyDisp):
 
     last_tile = property(_get_last_tile, _set_last_tile)
 
-    def position(self, b_pos, xo=c.B_XO, yo=c.B_YO):
+    def position(self, b_pos, origin=None):
         """
         convert position coordinates of the board from an orthonormal system to the specific system of the screen
         convert position from board (b_pos) to screen coordinate x, y (coords)
         """
+        if origin is None:
+            origin = self.board_origin
         a, b = b_pos
+        xo, yo = origin
         x = xo + (a*3*c.RADIUS/2 - b*3*c.RADIUS/2)*c.EDGE_WIDTH
-        y = yo + (a*c.UNIT/2 + b*c.UNIT/2)*c.EDGE_WIDTH
+        y = yo + (a*c.UNIT + b*c.UNIT)*c.EDGE_WIDTH
         return x, y
 
     def create_board(self, color_bg, tile_1, tile_2, tile_mask):
@@ -161,7 +164,7 @@ class Board(PyDisp):
                 # adding the right cells to the board (70 in total)
                 else:
                     cell = i, j
-                    disp_pos = self.position(cell, c.MIDDLE[0])
+                    disp_pos = self.position(cell)
 
                     if i % 5 == 2 or j % 5 == 2:
                         self.draw_surface(image, tile_1, disp_pos)

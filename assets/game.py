@@ -206,8 +206,8 @@ class Game:
 
     def kill(self, murderer, dead):
         self.board.tile(murderer.pos, None)
-        murderer.kill(dead)
         self.insects.remove(dead)
+        murderer.kill(dead)
         if murderer.kamikaze:
             self.board.tile(dead.pos, None)
             murderer.killed()
@@ -215,3 +215,18 @@ class Game:
         else:
             murderer.pos = dead.pos
             self.board.tile(murderer.pos, murderer)
+
+
+class Tutorial(Game):
+    """
+    the tutorial apply lot of normal game rules but to have a better understanding in the tutorial mod there is text,
+    auto move and less insects
+    """
+    def __init__(self, board):
+        Game.__init__(self, board)
+        self.n = 0
+
+    def start(self):
+        self.state = "tutorial"
+
+

@@ -2,12 +2,13 @@
 Textures of the game
 """
 
+import pygame
 from pygame import gfxdraw
 import os
 
-from assets.consts import *
-from assets.display import *
-from assets.insects import *
+import assets.consts as c
+from assets.math import Math
+import math
 
 
 class Textures:
@@ -69,18 +70,18 @@ class Textures:
 
         if name.startswith("menu"):
             if name.endswith("title"):
-                image = self.font["menu title"].render(GAME_NAME, True, self.colors["tile_2"])
+                image = self.font["menu title"].render(c.GAME_NAME, True, self.colors["tile_2"])
             elif name.endswith("sub_1"):
-                image = self.font["menu sub 1"].render(SUB1, True, self.colors["tile_1"])
+                image = self.font["menu sub 1"].render(c.SUB1, True, self.colors["tile_1"])
 
         if name == "button":
-            image = self.draw_tile(self.colors["button"], radius=128, unit=math.sqrt(5)*128/2, mult=1)
+            image = self.draw_tile(self.colors["button"], radius=c.MENU_RADIUS, unit=c.MENU_UNIT*2, mult=1)
 
         if name == "button_overlay":
-            image = self.draw_tile(self.colors["button_overview"], radius=128, unit=math.sqrt(5)*128/2, mult=1)
+            image = self.draw_tile(self.colors["button_overview"], radius=c.MENU_RADIUS, unit=c.MENU_UNIT*2, mult=1)
 
         if name == "bg_hex":
-            image = self.draw_tile(self.colors["background_2"], radius=128, unit=math.sqrt(5) * 128 / 2, mult=1)
+            image = self.draw_tile(self.colors["background_2"], radius=c.MENU_RADIUS, unit=c.MENU_UNIT*2, mult=1)
 
         if image is not None:
             pygame.image.save(image, c.SCREENSHOTS + name + ".png")
@@ -95,7 +96,7 @@ class Textures:
 
         except KeyError:
             if name == "tile_mask":
-                image = self.draw_tile(BLACK).convert_alpha()
+                image = self.draw_tile(c.BLACK).convert_alpha()
 
         if image is not None:
             pygame.image.save(image, c.SCREENSHOTS + name + ".png")
@@ -108,7 +109,7 @@ class Textures:
     def save_insect(self, insect_full_name, insect):
         self.dflt[insect_full_name] = insect.convert_alpha()
 
-    def coords(self, pos, radius=RADIUS, mult=1.0):
+    def coords(self, pos, radius=c.RADIUS, mult=1.0):
         """
         create the coordinates of the 6 points of the hexagon calculated with the pi/3 modulo
         pos is a tuple of the coordinates on the screen and not on the board
@@ -122,7 +123,7 @@ class Textures:
                            y + mult * radius * math.sin(k * math.pi / 3)))
         return coords
 
-    def draw_hexagon(self, image, color_in, rect, radius=RADIUS, mult=1.0, fill=True):
+    def draw_hexagon(self, image, color_in, rect, radius=c.RADIUS, mult=1.0, fill=True):
         """
         return a surface with the shape of an hexagon
         """
@@ -143,7 +144,7 @@ class Textures:
         image.blit(temp, rect.topleft)
         return image.convert_alpha()
 
-    def draw_tile(self, color, radius=RADIUS, unit=UNIT, mult=1.0, fill=True, alpha=32):
+    def draw_tile(self, color, radius=c.RADIUS, unit=c.UNIT*2, mult=1.0, fill=True, alpha=32):
         """
         inner tile pnly
         """
@@ -160,14 +161,14 @@ class Textures:
         special tile for the board
         """
         # create a selection of the area
-        rect = pygame.Rect((0, 0), (2 * RADIUS * mult, UNIT * mult))
+        rect = pygame.Rect((0, 0), (2 * c.RADIUS * mult, c.UNIT * 2 * mult))
         image = pygame.Surface(rect.size, pygame.SRCALPHA)
-        image = self.draw_hexagon(image, self.colors["COLOR_TILE_OUTLINE"], rect, RADIUS, mult)
-        image = self.draw_hexagon(image, color, rect, RADIUS)
+        image = self.draw_hexagon(image, self.colors["COLOR_TILE_OUTLINE"], rect, c.RADIUS, mult)
+        image = self.draw_hexagon(image, color, rect, c.RADIUS)
         return image
 
     @staticmethod
-    def draw_insect(path, radius=RADIUS, unit=UNIT):
+    def draw_insect(path, radius=c.RADIUS, unit=c.UNIT):
         """
         Draw the insects
         """
