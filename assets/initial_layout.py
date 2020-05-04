@@ -2,7 +2,7 @@
 All the initial layouts
 """
 # import class
-from assets.insects import Bug, Locust, Spider, Beetle, Bee, Ant, Custom
+from assets.insects import Bug, Locust, Spider, Beetle, Bee, Ant, Custom, God
 
 
 class InitialLayout:
@@ -81,7 +81,7 @@ class InitialLayout:
         use it to have fun
         """
 
-        layout = (Custom, (3, 2), "white")
+        layout = (Locust, (5, 6), "white"), (Beetle, (2, 1), "white"), (Ant, (0, 0), "white")
 
         return InitialLayout.add_sym(layout, True)
 

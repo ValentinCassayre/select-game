@@ -18,6 +18,7 @@ class Game:
         self.process_string = "choose insect"
 
         self.turn = "white"
+        self.last_turn = "black"
 
         self.color_dict = {"white": 0, "black": 1}
 
@@ -32,6 +33,10 @@ class Game:
         self.tile_insect = None
 
         self.board = board
+
+        self.setback = None
+
+        self.test = None
 
     # strings
     # state
@@ -76,10 +81,11 @@ class Game:
         self.loop = False  # stop the main loop
 
     def change_turn(self):
-        if self.turn == "white":
-            self.turn = "black"
-        elif self.turn == "black":
-            self.turn = "white"
+
+        turn = self.last_turn
+        self.last_turn = self.turn
+        self.turn = turn
+
         self.update_name()
         self.update_ways()
         self.update_list()
@@ -126,8 +132,10 @@ class Game:
 
         total_ways = [0, 0]
 
+        self.calc_ways()
+
         for insect in self.insects:
-            ways, eat, insect_attacked = self.board.check_tiles(insect)
+            ways, eat = self.board.ways[insect], self.board.eat[insect]
             insect.update_directions((ways, eat))
 
             total_ways[self.color_dict[insect.color]] = total_ways[self.color_dict[insect.color]] + len(ways) + len(eat)
@@ -166,29 +174,37 @@ class Game:
         return update
 
     def choose_way(self, board):
+        update = False
 
-        # just moove
-        if self.tile_pos in self.tile_insect.ways:
-            self.move(self.tile_insect, self.tile_pos)
+        if self.setback == self.turn:
+            # ant is attacked and you need to avoid it
 
-            update = True
-            self.process = "next turn"
-
-        # moove and kill
-        elif self.tile_pos in self.tile_insect.eat:
-            dead_insect = board.tile_state[self.tile_pos]
-            self.kill(self.tile_insect, dead_insect)
-
-            # update tile after
-            board.tile(self.tile_insect.pos, self.tile_insect)
-            update = True
-            self.process = "next turn"
+            for new_pos in self.tile_insect.ways + self.tile_insect.eat:
+                self.test = self.check_attack(new_pos)
 
         else:
-            update = True
-            self.process = "choose insect"
+            # just moove
+            if self.tile_pos in self.tile_insect.ways:
+                self.move(self.tile_insect, self.tile_pos)
 
-        board.reset_surface("ways_surface")
+                update = True
+                self.process = "next turn"
+
+            # moove and kill
+            elif self.tile_pos in self.tile_insect.eat:
+                dead_insect = board.tile_state[self.tile_pos]
+                self.kill(self.tile_insect, dead_insect)
+
+                # update tile after
+                board.tile(self.tile_insect.pos, self.tile_insect)
+                update = True
+                self.process = "next turn"
+
+            else:
+                update = True
+                self.process = "choose insect"
+
+            board.reset_surface("ways_surface")
         return update
 
     def move(self, insect, new_pos):
@@ -207,6 +223,122 @@ class Game:
         else:
             murderer.pos = dead.pos
             self.board.tile(murderer.pos, murderer)
+
+    def calc_ways(self):
+
+        # check each insect
+        for insect in self.insects:
+
+            if insect.color == self.turn:
+                # checked color
+                ways, eat = self.check_tile(insect)
+
+            else:
+                ways, eat = self.check_tile(insect)
+
+            for cell in ways + eat:
+                if insect.color == self.turn:
+                    pass
+                else:
+                    self.check_attack(insect, cell, True)
+
+            self.board.ways.update({insect: ways})
+            self.board.eat.update({insect: eat})
+
+    def check_tile(self, insect, board=None):
+        """
+        check if the insect can go on this tile
+        check if the tile is on the board
+        check if there is no obstacle or another insect to kill
+        """
+        if board is None:
+            board = self.board.tile_state
+
+        directions_way, pos_eat, eat_last = insect.calc_directions(pos=None)
+        ways, eat = [], []
+
+        for direction in directions_way:
+            can_continue = True
+            i = 0
+
+            # each direction is a list of possible cells
+            while can_continue and i < len(direction):
+                cell = direction[i]
+                i = i + 1
+
+                # check if tile exist and if there is obstacle on it
+                if cell in self.board.pos_list:
+                    if board[cell] is None:
+                        # nothing on this cell
+                        ways.append(cell)
+
+                    else:
+                        if eat_last and board[cell].color != insect.color:
+                            eat.append(cell)
+                        can_continue = False
+
+                else:
+                    can_continue = False
+
+        for cell in pos_eat:
+            # check if tile exist and if there is someone to eat on it
+            if cell in self.board.pos_list and board[cell] is not None:
+                if board[cell].color != insect.color:
+
+                    eat.append(cell)
+
+                else:
+                    # same team so dont eat him
+                    pass
+
+        return ways, eat
+
+    def check_attack(self, insect, new_pos, passive):
+        temp = self.board.tile_state.copy()
+        temp.update({insect.pos: None})
+        temp.update({new_pos: insect})
+
+        eat_dict = {}
+        moove_dict = {}
+
+        for ins in self.insects:
+            way = self.check_tile(insect, temp)[0]
+            eat = self.check_tile(insect, temp)[1]
+            eat_dict.update({ins: eat})
+            moove_dict.update({ins: way + eat})
+
+        if passive:
+            ant_attacked = self.check_setback(temp, eat_dict)
+            if ant_attacked is not None:
+                self.setback = ant_attacked
+
+        else:
+            ant_attacked = self.check_setback_stop(temp, eat_dict, self.turn)
+            if ant_attacked is not None:
+                return new_pos
+
+    def check_setback(self, board_dict, eat_dict):
+
+        for insect in self.insects:
+            for eat_cell in eat_dict[insect]:
+                if insect.color == self.turn and board_dict[eat_cell].king:
+                    return board_dict[eat_cell]
+
+        return None
+
+    def check_setback_stop(self, board_dict, moves_dict, color):
+        """
+        check if if an insect go on this tile its ant will be attacked or not
+        moves = ways + eat
+        return ant attacked
+        """
+
+        for insect in self.insects:
+            for eat_cell in moves_dict[insect]:
+                if insect.color == self.turn and board_dict[eat_cell].king:
+                    return board_dict[eat_cell]
+
+        return None
 
 
 class Tutorial(Game):

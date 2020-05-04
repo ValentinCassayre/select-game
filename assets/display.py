@@ -115,6 +115,9 @@ class Board(Display):
         self.mask_list = []
         self.tile_state = {}
 
+        self.ways = {}
+        self.eat = {}
+
         self.last_tile_pos = None
 
         self.screen_copy = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
@@ -187,57 +190,6 @@ class Board(Display):
         give the state_string of a tile, pos = (x, y) and insect = True if the tile is insect
         """
         self.tile_state.update({b_pos: insect})
-
-    def check_tiles(self, insect_moving, tile_state=None, pos=None):
-        ways = []
-        eats = []
-
-        if tile_state is None:
-            tile_state = self.tile_state
-
-        ant_attacked = None
-
-        directions_way, directions_eat, eat_last = insect_moving.calc_directions(pos=pos)
-
-        for direction in directions_way:
-            cond = True
-            i = 0
-            while cond is True and i < len(direction):
-                cell = direction[i]
-                if cell in self.pos_list:
-                    if tile_state[direction[i]] is None:
-                        ways.append(direction[i])
-                        i = i + 1
-                    elif eat_last is True and tile_state[direction[i]].color != insect_moving.color:
-                        if tile_state[direction[i]].king:
-                            ant_attacked = tile_state[direction[i]]
-                        else:
-                            eats.append(direction[i])
-                        cond = False
-                    else:
-                        cond = False
-                else:
-                    cond = False
-
-        for direction in directions_eat:
-            cond = True
-            i = 0
-            while cond is True and i < len(direction):
-                cell = direction[i]
-                if cell in self.pos_list:
-                    insect_on_way = tile_state[direction[i]]
-                    if insect_on_way is not None and insect_on_way.color != insect_moving.color:
-                        if tile_state[direction[i]].king:
-                            ant_attacked = tile_state[direction[i]]
-                        else:
-                            eats.append(direction[i])
-                        i = i + 1
-                    else:
-                        cond = False
-                else:
-                    cond = False
-
-        return ways, eats, ant_attacked
 
     def check_tile_move(self, insect_moving, new_pos):
         """

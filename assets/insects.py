@@ -73,15 +73,7 @@ class Bug(Insect):
             directions_way.append(direction)
 
             # eat
-            directions_eat = []
-            direction = []
-            for i in range(1, 2):
-                direction.append((a + i, b))
-            directions_eat.append(direction)
-            direction = []
-            for i in range(1, 2):
-                direction.append((a, b + i))
-            directions_eat.append(direction)
+            eat = [(a + 1, b), (a, b + 1)]
 
         else:
 
@@ -93,17 +85,9 @@ class Bug(Insect):
             directions_way.append(direction)
 
             # eat
-            directions_eat = []
-            direction = []
-            for i in range(1, 2):
-                direction.append((a - i, b))
-            directions_eat.append(direction)
-            direction = []
-            for i in range(1, 2):
-                direction.append((a, b - i))
-            directions_eat.append(direction)
+            eat = [(a - 1, b), (a, b - 1)]
 
-        return directions_way, directions_eat, False
+        return directions_way, eat, False
 
 
 class Locust(Insect):
@@ -130,10 +114,9 @@ class Locust(Insect):
                           [(a + 2, b + 1)], [(a - 2, b - 1)], [(a - 1, b + 1)]]
 
         # eat
-        directions_eat = [[(a + 1, b + 2)], [(a - 1, b - 2)], [(a + 1, b - 1)],
-                          [(a + 2, b + 1)], [(a - 2, b - 1)], [(a - 1, b + 1)]]
+        eat = [(a + 1, b + 2), (a - 1, b - 2), (a + 1, b - 1), (a + 2, b + 1), (a - 2, b - 1), (a - 1, b + 1)]
 
-        return directions_way, directions_eat, False
+        return directions_way, eat, False
 
 
 class Spider(Insect):
@@ -172,10 +155,10 @@ class Spider(Insect):
         directions_way.append(direction)
 
         # eat
-        directions_eat = []
+        eat = []
         # this insect can only eat insect who are at the end of the ways range and this is calculated by the board class
 
-        return directions_way, directions_eat, True
+        return directions_way, eat, True
 
 
 class Beetle(Insect):
@@ -202,19 +185,19 @@ class Beetle(Insect):
 
         # front
         direction = []
-        for i in range(1, 6):
+        for i in range(1, 10):
             direction.append((a + i, b + i))
         directions_way.append(direction)
         direction = []
-        for i in range(1, 6):
+        for i in range(1, 10):
             direction.append((a - i, b - i))
         directions_way.append(direction)
 
         # eat
-        directions_eat = []
+        eat = []
         # this insect can only eat insect who are at the end of the ways range and this is calculated by the board class
 
-        return directions_way, directions_eat, True
+        return directions_way, eat, True
 
 
 class Bee(Insect):
@@ -263,10 +246,10 @@ class Bee(Insect):
         directions_way.append(direction)
 
         # eat
-        directions_eat = []
+        eat = []
         # this insect can only eat insect who are at the end of the ways range and this is calculated by the board class
 
-        return directions_way, directions_eat, True
+        return directions_way, eat, True
 
 
 class Ant(Insect):
@@ -291,9 +274,10 @@ class Ant(Insect):
                           [(a - 1, b)], [(a, b - 1)]]
 
         # eat
-        directions_eat = directions_way
+        eat = [(a + 1, b), (a, b + 1),
+               (a - 1, b), (a, b - 1)]
 
-        return directions_way, directions_eat, False
+        return directions_way, eat, False
 
 
 class Custom(Insect):
@@ -408,4 +392,36 @@ class Custom(Insect):
             # add it to the other directions
             directions_eat.append(direction)
 
-        return directions_way, directions_eat, False
+        eat = []
+
+        return directions_way, eat, False
+
+
+class God(Insect):
+    """
+    this is god he can go everywhere
+    helpful for tests
+    """
+
+    def __init__(self, pos, color, path):
+        Insect.__init__(self, pos, color, path)
+        self.name = "god"
+        self.full_name = self.name + "_" + self.color
+        self.pict = pygame.image.load(self.path + self.full_name + ".png")
+
+    def calc_directions(self, pos=None):
+        if pos is None:
+            pos = self.position
+        a, b = pos
+
+        directions_way = [(0, 0), (0, 1), (0, 2), (0, 3), (0, 4), (1, 0), (1, 1), (1, 2), (1, 3), (1, 4), (1, 5),
+                          (2, 0), (2, 1), (2, 2), (2, 3), (2, 4), (2, 5), (2, 6), (3, 0), (3, 1), (3, 2), (3, 3),
+                          (3, 4), (3, 5), (3, 6), (3, 7), (4, 0), (4, 1), (4, 2), (4, 3), (4, 4), (4, 5), (4, 6),
+                          (4, 7), (4, 8), (5, 1), (5, 2), (5, 3), (5, 4), (5, 5), (5, 6), (5, 7), (5, 8), (5, 9),
+                          (6, 2), (6, 3), (6, 4), (6, 5), (6, 6), (6, 7), (6, 8), (6, 9), (7, 3), (7, 4), (7, 5),
+                          (7, 6), (7, 7), (7, 8), (7, 9), (8, 4), (8, 5), (8, 6), (8, 7), (8, 8), (8, 9), (9, 5),
+                          (9, 6), (9, 7), (9, 8), (9, 9)]
+
+        eat = directions_way.copy()
+
+        return directions_way, eat, False

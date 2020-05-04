@@ -31,7 +31,8 @@ class Textures:
         for name in ["menu_title", "menu_sub_1", "button", "button_overlay", "bg_hex"]:
             self.dflt[name] = self.create_dflt(name)
 
-        for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat"]:
+        for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat",
+                     "tile_setback"]:
             self.game[name] = self.create_game(name)
 
     def import_colors(self):
@@ -96,6 +97,9 @@ class Textures:
         except KeyError:
             if name == "tile_mask":
                 image = self.draw_tile(c.BLACK).convert_alpha()
+
+            if name == "tile_setback":
+                image = self.draw_tile(c.RED).convert_alpha()
 
         if image is not None:
             pygame.image.save(image, c.SCREENSHOTS + name + ".png")

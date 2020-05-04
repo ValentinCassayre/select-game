@@ -115,7 +115,7 @@ def main():
             if not game.started:
 
                 # prepare the initial position of the insects
-                for insect_data in InitialLayout.classic():
+                for insect_data in InitialLayout.custom():
 
                     insect = insect_data[0](insect_data[1], insect_data[2], textures.insect_path)
                     # update tile
@@ -161,7 +161,7 @@ def main():
 
                 if update:
                     # update the screen
-                    log_text = str(game.tile_pos)
+                    log_text = str(game.test)
                     log = textures.font["menu button"].render(log_text, True, textures.colors["button_text"])
                     disp.draw_surface(log, c.CENTER, False)
 
@@ -169,6 +169,10 @@ def main():
                     disp.draw_surface(board.ways_surface, c.CENTER, False)
                     # draw the mouse tile pos
                     disp.draw_surface(board.mouse_interaction_surface, c.CENTER, False)
+
+                    # draw setback
+                    if game.setback is not None:
+                        disp.draw_surface(textures.game['tile_setback'], board.position(game.setback.pos), True)
 
                     # draw the insects
                     for insect in game.insects:
