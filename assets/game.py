@@ -179,8 +179,7 @@ class Game:
         if self.setback == self.turn:
             # ant is attacked and you need to avoid it
 
-            for new_pos in self.tile_insect.ways + self.tile_insect.eat:
-                self.test = self.check_attack(new_pos)
+            pass
 
         else:
             # just moove
@@ -225,22 +224,31 @@ class Game:
             self.board.tile(murderer.pos, murderer)
 
     def calc_ways(self):
+        """
+        calculus that need to be done every beginning of turn
+        calc were each insect can go (way if just move and eat if kill someone)
+        remove illegal moves (moves that setback the own ant of the insect)
+
+        calc if the ant is in setback mode
+        check if it can escape
+        """
+
+        if self.setback is not None:
+            self.setback = None
 
         # check each insect
         for insect in self.insects:
 
-            if insect.color == self.turn:
-                # checked color
-                ways, eat = self.check_tile(insect)
+            # calc moves
+            ways, eat = self.check_tile(insect)
 
-            else:
-                ways, eat = self.check_tile(insect)
-
+            # remove illegal moves
             for cell in ways + eat:
-                if insect.color == self.turn:
-                    pass
-                else:
-                    self.check_attack(insect, cell, True)
+
+                setback, illegal_move = self.check_attack(insect, cell)
+
+                if setback is not None:
+                    self.setback = setback
 
             self.board.ways.update({insect: ways})
             self.board.eat.update({insect: eat})
@@ -293,7 +301,7 @@ class Game:
 
         return ways, eat
 
-    def check_attack(self, insect, new_pos, passive):
+    def check_attack(self, insect, new_pos):
         temp = self.board.tile_state.copy()
         temp.update({insect.pos: None})
         temp.update({new_pos: insect})
@@ -301,44 +309,30 @@ class Game:
         eat_dict = {}
         moove_dict = {}
 
-        for ins in self.insects:
-            way = self.check_tile(insect, temp)[0]
-            eat = self.check_tile(insect, temp)[1]
-            eat_dict.update({ins: eat})
-            moove_dict.update({ins: way + eat})
+        setback = None
+        illegal_move = False
 
-        if passive:
-            ant_attacked = self.check_setback(temp, eat_dict)
-            if ant_attacked is not None:
-                self.setback = ant_attacked
+        way, eat = self.check_tile(insect, temp)
 
-        else:
-            ant_attacked = self.check_setback_stop(temp, eat_dict, self.turn)
-            if ant_attacked is not None:
-                return new_pos
+        for cell in way:
+            if temp[cell] is not None and temp[cell].ant:
+                if temp[cell].color == self.turn:
+                    print("way check from {}".format(temp[cell].color))
+                    setback = temp[cell]
+                else:
+                    print("illegal move by {}".format(insect.pos))
+                    illegal_move = True
 
-    def check_setback(self, board_dict, eat_dict):
+        for cell in eat:
+            if temp[cell] is not None and temp[cell].ant:
+                if temp[cell].color == self.turn:
+                    print("{} ant attacked by {}".format(temp[cell].color, insect.pos))
+                    setback = temp[cell]
+                else:
+                    print("illegal move by {}".format(insect.pos))
+                    illegal_move = True
 
-        for insect in self.insects:
-            for eat_cell in eat_dict[insect]:
-                if insect.color == self.turn and board_dict[eat_cell].king:
-                    return board_dict[eat_cell]
-
-        return None
-
-    def check_setback_stop(self, board_dict, moves_dict, color):
-        """
-        check if if an insect go on this tile its ant will be attacked or not
-        moves = ways + eat
-        return ant attacked
-        """
-
-        for insect in self.insects:
-            for eat_cell in moves_dict[insect]:
-                if insect.color == self.turn and board_dict[eat_cell].king:
-                    return board_dict[eat_cell]
-
-        return None
+        return setback, illegal_move
 
 
 class Tutorial(Game):

@@ -161,7 +161,7 @@ def main():
 
                 if update:
                     # update the screen
-                    log_text = str(game.test)
+                    log_text = str(game.setback)
                     log = textures.font["menu button"].render(log_text, True, textures.colors["button_text"])
                     disp.draw_surface(log, c.CENTER, False)
 

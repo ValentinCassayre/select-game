@@ -20,7 +20,7 @@ class Insect:
         self.alive = True
 
         # special perks
-        self.king = False
+        self.ant = False
         self.kamikaze = False
 
     def __del__(self):
@@ -262,7 +262,7 @@ class Ant(Insect):
         self.name = "ant"
         self.full_name = self.name + "_" + self.color
         self.pict = pygame.image.load(self.path + self.full_name + ".png")
-        self.king = True
+        self.ant = True
 
     def calc_directions(self, pos=None):
         if pos is None:

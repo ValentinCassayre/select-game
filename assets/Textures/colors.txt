@@ -19,6 +19,8 @@ tile_select = 124,124,89,128
 tile_way = 120,127,55,200
 tile_eat = 150,127,55,200
 
+tile_setback = 118,47,27
+
 # INSECTS COLOR 28,51,51
 
 text_1 = 133,70,0
