@@ -38,6 +38,8 @@ class Game:
 
         self.test = None
 
+        self.last_setback = None
+
     # strings
     # state
     def _get_state(self):
@@ -125,26 +127,6 @@ class Game:
 
                     return tile_insect
 
-    def update_ways(self):
-        """
-        update all the possible ways the insects can go
-        """
-
-        total_ways = [0, 0]
-
-        self.calc_ways()
-
-        for insect in self.insects:
-            ways, eat = self.board.ways[insect], self.board.eat[insect]
-            insect.update_directions((ways, eat))
-
-            total_ways[self.color_dict[insect.color]] = total_ways[self.color_dict[insect.color]] + len(ways) + len(eat)
-
-        # check if the one who needs to play can play
-        if total_ways[self.color_dict[self.turn]] == 0:
-            print("Game stopped ! {} cannot move".format(self.turn))
-            self.stop()
-
     def choose_insect(self, board, textures):
         # return the object of the tile insect if the insect can be selected
         self.tile_insect = self.select_insect(self.tile_pos)
@@ -223,42 +205,87 @@ class Game:
             murderer.pos = dead.pos
             self.board.tile(murderer.pos, murderer)
 
-    def calc_ways(self):
+    # movement related
+    def update_ways(self):
         """
-        calculus that need to be done every beginning of turn
-        calc were each insect can go (way if just move and eat if kill someone)
-        remove illegal moves (moves that setback the own ant of the insect)
-
-        calc if the ant is in setback mode
-        check if it can escape
+        update all the possible ways the insects can go
         """
 
-        if self.setback is not None:
+        setback = None
+
+        for insect in self.insects:
+            ways, eat = self.check_obstacle(insect)
+
+            new_ways, new_eat = [], []
+
+            for cell in ways:
+
+                # check and remove illegal moves
+                if not self.removed_illegal_moves(insect, cell):
+                    new_ways.append(cell)
+
+            for cell in eat:
+
+                # check setback
+                if self.board.tile_state[cell].color != insect.color and self.board.tile_state[cell].ant:
+                    setback = self.board.tile_state[cell]
+
+                # check and remove illegal moves
+                if not self.removed_illegal_moves(insect, cell):
+                    new_eat.append(cell)
+
+            insect.ways = new_ways
+            insect.eat = new_eat
+
+        if setback is None:
             self.setback = None
 
-        # check each insect
-        for insect in self.insects:
+        else:
+            self.setback = setback
 
-            # calc moves
-            ways, eat = self.check_tile(insect)
+    def removed_illegal_moves(self, insect, new_pos):
+        """
+        check if this move is an illegal move
+        illegal move mean it set its own ant into setback
+        """
 
-            # remove illegal moves
-            for cell in ways + eat:
+        temp = self.board.tile_state.copy()
+        temp.update({insect.pos: None})
+        temp.update({new_pos: insect})
 
-                setback, illegal_move = self.check_attack(insect, cell)
+        for cell in self.board.pos_list:
 
-                if setback is not None:
-                    self.setback = setback
+            insect_attacking = temp[cell]
 
-            self.board.ways.update({insect: ways})
-            self.board.eat.update({insect: eat})
+            # check if someone on it, and if it is an enemy
+            if insect_attacking is not None and insect_attacking.color != insect.color:
 
-    def check_tile(self, insect, board=None):
+                # get all the possible path he can get
+                paths = self.check_obstacle(temp[cell], temp, paths=True)
+
+                # check them
+                for pot_attack_pos in paths:
+
+                    insect_attacked = temp[pot_attack_pos]
+
+                    # check if something on cell, check if there is an opponent on it, and if it is an ant
+                    if insect_attacked is not None and insect_attacked.color == insect.color and insect_attacked.ant:
+                        # if i split the conditions i can rescue some helpful information
+                        # as how many insect it can attack
+
+                        # it is an illegal move because in this case the ant of the insect is attacked by the opponent
+                        return True
+
+        # if the method gets to this place it means there is no illegal moves in here
+        return False
+
+    def check_obstacle(self, insect, board=None, paths=False):
         """
         check if the insect can go on this tile
         check if the tile is on the board
         check if there is no obstacle or another insect to kill
         """
+
         if board is None:
             board = self.board.tile_state
 
@@ -299,40 +326,11 @@ class Game:
                     # same team so dont eat him
                     pass
 
-        return ways, eat
-
-    def check_attack(self, insect, new_pos):
-        temp = self.board.tile_state.copy()
-        temp.update({insect.pos: None})
-        temp.update({new_pos: insect})
-
-        eat_dict = {}
-        moove_dict = {}
-
-        setback = None
-        illegal_move = False
-
-        way, eat = self.check_tile(insect, temp)
-
-        for cell in way:
-            if temp[cell] is not None and temp[cell].ant:
-                if temp[cell].color == self.turn:
-                    print("way check from {}".format(temp[cell].color))
-                    setback = temp[cell]
-                else:
-                    print("illegal move by {}".format(insect.pos))
-                    illegal_move = True
-
-        for cell in eat:
-            if temp[cell] is not None and temp[cell].ant:
-                if temp[cell].color == self.turn:
-                    print("{} ant attacked by {}".format(temp[cell].color, insect.pos))
-                    setback = temp[cell]
-                else:
-                    print("illegal move by {}".format(insect.pos))
-                    illegal_move = True
-
-        return setback, illegal_move
+        # return every pos this insect can normally go
+        if paths:
+            return ways + eat
+        else:
+            return ways, eat
 
 
 class Tutorial(Game):
