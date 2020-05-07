@@ -40,6 +40,17 @@ class Game:
 
         self.last_setback = None
 
+        self.last_move = []
+
+        self.end_game = None
+
+        # create the clock used to control the frame rate and the stopwatch
+        self.clock = pygame.time.Clock()
+
+        self.player_stopwatch = [0, 0]
+        self.last_check = [0, 0]
+        self.player_clock = [60000, 600000]
+
     # strings
     # state
     def _get_state(self):
@@ -92,6 +103,8 @@ class Game:
         self.update_ways()
         self.update_list()
 
+        self.start_clock()
+
     def update_name(self):
         """
         update the window name
@@ -110,6 +123,25 @@ class Game:
         for insect in self.insects:
             if insect.alive is False:
                 self.insects.remove(insect)
+
+    def start_clock(self):
+
+        i = c.TURN_STATE[self.turn]
+
+        time = pygame.time.get_ticks()
+        self.last_check[i] = time
+
+    def update_clock(self):
+
+        time = pygame.time.get_ticks()
+
+        i = c.TURN_STATE[self.turn]
+
+        self.player_stopwatch[i] = time - self.last_check[i]
+
+        self.player_clock[i] = self.player_clock[i] - self.player_stopwatch[i]
+
+        self.last_check[i] = time
 
     def select_insect(self, tile_pos):
         """
@@ -155,37 +187,40 @@ class Game:
 
         return update
 
-    def choose_way(self, board):
+    def choose_way(self, board, textures):
         update = False
 
-        if self.setback == self.turn:
-            # ant is attacked and you need to avoid it
+        # just moove
+        if self.tile_pos in self.tile_insect.ways:
+            self.last_move = self.tile_insect.pos, self.tile_pos
 
-            pass
+            self.move(self.tile_insect, self.tile_pos)
+
+            update = True
+            self.process = "next turn"
+
+            self.board.draw_last_move(self.last_move, textures)
+
+        # moove and kill
+        elif self.tile_pos in self.tile_insect.eat:
+            self.last_move = self.tile_insect.pos, self.tile_pos
+
+            dead_insect = board.tile_state[self.tile_pos]
+            self.kill(self.tile_insect, dead_insect)
+
+            # update tile after
+            board.tile(self.tile_insect.pos, self.tile_insect)
+            update = True
+            self.process = "next turn"
+
+            self.board.draw_last_move(self.last_move, textures)
 
         else:
-            # just moove
-            if self.tile_pos in self.tile_insect.ways:
-                self.move(self.tile_insect, self.tile_pos)
+            update = True
+            self.process = "choose insect"
 
-                update = True
-                self.process = "next turn"
+        board.reset_surface("ways_surface")
 
-            # moove and kill
-            elif self.tile_pos in self.tile_insect.eat:
-                dead_insect = board.tile_state[self.tile_pos]
-                self.kill(self.tile_insect, dead_insect)
-
-                # update tile after
-                board.tile(self.tile_insect.pos, self.tile_insect)
-                update = True
-                self.process = "next turn"
-
-            else:
-                update = True
-                self.process = "choose insect"
-
-            board.reset_surface("ways_surface")
         return update
 
     def move(self, insect, new_pos):
@@ -195,7 +230,12 @@ class Game:
 
     def kill(self, murderer, dead):
         self.board.tile(murderer.pos, None)
-        self.insects.remove(dead)
+        try:
+            self.insects.remove(dead)
+
+        except ValueError:
+            print("Value error in game.kill with the {} insect in pos {}".format(murderer.color, murderer.pos))
+
         murderer.kill(dead)
         if murderer.kamikaze:
             self.board.tile(dead.pos, None)
@@ -212,36 +252,53 @@ class Game:
         """
 
         setback = None
+        total_paths = []
 
         for insect in self.insects:
             ways, eat = self.check_obstacle(insect)
 
-            new_ways, new_eat = [], []
+            if insect.color == self.turn:  # check ways
 
-            for cell in ways:
+                new_ways, new_eat = [], []
 
-                # check and remove illegal moves
-                if not self.removed_illegal_moves(insect, cell):
-                    new_ways.append(cell)
+                for cell in ways:
 
-            for cell in eat:
+                    # check and remove illegal moves
+                    if not self.removed_illegal_moves(insect, cell):
+                        new_ways.append(cell)
 
-                # check setback
-                if self.board.tile_state[cell].color != insect.color and self.board.tile_state[cell].ant:
-                    setback = self.board.tile_state[cell]
+                for cell in eat:
 
-                # check and remove illegal moves
-                if not self.removed_illegal_moves(insect, cell):
-                    new_eat.append(cell)
+                    # check and remove illegal moves
+                    if not self.removed_illegal_moves(insect, cell):
+                        new_eat.append(cell)
 
-            insect.ways = new_ways
-            insect.eat = new_eat
+                insect.ways = new_ways
+                insect.eat = new_eat
+
+                for cell in new_ways + new_eat:
+                    total_paths.append(cell)
+
+            else:  # check setback
+
+                for cell in eat:
+
+                    # check setback
+                    if self.board.tile_state[cell].color != insect.color and self.board.tile_state[cell].ant:
+                        setback = self.board.tile_state[cell]
 
         if setback is None:
             self.setback = None
-
         else:
             self.setback = setback
+
+        if len(total_paths) == 0:
+            if setback:
+                print("LOST")
+                self.end_game = "{} lost".format(self.turn)
+            else:
+                print("DRAW")
+                self.end_game = "draw ({} cannot move and not setback)".format(self.turn)
 
     def removed_illegal_moves(self, insect, new_pos):
         """

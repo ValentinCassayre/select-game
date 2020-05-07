@@ -26,14 +26,25 @@ class Textures:
         self.font = self.create_font()
 
         self.game = {}
-
         self.dflt = {}
+
+        self.clock_1 = {}
+        self.clock_2 = {}
+
         for name in ["menu_title", "menu_sub_1", "button", "button_overlay", "bg_hex"]:
             self.dflt[name] = self.create_dflt(name)
 
         for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat",
-                     "tile_setback"]:
+                     "tile_setback", "tile_move"]:
             self.game[name] = self.create_game(name)
+
+        for digit in range(10):
+            digit = str(digit)
+            self.clock_1[digit] = self.create_digit(digit, 1)
+            self.clock_2[digit] = self.create_digit(digit, 2)
+        for stopwatch_car in [":", ",", "."]:
+            self.clock_1[stopwatch_car] = self.create_digit(stopwatch_car, 1)
+            self.clock_2[stopwatch_car] = self.create_digit(stopwatch_car, 2)
 
     def import_colors(self):
         """
@@ -98,12 +109,21 @@ class Textures:
             if name == "tile_mask":
                 image = self.draw_tile(c.BLACK).convert_alpha()
 
-            if name == "tile_setback":
-                image = self.draw_tile(c.RED).convert_alpha()
-
         if image is not None:
             pygame.image.save(image, c.SCREENSHOTS + name + ".png")
             return image
+
+    def create_digit(self, digit, size):
+
+        image = self.font["clock_{}".format(size)].render(digit, True, self.colors["text"])
+
+        return image
+
+    def stopwatch(self, time):
+
+        image = self.font["clock_1"].render(time, True, self.colors["text"])
+
+        return image
 
     def save_board(self, board):
         self.game["board"] = board.convert_alpha()
@@ -188,4 +208,8 @@ class Textures:
         fonts["menu title"] = pygame.font.Font(font_path, round(font_size * 6))
         fonts["menu sub 1"] = pygame.font.Font(font_path, round(font_size * 1.5))
         fonts["menu button"] = pygame.font.Font(font_path, round(font_size * 1.6))
+
+        fonts["clock_1"] = pygame.font.Font(font_path, round(font_size * 2.4))
+        fonts["clock_2"] = pygame.font.Font(font_path, round(font_size * 2))
+
         return fonts

@@ -16,10 +16,12 @@ tile_2 = 207,107,0
 tile_overview = 204,180,148,64
 tile_select = 124,124,89,128
 
-tile_way = 120,127,55,200
-tile_eat = 150,127,55,200
+tile_way = 120,127,55,222
+tile_eat = 150,127,55,222
 
 tile_setback = 118,47,27
+
+tile_move = 100,100,100
 
 # INSECTS COLOR 28,51,51
 

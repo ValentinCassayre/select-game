@@ -20,10 +20,10 @@ class Display:
         pygame.display.set_icon(pygame.image.load(c.ICON))
         # Create a python surface for the screen
         self.screen = pygame.display.set_mode(c.SCREEN_SIZE)
-        # Create the clock used to control the frame rate
-        self.clock = pygame.time.Clock()
 
         self.menu_but_masks = []
+
+        self.stopwatch = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
 
     def draw_screen(self):
         """
@@ -98,6 +98,78 @@ class Display:
         tile_mask = pygame.mask.from_surface(mask_surface)
         return tile_rect, tile_mask, (x, y), type_name, b_pos
 
+    def draw_clock(self, clock, turn, textures, ret=False):
+
+        self.stopwatch = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
+
+        if turn:
+            self.stopwatch.fill(textures.colors["clock_turn"])
+
+        else:
+            self.stopwatch.fill(textures.colors["clock_not_turn"])
+
+        text = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
+
+        seconds = clock // 1000
+        minutes = seconds // 60
+        hours = minutes // 60
+
+        minutes = minutes - 60 * hours
+        seconds = seconds - 60 * minutes - 60**2 * hours
+        tenth = "{:03d}".format(clock)[-3]
+
+        # hours
+        if hours != 0:
+            pos = [20, 30]
+            text, pos = self.draw_2_chr(hours, pos, text, textures)
+            text, pos = self.draw_small_chr(":", pos, text, textures)
+            text, pos = self.draw_2_chr(minutes, pos, text, textures)
+            text, pos = self.draw_small_chr(".", pos, text, textures)
+            text, pos = self.draw_tenth("{:02d}".format(seconds)[0], pos, text, textures)
+
+        elif minutes == 0 and seconds <= 60:
+            pos = [22, 30]
+            text, pos = self.draw_2_chr(minutes, pos, text, textures)
+            text, pos = self.draw_small_chr(":", pos, text, textures)
+            text, pos = self.draw_2_chr(seconds, pos, text, textures)
+            text, pos = self.draw_small_chr(".", pos, text, textures)
+            text, pos = self.draw_tenth(tenth, pos, text, textures)
+
+        else:
+            pos = [46, 30]
+            text, pos = self.draw_2_chr(minutes, pos, text, textures)
+            text, pos = self.draw_small_chr(":", pos, text, textures)
+            text, pos = self.draw_2_chr(seconds, pos, text, textures)
+
+        pos = self.stopwatch.get_rect().center
+
+
+
+        self.draw_surface(text, pos, True, on_this_surface=self.stopwatch)
+
+        if ret:
+            return self.stopwatch
+
+    def draw_2_chr(self, value, pos, text, textures):
+        temp = "{:02d}".format(value)
+        for char in temp:
+            self.draw_surface(textures.clock_1[char], pos, True, on_this_surface=text)
+            pos[0] = pos[0] + 28
+
+        return text, pos
+
+    def draw_small_chr(self, value, pos, text, textures):
+        self.draw_surface(textures.clock_1[value], pos, True, on_this_surface=text)
+        pos[0] = pos[0] + 20
+
+        return text, pos
+
+    def draw_tenth(self, value, pos, text, textures):
+
+        self.draw_surface(textures.clock_2[value], pos, True, on_this_surface=text)
+        pos[0] = pos[0] + 15
+
+        return text, pos
 
 class Board(Display):
     """
@@ -122,7 +194,8 @@ class Board(Display):
 
         self.screen_copy = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.mouse_interaction_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
-        self.ways_surface = self.screen_copy
+        self.ways_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+        self.last_move_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
 
         # find were to draw the board to fit in the middle
         self.board_origin = c.X_MID, (c.Y_SIZE-self.position((9, 9), origin=(0, 0))[1])/2
@@ -221,3 +294,13 @@ class Board(Display):
         self.last_tile_pos = mask_infos[4]
 
         return update, tile_pos
+
+    def draw_last_move(self, pos_list, textures):
+
+        # clean last move
+        self.last_move_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+
+        # add both pos of new move
+        for pos in pos_list:
+            self.draw_surface(
+                textures.game["tile_move"], self.position(pos), on_this_surface=self.last_move_surface)

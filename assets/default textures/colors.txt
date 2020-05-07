@@ -19,6 +19,10 @@ tile_select = 124,124,89,128
 tile_way = 120,127,55,200
 tile_eat = 150,127,55,200
 
+tile_setback = 226,58,0,192
+
+tile_move = 53,95,124,96
+
 # INSECTS COLOR 28,51,51
 
 text_1 = 133,70,0
@@ -26,3 +30,8 @@ text_1 = 133,70,0
 button = 156,159,149
 button_overview = 172,164,161
 button_text = 94,87,83
+
+text = 0,0,0
+
+clock_turn = 120,127,55
+clock_not_turn = 63,105,134

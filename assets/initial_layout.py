@@ -81,7 +81,7 @@ class InitialLayout:
         use it to have fun
         """
 
-        layout = (Locust, (5, 6), "white"), (Beetle, (2, 1), "white"), (Ant, (0, 0), "white")
+        layout = (Bug, (1, 2), "white"), (Locust, (5, 6), "white"), (Beetle, (2, 1), "white"), (Ant, (3, 3), "white")
 
         return InitialLayout.add_sym(layout, True)
 

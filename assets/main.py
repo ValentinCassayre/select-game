@@ -35,7 +35,9 @@ def main():
 
     # variables
     # booleans
-    update = True
+    update_menu = True
+    update_board = True
+    update_disp = True
 
     # creating the board for the first time
     textures.save_board(board.create_board(
@@ -90,26 +92,29 @@ def main():
                         elif last_touched_mask is not touched_mask[3]:
                             button = disp.draw_surface(textures.dflt["button_overlay"],
                                                        touched_mask[2], on_this_surface=button)
-                            update = True
+                            update_menu = True
                             last_touched_mask = touched_mask[3]
 
-                if update:
+                if update_menu:
 
                     disp.draw_screen()
                     disp.draw_surfaces([bg_surface, button, texts_surface])
                     button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
                     pygame.display.flip()
-                    update = False
+                    update_menu = False
 
                 # limit the frame rate
-                disp.clock.tick(c.FPS)
+                game.clock.tick(c.FPS)
 
         # game
         if game.loop and game.state == "game" or game.state == "tutorial":
 
             disp.draw_screen()
             disp.draw_surface(textures.game["board"], c.CENTER, False)
-            update = True
+            update_board = True
+            game.start_clock()
+
+            opponent_clock = None
 
             # initialize the game
             if not game.started:
@@ -131,7 +136,9 @@ def main():
             while game.loop and game.state == "game":
 
                 # limit the frame rate
-                disp.clock.tick(c.FPS)
+                game.clock.tick(c.FPS)
+
+                update_disp = True
 
                 # find the event
                 event, mask_touching, click = events.check(mask_list=board.mask_list)
@@ -146,49 +153,74 @@ def main():
 
                     if touched_mask[3] == "tile":
 
-                        update, game.tile_pos = board.draw_tile_overview(touched_mask, textures)
+                        update_board, game.tile_pos = board.draw_tile_overview(touched_mask, textures)
 
                 # act after a click
                 if click:
 
                     if game.process == "choose insect":
 
-                        update = game.choose_insect(board, textures)
+                        update_board = game.choose_insect(board, textures)
 
                     elif game.process == "choose way":
 
-                        update = game.choose_way(board)
+                        update_board = game.choose_way(board, textures)
 
-                if update:
-                    # update the screen
-                    log_text = str(game.setback)
-                    log = textures.font["menu button"].render(log_text, True, textures.colors["button_text"])
-                    disp.draw_surface(log, c.CENTER, False)
-
-                    # draw the ways_surface
-                    disp.draw_surface(board.ways_surface, c.CENTER, False)
-                    # draw the mouse tile pos
-                    disp.draw_surface(board.mouse_interaction_surface, c.CENTER, False)
-
-                    # draw setback
-                    if game.setback is not None:
-                        disp.draw_surface(textures.game['tile_setback'], board.position(game.setback.pos), True)
-
-                    # draw the insects
-                    for insect in game.insects:
-                        disp.draw_surface(textures.dflt[insect.full_name], board.position(insect.pos))
-
-                    # update
-                    pygame.display.flip()
-                    disp.clock.tick(c.FPS)
+                if update_board:
 
                     disp.draw_screen()
 
                     # draw the board to erase old position of the insects for the next update
                     disp.draw_surface(textures.game["board"], c.MIDDLE)
 
+                    # draw the ways_surface
+                    disp.draw_surface(board.ways_surface, c.CENTER, False)
+
+                    # draw last move
+                    disp.draw_surface(board.last_move_surface, c.CENTER, False)
+
+                    # draw setback
+                    if game.setback is not None:
+                        disp.draw_surface(textures.game['tile_setback'], board.position(game.setback.pos), True)
+
+                    # draw the mouse tile pos
+                    disp.draw_surface(board.mouse_interaction_surface, c.CENTER, False)
+
+                    # draw the insects
+                    for insect in game.insects:
+                        disp.draw_surface(textures.dflt[insect.full_name], board.position(insect.pos))
+
+                    update_disp = True
+
                     # reset
-                    update = False
+                    update_board = False
+
+                if update_disp:
+
+                    # update the screen
+                    log_text = str()
+                    log = textures.font["menu button"].render(log_text, True, textures.colors["button_text"])
+                    disp.draw_surface(log, c.CENTER, False)
+
+                    # update clock
+                    game.update_clock()
+
+                    # stopwatch
+                    turn = c.TURN_STATE[game.turn]
+                    last_turn = c.TURN_STATE[game.last_turn]
+
+                    disp.draw_clock(game.player_clock[turn], True, textures)
+                    disp.draw_surface(disp.stopwatch, c.SW[turn], True)
+
+                    if opponent_clock is not None:
+                        disp.draw_surface(opponent_clock, c.SW[last_turn], True)
+
+                    else:
+                        opponent_clock = disp.draw_clock(game.player_clock[last_turn], False, textures, ret=True)
+
+                    # update
+                    pygame.display.flip()
+                    game.clock.tick(c.FPS)
 
         # interrupt
         if game.loop and game.state == "interrupt":
