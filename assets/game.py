@@ -44,6 +44,8 @@ class Game:
 
         self.end_game = None
 
+        self.changed_turn = True
+
         # create the clock used to control the frame rate and the stopwatch
         self.clock = pygame.time.Clock()
 
@@ -104,6 +106,8 @@ class Game:
         self.update_list()
 
         self.start_clock()
+
+        self.changed_turn = True
 
     def update_name(self):
         """
@@ -388,6 +392,15 @@ class Game:
             return ways + eat
         else:
             return ways, eat
+
+    def check_turn(self):
+
+        if self.changed_turn:
+            self.changed_turn = False
+            return True
+
+        else:
+            return False
 
 
 class Tutorial(Game):

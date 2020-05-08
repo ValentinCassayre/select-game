@@ -98,6 +98,20 @@ class Display:
         tile_mask = pygame.mask.from_surface(mask_surface)
         return tile_rect, tile_mask, (x, y), type_name, b_pos
 
+    def draw_states(self, turn, state, textures):
+
+        bg = pygame.Surface((240, 400), pygame.SRCALPHA, 32)
+        bg.fill(textures.colors["infos"])
+
+        bg_rect = bg.get_rect().center
+        turn_pos = bg_rect[0], bg_rect[1]-30
+        state_pos = bg_rect[0], bg_rect[1]+30
+
+        self.draw_surface(draw_this_surface=textures.write(turn), disp_pos=turn_pos, center=True, on_this_surface=bg)
+        self.draw_surface(draw_this_surface=textures.write(state, font="game infos"), disp_pos=state_pos, center=True, on_this_surface=bg)
+
+        self.draw_surface(draw_this_surface=bg, disp_pos=c.TB, center=True)
+
     def draw_clock(self, clock, turn, textures, ret=False):
 
         self.stopwatch = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
@@ -143,12 +157,10 @@ class Display:
 
         pos = self.stopwatch.get_rect().center
 
-
-
         self.draw_surface(text, pos, True, on_this_surface=self.stopwatch)
 
         if ret:
-            return self.stopwatch
+            return self.stopwatch.copy()
 
     def draw_2_chr(self, value, pos, text, textures):
         temp = "{:02d}".format(value)

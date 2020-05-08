@@ -200,16 +200,27 @@ class Textures:
         image = pygame.image.load(path_str).convert_alpha()
         return image
 
+    def write(self, text, font="default"):
+
+        text = self.font[font].render(text, True, self.colors["text"])
+
+        return text
+
     @staticmethod
     def create_font():
         fonts = {}
         font_path = path.join(c.FONTS, "mysteron.ttf")
         font_size = 20
+
+        fonts["default"] = pygame.font.Font(font_path, round(font_size * 2))
+
         fonts["menu title"] = pygame.font.Font(font_path, round(font_size * 6))
         fonts["menu sub 1"] = pygame.font.Font(font_path, round(font_size * 1.5))
         fonts["menu button"] = pygame.font.Font(font_path, round(font_size * 1.6))
 
         fonts["clock_1"] = pygame.font.Font(font_path, round(font_size * 2.4))
         fonts["clock_2"] = pygame.font.Font(font_path, round(font_size * 2))
+
+        fonts["game infos"] = pygame.font.Font(font_path, round(font_size * 1.6))
 
         return fonts

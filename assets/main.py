@@ -114,13 +114,11 @@ def main():
             update_board = True
             game.start_clock()
 
-            opponent_clock = None
-
             # initialize the game
             if not game.started:
 
                 # prepare the initial position of the insects
-                for insect_data in InitialLayout.custom():
+                for insect_data in InitialLayout.classic():
 
                     insect = insect_data[0](insect_data[1], insect_data[2], textures.insect_path)
                     # update tile
@@ -209,14 +207,12 @@ def main():
                     turn = c.TURN_STATE[game.turn]
                     last_turn = c.TURN_STATE[game.last_turn]
 
+                    disp.draw_states(game.turn, game.process, textures)
+
                     disp.draw_clock(game.player_clock[turn], True, textures)
                     disp.draw_surface(disp.stopwatch, c.SW[turn], True)
-
-                    if opponent_clock is not None:
-                        disp.draw_surface(opponent_clock, c.SW[last_turn], True)
-
-                    else:
-                        opponent_clock = disp.draw_clock(game.player_clock[last_turn], False, textures, ret=True)
+                    disp.draw_clock(game.player_clock[last_turn], False, textures)
+                    disp.draw_surface(disp.stopwatch, c.SW[last_turn], True)
 
                     # update
                     pygame.display.flip()

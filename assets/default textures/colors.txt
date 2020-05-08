@@ -35,3 +35,5 @@ text = 0,0,0
 
 clock_turn = 120,127,55
 clock_not_turn = 63,105,134
+
+infos = 160,160,160
