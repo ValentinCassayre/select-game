@@ -33,13 +33,17 @@ B_O = (B_XO, B_YO)
 # BOARD PLACE POSITION (top left rect edge)
 B_RECT_POS = (X_MID-B_W//2, Y_MID-B_H//2)
 
-# STOPWATCH POS
-SW = {0: (6*X_SIZE/7, Y_MID - 100), 1: (6*X_SIZE/7, Y_MID + 100)}
-
 # TEXT POS
 TB = (6*X_SIZE/7, Y_MID)
-GT = (0, 10)
-GS = (0, 20)
+TB_SIZE = (240, 400)
+TURN_P = (TB_SIZE[0]/2, TB_SIZE[1]/1.1/2)
+PROCESS_P = (TB_SIZE[0]/2, TB_SIZE[1]*1.1/2)
+
+# STOPWATCH POS
+CLOCK = {0: (TB_SIZE[0]/2, TB_SIZE[1]*0.3), 1: (TB_SIZE[0]/2, TB_SIZE[1]*0.7)}
+
+# BUTTON POS
+G_BUT = {0: [], 1: (TB_SIZE[0]/2, TB_SIZE[1]*0.7)}
 
 # GAME INFOS
 GAME_NAME = "Select!"

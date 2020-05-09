@@ -31,12 +31,17 @@ class Textures:
         self.clock_1 = {}
         self.clock_2 = {}
 
+        self.game_but = {}
+
         for name in ["menu_title", "menu_sub_1", "button", "button_overlay", "bg_hex"]:
             self.dflt[name] = self.create_dflt(name)
 
         for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat",
                      "tile_setback", "tile_move"]:
             self.game[name] = self.create_game(name)
+
+        for name in ["takeback", "offer_draw", "give_up"]:
+            self.game_but[name] = self.create_game_but(name)
 
         for digit in range(10):
             digit = str(digit)
@@ -112,6 +117,15 @@ class Textures:
         if image is not None:
             pygame.image.save(image, c.SCREENSHOTS + name + ".png")
             return image
+
+    def create_game_but(self, name):
+
+        try:
+            image = pygame.image.load("textures/buttons" + name + ".png")
+        except pygame.error:
+            image = pygame.image.load("assets/default textures/buttons/" + name + ".png")
+
+        return image
 
     def create_digit(self, digit, size):
 

@@ -203,16 +203,7 @@ def main():
                     # update clock
                     game.update_clock()
 
-                    # stopwatch
-                    turn = c.TURN_STATE[game.turn]
-                    last_turn = c.TURN_STATE[game.last_turn]
-
-                    disp.draw_states(game.turn, game.process, textures)
-
-                    disp.draw_clock(game.player_clock[turn], True, textures)
-                    disp.draw_surface(disp.stopwatch, c.SW[turn], True)
-                    disp.draw_clock(game.player_clock[last_turn], False, textures)
-                    disp.draw_surface(disp.stopwatch, c.SW[last_turn], True)
+                    disp.draw_table(game.last_turn, game.turn, game.process, game.player_clock, textures)
 
                     # update
                     pygame.display.flip()

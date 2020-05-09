@@ -98,29 +98,59 @@ class Display:
         tile_mask = pygame.mask.from_surface(mask_surface)
         return tile_rect, tile_mask, (x, y), type_name, b_pos
 
+    def draw_game_buttons(self, textures):
+        """
+        """
+        masks = []
+        for k in range(3):
+
+            pos = ((k+1)*c.X_SIZE/15, c.Y_MID)
+            name = ["takeback", "offer_draw", "give_up"]
+            but = textures.game_but[name[k]]
+
+            self.draw_surface(but, pos, True)
+            masks.append(self.convert_to_mask(but, pos, name))
+
+        return masks
+
+    def draw_table(self, last_turn, turn, state, clock, textures):
+
+        table = self.draw_states(turn, state, textures)
+
+        your_turn = True
+
+        for i in [c.TURN_STATE[turn],  c.TURN_STATE[last_turn]]:
+
+            clock_surface = self.draw_clock(clock=clock[i], turn=your_turn, textures=textures)
+            self.draw_surface(draw_this_surface=clock_surface, disp_pos=c.CLOCK[i], on_this_surface=table, center=True)
+            your_turn = False
+
+        self.draw_surface(table, c.TB, True)
+
+        self.draw_game_buttons(textures)
+
     def draw_states(self, turn, state, textures):
 
-        bg = pygame.Surface((240, 400), pygame.SRCALPHA, 32)
-        bg.fill(textures.colors["infos"])
+        table = pygame.Surface(c.TB_SIZE, pygame.SRCALPHA, 32)
+        table.fill(textures.colors["infos"])
 
-        bg_rect = bg.get_rect().center
-        turn_pos = bg_rect[0], bg_rect[1]-30
-        state_pos = bg_rect[0], bg_rect[1]+30
+        bg_rect = table.get_rect().center
 
-        self.draw_surface(draw_this_surface=textures.write(turn), disp_pos=turn_pos, center=True, on_this_surface=bg)
-        self.draw_surface(draw_this_surface=textures.write(state, font="game infos"), disp_pos=state_pos, center=True, on_this_surface=bg)
+        self.draw_surface(draw_this_surface=textures.write(turn), disp_pos=c.TURN_P, center=True, on_this_surface=table)
+        self.draw_surface(draw_this_surface=textures.write(state, font="game infos"), disp_pos=c.PROCESS_P, center=True,
+                          on_this_surface=table)
 
-        self.draw_surface(draw_this_surface=bg, disp_pos=c.TB, center=True)
+        return table
 
-    def draw_clock(self, clock, turn, textures, ret=False):
+    def draw_clock(self, clock, turn, textures):
 
-        self.stopwatch = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
+        stopwatch = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
 
         if turn:
-            self.stopwatch.fill(textures.colors["clock_turn"])
+            stopwatch.fill(textures.colors["clock_turn"])
 
         else:
-            self.stopwatch.fill(textures.colors["clock_not_turn"])
+            stopwatch.fill(textures.colors["clock_not_turn"])
 
         text = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
 
@@ -155,12 +185,11 @@ class Display:
             text, pos = self.draw_small_chr(":", pos, text, textures)
             text, pos = self.draw_2_chr(seconds, pos, text, textures)
 
-        pos = self.stopwatch.get_rect().center
+        pos = stopwatch.get_rect().center
 
-        self.draw_surface(text, pos, True, on_this_surface=self.stopwatch)
+        self.draw_surface(text, pos, True, on_this_surface=stopwatch)
 
-        if ret:
-            return self.stopwatch.copy()
+        return stopwatch
 
     def draw_2_chr(self, value, pos, text, textures):
         temp = "{:02d}".format(value)

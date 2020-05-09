@@ -53,6 +53,10 @@ class Game:
         self.last_check = [0, 0]
         self.player_clock = [60000, 600000]
 
+        self.turn_number = 0
+
+        self.board_saves = []
+
     # strings
     # state
     def _get_state(self):
@@ -108,6 +112,8 @@ class Game:
         self.start_clock()
 
         self.changed_turn = True
+
+        self.turn_number = self.turn_number + 1
 
     def update_name(self):
         """
