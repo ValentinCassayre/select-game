@@ -231,6 +231,7 @@ class Textures:
         fonts["menu title"] = pygame.font.Font(font_path, round(font_size * 6))
         fonts["menu sub 1"] = pygame.font.Font(font_path, round(font_size * 1.5))
         fonts["menu button"] = pygame.font.Font(font_path, round(font_size * 1.6))
+        fonts["menu button sub"] = pygame.font.Font(font_path, round(font_size * 1.2))
 
         fonts["clock_1"] = pygame.font.Font(font_path, round(font_size * 2.4))
         fonts["clock_2"] = pygame.font.Font(font_path, round(font_size * 2))

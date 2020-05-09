@@ -53,7 +53,7 @@ def main():
 
             # initialize the menu
             # use disp class to draw the menu page
-            menu_masks, bg_surface, texts_surface = disp.draw_menu(textures)
+            menu_masks, bg_surface, texts_surface = disp.create_main_menu(textures)
             button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
             # update the screen
             pygame.display.flip()
@@ -83,11 +83,7 @@ def main():
                             elif touched_mask[3] == "but_3":
                                 pass
                             elif touched_mask[3] == "but_4":
-                                pass
-                            elif touched_mask[3] == "but_5":
-                                open_url('http://valentin.cassayre.me/select')
-                            elif touched_mask[3] == "but_6":
-                                open_url('https://github.com/V-def/select-game')
+                                game.state = "infos"
 
                         elif last_touched_mask is not touched_mask[3]:
                             button = disp.draw_surface(textures.dflt["button_overlay"],
@@ -97,6 +93,115 @@ def main():
 
                 if update_menu:
 
+                    disp.draw_screen()
+                    disp.draw_surfaces([bg_surface, button, texts_surface])
+                    button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+                    pygame.display.flip()
+                    update_menu = False
+
+                # limit the frame rate
+                game.clock.tick(c.FPS)
+
+        # interrupt
+        if game.loop and game.state == "infos":
+
+            # initialize the menu
+            # use disp class to draw the menu page
+            menu_masks, bg_surface, texts_surface = disp.create_infos_menu(textures)
+            button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+            # update the screen
+            update_menu = True
+
+            last_touched_mask = None
+
+            while game.loop and game.state == "infos":
+
+                # check events
+                event, mask_touching, click = events.check(menu_masks)
+
+                if event is "leave":
+                    game.stop()
+
+                if event is "escape":
+                    game.state = "menu"
+
+                if event in ["space", "enter"]:
+                    open_url('https://github.com/V-def/select-game')
+
+                for touched_mask in mask_touching:
+
+                    if touched_mask[3].startswith("but"):
+
+                        if click:
+                            if touched_mask[3] == "but_1":
+                                open_url('https://github.com/V-def/select-game')
+                            elif touched_mask[3] == "but_2":
+                                open_url('http://valentin.cassayre.me/select')
+                            elif touched_mask[3] == "but_3":
+                                game.state = "menu"
+                            elif touched_mask[3] == "but_4":
+                                game.stop()
+
+                        elif last_touched_mask is not touched_mask[3]:
+                            button = disp.draw_surface(textures.dflt["button_overlay"],
+                                                       touched_mask[2], on_this_surface=button)
+                            update_menu = True
+                            last_touched_mask = touched_mask[3]
+
+                if update_menu:
+                    disp.draw_screen()
+                    disp.draw_surfaces([bg_surface, button, texts_surface])
+                    button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+                    pygame.display.flip()
+                    update_menu = False
+
+                # limit the frame rate
+                game.clock.tick(c.FPS)
+
+        # interrupt
+        if game.loop and game.state == "interrupt":
+
+            # initialize the menu
+            # use disp class to draw the menu page
+            menu_masks, bg_surface, texts_surface = disp.create_interrupt_menu(textures)
+            button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+            # update the screen
+            update_menu = True
+
+            last_touched_mask = None
+
+            while game.loop and game.state == "interrupt":
+
+                # check events
+                event, mask_touching, click = events.check(menu_masks)
+
+                if event in ["leave", "escape"]:
+                    game.stop()
+
+                if event in ["space", "enter"]:
+                    game.state = "game"
+
+                for touched_mask in mask_touching:
+
+                    if touched_mask[3].startswith("but"):
+
+                        if click:
+                            if touched_mask[3] == "but_1":
+                                pass
+                            elif touched_mask[3] == "but_2":
+                                game.state = "game"
+                            elif touched_mask[3] == "but_3":
+                                game.stop()
+                            elif touched_mask[3] == "but_4":
+                                open_url('https://github.com/V-def/select-game')
+
+                        elif last_touched_mask is not touched_mask[3]:
+                            button = disp.draw_surface(textures.dflt["button_overlay"],
+                                                       touched_mask[2], on_this_surface=button)
+                            update_menu = True
+                            last_touched_mask = touched_mask[3]
+
+                if update_menu:
                     disp.draw_screen()
                     disp.draw_surfaces([bg_surface, button, texts_surface])
                     button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
@@ -129,6 +234,7 @@ def main():
                     textures.save_insect(insect.full_name, insect.pict)
 
                 game.update_ways()
+                game.started = True
 
             # real game main loop
             while game.loop and game.state == "game":
@@ -208,14 +314,6 @@ def main():
                     # update
                     pygame.display.flip()
                     game.clock.tick(c.FPS)
-
-        # interrupt
-        if game.loop and game.state == "interrupt":
-            """
-            Need to add this (pause)
-            """
-            # temporary close
-            game.stop()
 
 
 # everything starts here

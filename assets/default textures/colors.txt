@@ -30,6 +30,7 @@ text_1 = 133,70,0
 button = 156,159,149
 button_overview = 172,164,161
 button_text = 94,87,83
+button_text_sub = 114,107,103
 
 text = 0,0,0
 

@@ -21,8 +21,6 @@ class Display:
         # Create a python surface for the screen
         self.screen = pygame.display.set_mode(c.SCREEN_SIZE)
 
-        self.menu_but_masks = []
-
         self.stopwatch = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
 
     def draw_screen(self):
@@ -31,12 +29,14 @@ class Display:
         """
         self.screen.fill(c.BACKGROUND_COLOR)
 
-    def draw_menu(self, textures):
+    def create_menu(self, pos_list, text_list, sub_list, textures):
         """
-        Draw the menu screen
+        create a general menu used to create all the menu in game
+        pos list and text list are two lists who needs to be the same lengh and are the informations of the buttons
         """
-        # Need to add the menu textures
-        self.draw_screen()
+
+        menu_but_masks = []
+
         text_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         bg = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
 
@@ -44,22 +44,30 @@ class Display:
             for j in range(-3, 4):
 
                 text_str = None
+                sub_str = None
                 n = 0
-                x = c.X_MID + (i * 3 * c.MENU_RADIUS / 2 - j * 3 * c.MENU_RADIUS / 2)*c.MENU_EDGE
-                y = c.Y_MID + (i * c.MENU_UNIT + j * c.MENU_UNIT)*c.MENU_EDGE
+                x = c.X_MID + (i * 3 * c.MENU_RADIUS / 2 - j * 3 * c.MENU_RADIUS / 2) * c.MENU_EDGE
+                y = c.Y_MID + (i * c.MENU_UNIT + j * c.MENU_UNIT) * c.MENU_EDGE
 
-                for k, pos in enumerate([(0, 1), (0, 0), (1, 1), (1, 0), (0, 2), (2, 0)]):
+                for k, pos in enumerate(pos_list):
                     if (i, j) == pos:
-                        n = k+1
-                        text_str = ["Tutorial", "Play offline", "Play online", "Settings", "More infos", "Git Hub"][k]
+                        n = k + 1
+                        text_str = text_list[k]
+                        try:
+                            sub_str = sub_list[k]
+                        except IndexError:
+                            pass
                         continue
 
                 if n > 0:
                     but_tag = "but_" + str(n)
                     self.draw_surface(textures.dflt["button"], (x, y), on_this_surface=bg)
                     text = textures.font["menu button"].render(text_str, True, textures.colors["button_text"])
-                    self.menu_but_masks.append(self.convert_to_mask(textures.dflt["button"], (x, y), but_tag))
+                    menu_but_masks.append(self.convert_to_mask(textures.dflt["button"], (x, y), but_tag))
                     self.draw_surface(text, (x, y), on_this_surface=text_surface)
+                    text = textures.font["menu button sub"].render(sub_str, True, textures.colors["button_text_sub"])
+                    menu_but_masks.append(self.convert_to_mask(textures.dflt["button"], (x, y), but_tag))
+                    self.draw_surface(text, (x, y+30), on_this_surface=text_surface)
 
                 else:
                     self.draw_surface(textures.dflt["bg_hex"], (x, y), on_this_surface=bg)
@@ -67,7 +75,47 @@ class Display:
         self.draw_surface(textures.dflt["menu_title"], c.TITLE_POS, on_this_surface=text_surface)
         self.draw_surface(textures.dflt["menu_sub_1"], c.SUB1_POS, on_this_surface=text_surface)
 
-        return self.menu_but_masks, bg, text_surface
+        # bg is the background, text_surface is the text overlay surface, menu_but_masks are the masks used for button
+        return bg, text_surface, menu_but_masks
+
+    def create_main_menu(self, textures):
+        """
+        create the surface and the masks used in the menu screen
+        """
+
+        pos_list = [(0, 1), (0, 0), (1, 1), (1, 0)]
+        text_list = ["Tutorial", "Play offline", "Play online", "More infos"]
+        sub = ["Soon", "", "Soon", "Git Hub"]
+
+        bg, text_surface, menu_but_masks = self.create_menu(pos_list, text_list, sub, textures)
+
+        return menu_but_masks, bg, text_surface
+
+    def create_infos_menu(self, textures):
+        """
+        create the surface and the masks used in the menu screen
+        """
+
+        pos_list = [(0, 1), (1, 0), (0, 0), (1, 1)]
+        text_list = ["Git Hub", "Website", "Back", "Quit game"]
+        sub = ["Webpage", "In french", "To the menu", ""]
+
+        bg, text_surface, menu_but_masks = self.create_menu(pos_list, text_list, sub, textures)
+
+        return menu_but_masks, bg, text_surface
+
+    def create_interrupt_menu(self, textures):
+        """
+        create the surface and the masks used in the menu screen
+        """
+
+        pos_list = [(0, 1), (0, 0), (1, 1), (1, 0)]
+        text_list = ["Save", "Resume", "Quit", "Git Hub"]
+        sub = ["Soon", "", "", "Web page"]
+
+        bg, text_surface, menu_but_masks = self.create_menu(pos_list, text_list, sub, textures)
+
+        return menu_but_masks, bg, text_surface
 
     def draw_surface(self, draw_this_surface, disp_pos, center=True, on_this_surface=None):
         """
