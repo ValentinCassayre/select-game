@@ -8,7 +8,7 @@ import assets.consts as c
 
 class Display:
     """
-    Display mother class
+    display mother class : everything related to things on the screen
     """
     def __init__(self):
         """
@@ -23,12 +23,43 @@ class Display:
 
         self.stopwatch = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
 
+    # basic tools
     def draw_screen(self):
         """
         Create white background on the screen
         """
         self.screen.fill(c.BACKGROUND_COLOR)
 
+    def draw_surface(self, draw_this_surface, disp_pos, center=True, on_this_surface=None):
+        """
+        draw a draw_this_surface centered (or not) in the given coords
+        """
+        if on_this_surface is None:
+            on_this_surface = self.screen
+        x, y = disp_pos
+        if center:
+            on_this_surface.blit(draw_this_surface,
+                                 (x - draw_this_surface.get_width() // 2, y - draw_this_surface.get_height() // 2))
+        else:
+            on_this_surface.blit(draw_this_surface, (x, y))
+        return on_this_surface
+
+    def draw_surfaces(self, surface_list):
+        for surface in surface_list:
+            self.draw_surface(surface, c.CENTER, False)
+
+    @staticmethod
+    def convert_to_mask(mask_surface, disp_pos, type_name, b_pos=None):
+        """
+        create and return the mask of a tile with the position of the tile in the display and not in the board
+        """
+        x, y = disp_pos
+        tile_rect = mask_surface.get_rect(center=(x, y))
+        # place mask itself
+        tile_mask = pygame.mask.from_surface(mask_surface)
+        return tile_rect, tile_mask, (x, y), type_name, b_pos
+
+    # menus
     def create_menu(self, pos_list, text_list, sub_list, textures):
         """
         create a general menu used to create all the menu in game
@@ -117,51 +148,28 @@ class Display:
 
         return menu_but_masks, bg, text_surface
 
-    def draw_surface(self, draw_this_surface, disp_pos, center=True, on_this_surface=None):
-        """
-        draw a draw_this_surface centered (or not) in the given coords
-        """
-        if on_this_surface is None:
-            on_this_surface = self.screen
-        x, y = disp_pos
-        if center:
-            on_this_surface.blit(draw_this_surface,
-                                 (x - draw_this_surface.get_width() // 2, y - draw_this_surface.get_height() // 2))
-        else:
-            on_this_surface.blit(draw_this_surface, (x, y))
-        return on_this_surface
-
-    def draw_surfaces(self, surface_list):
-        for surface in surface_list:
-            self.draw_surface(surface, c.CENTER, False)
-
-    @staticmethod
-    def convert_to_mask(mask_surface, disp_pos, type_name, b_pos=None):
-        """
-        create and return the mask of a tile with the position of the tile in the display and not in the board
-        """
-        x, y = disp_pos
-        tile_rect = mask_surface.get_rect(center=(x, y))
-        # place mask itself
-        tile_mask = pygame.mask.from_surface(mask_surface)
-        return tile_rect, tile_mask, (x, y), type_name, b_pos
-
+    # game related
     def draw_game_buttons(self, textures):
         """
+        draw in game buttons (takeback, offer draw, give up...)
         """
         masks = []
+        image = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         for k in range(3):
 
             pos = ((k+1)*c.X_SIZE/15, c.Y_MID)
             name = ["takeback", "offer_draw", "give_up"]
             but = textures.game_but[name[k]]
 
-            self.draw_surface(but, pos, True)
-            masks.append(self.convert_to_mask(but, pos, name))
+            self.draw_surface(but, pos, True, on_this_surface=image)
+            masks.append(self.convert_to_mask(but, pos, name[k]))
 
-        return masks
+        return image, masks
 
     def draw_table(self, last_turn, turn, state, clock, textures):
+        """
+        draw the full table on the right of the screen
+        """
 
         table = self.draw_states(turn, state, textures)
 
@@ -178,11 +186,12 @@ class Display:
         self.draw_game_buttons(textures)
 
     def draw_states(self, turn, state, textures):
+        """
+        on the table draw the states
+        """
 
         table = pygame.Surface(c.TB_SIZE, pygame.SRCALPHA, 32)
         table.fill(textures.colors["infos"])
-
-        bg_rect = table.get_rect().center
 
         self.draw_surface(draw_this_surface=textures.write(turn), disp_pos=c.TURN_P, center=True, on_this_surface=table)
         self.draw_surface(draw_this_surface=textures.write(state, font="game infos"), disp_pos=c.PROCESS_P, center=True,
@@ -259,6 +268,14 @@ class Display:
         pos[0] = pos[0] + 15
 
         return text, pos
+
+    def game_over(self, text, textures):
+
+        if text is not None:
+
+            rend_text = textures.font["default"].render(text, True, textures.colors["button_text"])
+            self.draw_surface(rend_text, (c.X_MID, c.Y_SIZE / 26))
+
 
 class Board(Display):
     """

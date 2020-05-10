@@ -81,9 +81,9 @@ class InitialLayout:
         use it to have fun
         """
 
-        layout = (Bug, (1, 2), "white"), (Locust, (5, 6), "white"), (Beetle, (2, 1), "white"), (Ant, (3, 3), "white")
+        layout = (God, (1, 2), "black"), (Ant, (3, 3), "white"), (Ant, (0, 0), "black")
 
-        return InitialLayout.add_sym(layout, True)
+        return layout
 
     @staticmethod
     def tutoriel(n):

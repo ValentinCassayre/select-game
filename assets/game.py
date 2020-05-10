@@ -10,6 +10,7 @@ import assets.consts as c
 class Game:
     """
     Class used to clean the main.py and allow to store the data and say what to do
+    also allows to create online games
     """
 
     def __init__(self, board):
@@ -19,8 +20,6 @@ class Game:
 
         self.turn = "white"
         self.last_turn = "black"
-
-        self.color_dict = {"white": 0, "black": 1}
 
         self.loop = True  # main loop
         self.started = False  # game started ?
@@ -36,13 +35,9 @@ class Game:
 
         self.setback = None
 
-        self.test = None
-
-        self.last_setback = None
-
         self.last_move = []
 
-        self.end_game = None
+        self.log = None
 
         self.changed_turn = True
 
@@ -51,7 +46,8 @@ class Game:
 
         self.player_stopwatch = [0, 0]
         self.last_check = [0, 0]
-        self.player_clock = [60000, 600000]
+        self.player_clock = [300000, 300000]
+        self.clock_bol = True
 
         self.turn_number = 0
 
@@ -74,11 +70,8 @@ class Game:
 
         self.process_string = process
 
-        # prepare for next turn
-        if self.process == "next turn":
-
-            self.process = "choose insect"
-            self.change_turn()
+        if self.process == "game ended":
+            self.stop_clock()
 
         self.update_name()
 
@@ -100,6 +93,9 @@ class Game:
         self.loop = False  # stop the main loop
 
     def change_turn(self):
+        """
+        change the turn
+        """
 
         turn = self.last_turn
         self.last_turn = self.turn
@@ -114,6 +110,7 @@ class Game:
         self.changed_turn = True
 
         self.turn_number = self.turn_number + 1
+        self.board_saves.append(self.board)
 
     def update_name(self):
         """
@@ -123,35 +120,49 @@ class Game:
         if self.state_string == "game":
             pygame.display.set_caption(c.GAME_NAME + bond +
                                        "In " + self.state_string + bond +
-                                       self.turn.capitalize() + bond +
-                                       self.process_string.capitalize())
+                                       self.turn.capitalize())
         else:
             pygame.display.set_caption(c.GAME_NAME + bond +
                                        self.state_string.capitalize())
 
     def update_list(self):
+        """
+        detect and remove unwanted deleted objetcs
+        """
         for insect in self.insects:
             if insect.alive is False:
                 self.insects.remove(insect)
 
     def start_clock(self):
-
+        """
+        start the clock of the player
+        """
+        self.clock_bol = True
         i = c.TURN_STATE[self.turn]
 
         time = pygame.time.get_ticks()
         self.last_check[i] = time
 
     def update_clock(self):
+        """
+        update the clock value
+        """
+        if self.clock_bol:
+            time = pygame.time.get_ticks()
 
-        time = pygame.time.get_ticks()
+            i = c.TURN_STATE[self.turn]
 
-        i = c.TURN_STATE[self.turn]
+            self.player_stopwatch[i] = time - self.last_check[i]
 
-        self.player_stopwatch[i] = time - self.last_check[i]
+            self.player_clock[i] = self.player_clock[i] - self.player_stopwatch[i]
 
-        self.player_clock[i] = self.player_clock[i] - self.player_stopwatch[i]
+            self.last_check[i] = time
 
-        self.last_check[i] = time
+    def stop_clock(self):
+        """
+        block the clocks
+        """
+        self.clock_bol = False
 
     def select_insect(self, tile_pos):
         """
@@ -170,6 +181,9 @@ class Game:
                     return tile_insect
 
     def choose_insect(self, board, textures):
+        """
+        allows the player to select the tile on which there is the insect he want to move
+        """
         # return the object of the tile insect if the insect can be selected
         self.tile_insect = self.select_insect(self.tile_pos)
 
@@ -198,6 +212,9 @@ class Game:
         return update
 
     def choose_way(self, board, textures):
+        """
+        allows the player to give the new position of the selected insect
+        """
         update = False
 
         # just moove
@@ -281,7 +298,8 @@ class Game:
 
                     # check and remove illegal moves
                     if not self.removed_illegal_moves(insect, cell):
-                        new_eat.append(cell)
+                        if self.board.tile_state[cell].ant is not True:
+                            new_eat.append(cell)
 
                 insect.ways = new_ways
                 insect.eat = new_eat
@@ -301,14 +319,13 @@ class Game:
             self.setback = None
         else:
             self.setback = setback
+            self.log = "{} attacked !".format(self.turn.capitalize())
 
         if len(total_paths) == 0:
             if setback:
-                print("LOST")
-                self.end_game = "{} lost".format(self.turn)
+                self.log = self.turn, "{} lost ! Ant stuck".format(self.turn.capitalize())
             else:
-                print("DRAW")
-                self.end_game = "draw ({} cannot move and not setback)".format(self.turn)
+                self.log = None, "Draw ! {} cannot move".format(self.turn.capitalize())
 
     def removed_illegal_moves(self, insect, new_pos):
         """
@@ -408,6 +425,14 @@ class Game:
         else:
             return False
 
+    def check_end_game(self):
+        """
+        check if there is someone who lost or if there is a draw
+        """
+
+        if self.log is not None:
+
+            self.process = "end game"
 
 class Tutorial(Game):
     """

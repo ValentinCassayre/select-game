@@ -219,6 +219,12 @@ def main():
             update_board = True
             game.start_clock()
 
+            game_button, game_button_mask = disp.draw_game_buttons(textures)
+
+            setback_log = None
+
+            last_update = pygame.time.get_ticks()
+
             # initialize the game
             if not game.started:
 
@@ -242,10 +248,8 @@ def main():
                 # limit the frame rate
                 game.clock.tick(c.FPS)
 
-                update_disp = True
-
                 # find the event
-                event, mask_touching, click = events.check(mask_list=board.mask_list)
+                event, mask_touching, click = events.check(mask_list=board.mask_list + game_button_mask)
 
                 if event == "leave":
                     game.stop()
@@ -259,6 +263,36 @@ def main():
 
                         update_board, game.tile_pos = board.draw_tile_overview(touched_mask, textures)
 
+                    elif touched_mask[3] == "takeback":
+
+                        pass
+
+                    elif touched_mask[3] == "offer_draw":
+
+                        if click:
+
+                            game.log = None, "{} offer draw".format(game.turn.capitalize())
+
+                    elif touched_mask[3] == "give_up":
+
+                        if click:
+
+                            game.log = game.turn, "{} gave up !".format(game.turn.capitalize())
+
+
+                game.check_end_game()
+
+                if game.process == "next turn":
+
+                    game.process = "choose insect"
+                    game.change_turn()
+                    game.check_end_game()
+
+                elif game.process == "end game":
+
+                    setback_log = game.log[1]
+                    game.stop_clock()
+
                 # act after a click
                 if click:
 
@@ -270,9 +304,40 @@ def main():
 
                         update_board = game.choose_way(board, textures)
 
-                if update_board:
+                if last_update//100 != pygame.time.get_ticks()//100:
+                    last_update = pygame.time.get_ticks()
+                    update_disp = True
 
+                if update_disp:
+                    """
+                    update everything on the display except the board
+                    """
                     disp.draw_screen()
+
+                    # update the screen
+                    log_text = str(game.tile_pos)
+                    log = textures.font["menu button"].render(log_text, True, textures.colors["button_text"])
+                    disp.draw_surface(log, c.CENTER, False)
+
+                    # update clock
+                    game.update_clock()
+
+                    # buttons
+                    disp.draw_surface(game_button, c.CENTER, False)
+
+                    disp.draw_table(game.last_turn, game.turn, game.process, game.player_clock, textures)
+
+                    if game.log is not None:
+                        disp.game_over(game.log[1], textures)
+
+                    update_board = True
+
+                    game.clock.tick(c.FPS)
+
+                if update_board:
+                    """
+                    update only the board
+                    """
 
                     # draw the board to erase old position of the insects for the next update
                     disp.draw_surface(textures.game["board"], c.MIDDLE)
@@ -294,26 +359,17 @@ def main():
                     for insect in game.insects:
                         disp.draw_surface(textures.dflt[insect.full_name], board.position(insect.pos))
 
-                    update_disp = True
+                    game.clock.tick(c.FPS)
 
-                    # reset
-                    update_board = False
-
-                if update_disp:
-
-                    # update the screen
-                    log_text = str()
-                    log = textures.font["menu button"].render(log_text, True, textures.colors["button_text"])
-                    disp.draw_surface(log, c.CENTER, False)
-
-                    # update clock
-                    game.update_clock()
-
-                    disp.draw_table(game.last_turn, game.turn, game.process, game.player_clock, textures)
+                if update_disp or update_board:
 
                     # update
                     pygame.display.flip()
                     game.clock.tick(c.FPS)
+
+                    update_disp, update_board = False, False
+
+
 
 
 # everything starts here
