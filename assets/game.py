@@ -200,12 +200,12 @@ class Game:
                 return update, selected_insect
 
             for way_cell in ways:
-                board.draw_surface(
-                    textures.game["tile_way"], board.position(way_cell), on_this_surface=board.ways_surface)
+                board.draw_surface_screen(
+                    textures.game["tile way"], board.position(way_cell), on_this_surface=board.ways_surface)
 
             for eat_cell in eat:
-                board.draw_surface(
-                    textures.game["tile_eat"], board.position(eat_cell), on_this_surface=board.ways_surface)
+                board.draw_surface_screen(
+                    textures.game["tile eat"], board.position(eat_cell), on_this_surface=board.ways_surface)
 
             update = True
             self.process = "choose way"
@@ -262,7 +262,7 @@ class Game:
             self.process = "choose insect"
 
         if reset:
-            board.reset_surface("ways_surface")
+            board.reset_surface("ways surface")
 
         return update, self.tile_insect
 

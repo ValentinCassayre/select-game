@@ -41,10 +41,10 @@ def main():
 
     # creating the board for the first time
     textures.save_board(board.create_board(
-        textures.colors["tile_outline"],
-        textures.game["tile_1"],
-        textures.game["tile_2"],
-        textures.game["tile_mask"]))
+        textures.colors["tile outline"],
+        textures.game["tile 1"],
+        textures.game["tile 2"],
+        textures.game["tile mask"]))
 
     # loop while game is open
     while game.loop:
@@ -86,8 +86,8 @@ def main():
                                 game.state = "infos"
 
                         elif last_touched_mask is not touched_mask[3]:
-                            button = disp.draw_surface(textures.dflt["button_overlay"],
-                                                       touched_mask[2], on_this_surface=button)
+                            button = disp.draw_surface_screen(textures.dflt["button overlay"],
+                                                              touched_mask[2], on_this_surface=button)
                             update_menu = True
                             last_touched_mask = touched_mask[3]
 
@@ -143,8 +143,8 @@ def main():
                                 game.stop()
 
                         elif last_touched_mask is not touched_mask[3]:
-                            button = disp.draw_surface(textures.dflt["button_overlay"],
-                                                       touched_mask[2], on_this_surface=button)
+                            button = disp.draw_surface_screen(textures.dflt["button overlay"],
+                                                              touched_mask[2], on_this_surface=button)
                             update_menu = True
                             last_touched_mask = touched_mask[3]
 
@@ -196,8 +196,8 @@ def main():
                                 open_url('https://github.com/V-def/select-game')
 
                         elif last_touched_mask is not touched_mask[3]:
-                            button = disp.draw_surface(textures.dflt["button_overlay"],
-                                                       touched_mask[2], on_this_surface=button)
+                            button = disp.draw_surface_screen(textures.dflt["button overlay"],
+                                                              touched_mask[2], on_this_surface=button)
                             update_menu = True
                             last_touched_mask = touched_mask[3]
 
@@ -215,15 +215,12 @@ def main():
         if game.loop and game.state == "game" or game.state == "tutorial":
 
             disp.draw_screen()
-            disp.draw_surface(textures.game["board"], c.CENTER, False)
+            disp.draw_surface_screen(textures.game["board"], c.CENTER, False)
             update_board = True
             game.start_clock()
 
             selected_insect = None
             drag = False
-
-            in_game_button, in_game_button_mask = disp.draw_in_game_buttons(textures)
-            end_game_button, end_game_button_mask = disp.draw_end_game_buttons(textures)
 
             last_update = pygame.time.get_ticks()
 
@@ -251,7 +248,7 @@ def main():
                 game.clock.tick(c.FPS)
 
                 # find the event
-                event, mask_touching, click = events.check(mask_list=board.mask_list + in_game_button_mask + end_game_button_mask)
+                event, mask_touching, click = events.check(mask_list=board.mask_list)
 
                 if event == "leave":
                     game.stop()
@@ -269,13 +266,13 @@ def main():
 
                         pass
 
-                    elif touched_mask[3] == "offer_draw":
+                    elif touched_mask[3] == "offer draw":
 
                         if click:
 
                             game.log = None, "{} offer draw".format(game.turn.capitalize())
 
-                    elif touched_mask[3] == "give_up":
+                    elif touched_mask[3] == "give up":
 
                         if click:
 
@@ -287,7 +284,7 @@ def main():
 
                             print("rematch")
 
-                    elif touched_mask[3] == "return_main_menu":
+                    elif touched_mask[3] == "return main menu":
 
                         if click:
 
@@ -333,15 +330,11 @@ def main():
 
                     # update the screen
                     log_text = str((events.mouse_pos, events.mouse_but_down))
-                    log = textures.font["menu button"].render(log_text, True, textures.colors["button_text"])
-                    disp.draw_surface(log, c.CENTER, False)
+                    log = textures.font["menu button"].render(log_text, True, textures.colors["button text"])
+                    disp.draw_surface_screen(log, c.CENTER, False)
 
                     # update clock
                     game.update_clock()
-
-                    # buttons
-                    disp.draw_surface(in_game_button, c.CENTER, False)
-                    disp.draw_surface(end_game_button, c.CENTER, False)
 
                     disp.draw_table(game.last_turn, game.turn, game.process, game.player_clock, textures)
 
@@ -358,27 +351,27 @@ def main():
                     """
 
                     # draw the board to erase old position of the insects for the next update
-                    disp.draw_surface(textures.game["board"], c.MIDDLE)
+                    disp.draw_surface_screen(textures.game["board"], c.MIDDLE)
 
                     # draw the ways_surface
-                    disp.draw_surface(board.ways_surface, c.CENTER, False)
+                    disp.draw_surface_screen(board.ways_surface, c.CENTER, False)
 
                     # draw last move
-                    disp.draw_surface(board.last_move_surface, c.CENTER, False)
+                    disp.draw_surface_screen(board.last_move_surface, c.CENTER, False)
 
                     # draw setback
                     if game.setback is not None:
-                        disp.draw_surface(textures.game['tile_setback'], board.position(game.setback.pos), True)
+                        disp.draw_surface_screen(textures.game['tile setback'], board.position(game.setback.pos), True)
 
                     # draw the mouse tile pos
-                    disp.draw_surface(board.mouse_interaction_surface, c.CENTER, False)
+                    disp.draw_surface_screen(board.mouse_interaction_surface, c.CENTER, False)
 
                     # draw the insects
                     for insect in game.insects:
                         if insect == selected_insect and drag:
-                            disp.draw_surface(textures.dflt[insect.full_name], events.mouse_pos)
+                            disp.draw_surface_screen(textures.dflt[insect.full_name], events.mouse_pos)
                         else:
-                            disp.draw_surface(textures.dflt[insect.full_name], board.position(insect.pos))
+                            disp.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))
 
                     game.clock.tick(c.FPS)
 

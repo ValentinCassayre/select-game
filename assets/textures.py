@@ -5,9 +5,12 @@ Textures of the game
 import pygame
 from pygame import gfxdraw
 from os import path
+
 from math import cos, sin, pi
 
+from assets.math import Math as M
 import assets.consts as c
+from assets.display import Display as D
 
 
 class Textures:
@@ -33,14 +36,18 @@ class Textures:
 
         self.game_but = {}
 
-        for name in ["menu_title", "menu_sub_1", "button", "button_overlay", "bg_hex"]:
+        for name in ["menu title", "menu sub 1", "button", "button overlay", "bg hex"]:
             self.dflt[name] = self.create_dflt(name)
 
-        for name in ["tile_1", "tile_2", "tile_overview", "tile_select", "tile_mask", "tile_way", "tile_eat",
-                     "tile_setback", "tile_move"]:
+        for name in ["tile 1", "tile 2", "tile overview", "tile select", "tile mask", "tile way", "tile eat",
+                     "tile setback", "tile move"]:
             self.game[name] = self.create_game(name)
 
-        for name in ["takeback", "offer_draw", "give_up", "rematch", "return_main_menu"]:
+        for name in ["takeback", "offer takeback", "accept takeback",
+                     "draw", "offer draw", "accept draw",
+                     "resign",
+                     "play again",
+                     "menu"]:
             self.game_but[name] = self.create_game_but(name)
 
         for digit in range(10):
@@ -55,30 +62,17 @@ class Textures:
         """
         import the colors from the "colors.txt" file
         """
-        try:
-            with open(c.COLORS_DFLT, "r") as colors:
-                for line in colors:
-                    if line.startswith("# ") or line.startswith("\n"):
-                        continue
-                    else:
-                        line = line.replace("\n", "").split()
-                        name = line[0]
-                        color = tuple(map(int, line[2].split(",")))
-                        self.colors.update({name: color})
-                        self.insect_path = c.INSECTS
-                colors.close()
-        except NameError:
-            with open("default textures/colors.txt", "r") as colors:
-                for line in colors:
-                    if line.startswith("# ") or line.startswith("\n"):
-                        continue
-                    else:
-                        line = line.replace("\n", "").split()
-                        name = line[0]
-                        color = tuple(map(int, line[2].split(",")))
-                        self.colors.update({name: color})
-                        self.insect_path = c.INSECTS
-                colors.close()
+        with open("assets/default textures/colors.txt", "r") as colors:
+            for line in colors:
+                if line.startswith("# ") or line.startswith("\n"):
+                    continue
+                else:
+                    color_dat = self.format_text(line).split('=')
+                    name = color_dat[0]
+                    color = tuple(map(int, color_dat[1].split(",")))
+                    self.colors.update({name: color})
+                    self.insect_path = c.INSECTS
+            colors.close()
 
     def create_dflt(self, name):
 
@@ -86,18 +80,18 @@ class Textures:
 
         if name.startswith("menu"):
             if name.endswith("title"):
-                image = self.font["menu title"].render(c.GAME_NAME, True, self.colors["tile_2"])
-            elif name.endswith("sub_1"):
-                image = self.font["menu sub 1"].render(c.SUB1, True, self.colors["tile_1"])
+                image = self.font["menu title"].render(c.GAME_NAME, True, self.colors["tile 2"])
+            elif name.endswith("sub 1"):
+                image = self.font["menu sub 1"].render(c.SUB1, True, self.colors["tile 1"])
 
         if name == "button":
             image = self.draw_tile(self.colors["button"], radius=c.MENU_RADIUS, unit=c.MENU_UNIT*2, mult=1)
 
-        if name == "button_overlay":
-            image = self.draw_tile(self.colors["button_overview"], radius=c.MENU_RADIUS, unit=c.MENU_UNIT*2, mult=1)
+        if name == "button overlay":
+            image = self.draw_tile(self.colors["button overview"], radius=c.MENU_RADIUS, unit=c.MENU_UNIT*2, mult=1)
 
-        if name == "bg_hex":
-            image = self.draw_tile(self.colors["background_2"], radius=c.MENU_RADIUS, unit=c.MENU_UNIT*2, mult=1)
+        if name == "bg hex":
+            image = self.draw_tile(self.colors["background 2"], radius=c.MENU_RADIUS, unit=c.MENU_UNIT*2, mult=1)
 
         if image is not None:
             pygame.image.save(image, c.SCREENSHOTS + name + ".png")
@@ -111,7 +105,7 @@ class Textures:
             image = self.draw_tile(self.colors[name]).convert_alpha()
 
         except KeyError:
-            if name == "tile_mask":
+            if name == "tile mask":
                 image = self.draw_tile(c.BLACK).convert_alpha()
 
         if image is not None:
@@ -120,22 +114,38 @@ class Textures:
 
     def create_game_but(self, name):
 
-        try:
-            image = pygame.image.load("textures/buttons" + name + ".png")
-        except pygame.error:
-            image = pygame.image.load("assets/default textures/buttons/" + name + ".png")
+        radius = 80
+        mult = 1
+        unit = M.inscribed_rad(radius)
+
+        rect = pygame.Rect((0, 0), (2 * radius * mult, unit * mult))
+        image = pygame.Surface(rect.size, pygame.SRCALPHA, 32)
+
+        image = self.draw_hexagon(image, self.colors['game buttons'], rect, radius, mult)
+
+        value = name.capitalize()
+        if len(name) < 14:
+            text_format = 'game menu 1'
+        else:
+            text_format = 'game menu 2'
+
+        text = self.font[text_format].render(value, True, self.colors['game buttons text'])
+
+        D.draw_surface(text, image, middle=True)
+
+        pygame.image.save(image, c.SCREENSHOTS + name + ".png")
 
         return image
 
     def create_digit(self, digit, size):
 
-        image = self.font["clock_{}".format(size)].render(digit, True, self.colors["text"])
+        image = self.font["clock {}".format(size)].render(digit, True, self.colors["text"])
 
         return image
 
     def stopwatch(self, time):
 
-        image = self.font["clock_1"].render(time, True, self.colors["text"])
+        image = self.font["clock 1"].render(time, True, self.colors["text"])
 
         return image
 
@@ -186,7 +196,7 @@ class Textures:
         # create a selection of the area
         rect = pygame.Rect((0, 0), (2 * c.R * mult, c.U * 2 * mult))
         image = pygame.Surface(rect.size, pygame.SRCALPHA)
-        image = self.draw_hexagon(image, self.colors["COLOR_TILE_OUTLINE"], rect, c.R, mult)
+        image = self.draw_hexagon(image, self.colors["COLOR TILE OUTLINE"], rect, c.R, mult)
         image = self.draw_hexagon(image, color, rect, c.R)
         return image
 
@@ -233,9 +243,30 @@ class Textures:
         fonts["menu button"] = pygame.font.Font(font_path, round(font_size * 1.6))
         fonts["menu button sub"] = pygame.font.Font(font_path, round(font_size * 1.2))
 
-        fonts["clock_1"] = pygame.font.Font(font_path, round(font_size * 2.4))
-        fonts["clock_2"] = pygame.font.Font(font_path, round(font_size * 2))
+        fonts["clock 1"] = pygame.font.Font(font_path, round(font_size * 2.4))
+        fonts["clock 2"] = pygame.font.Font(font_path, round(font_size * 2))
 
         fonts["game infos"] = pygame.font.Font(font_path, round(font_size * 1.6))
 
+        fonts["game menu 1"] = pygame.font.Font(font_path, round(font_size))
+        fonts["game menu 2"] = pygame.font.Font(font_path, round(font_size*0.8))
+
         return fonts
+
+    @staticmethod
+    def format_text(text):
+        """
+        predefined format text convertor
+        """
+        text = Textures.replace_all(text, {'\n': '', ' ': '', '_': ' '})
+        return text
+
+    @staticmethod
+    def replace_all(text, substrings_dict):
+        """
+        replace multiple substrings into a string
+        """
+        for old in substrings_dict:
+            new = substrings_dict[old]
+            text = text.replace(old, new)
+        return text

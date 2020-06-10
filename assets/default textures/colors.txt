@@ -38,3 +38,8 @@ clock_turn = 120,127,55
 clock_not_turn = 63,105,134
 
 infos = 160,160,160
+
+# GAME
+
+game_buttons = 160,160,160
+game_buttons_text = 40,40,40

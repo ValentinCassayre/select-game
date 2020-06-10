@@ -30,7 +30,7 @@ class Display:
         """
         self.screen.fill(c.BACKGROUND_COLOR)
 
-    def draw_surface(self, draw_this_surface, disp_pos, center=True, on_this_surface=None):
+    def draw_surface_screen(self, draw_this_surface, disp_pos, center=True, on_this_surface=None):
         """
         draw a draw_this_surface centered (or not) in the given coords
         """
@@ -46,7 +46,23 @@ class Display:
 
     def draw_surfaces(self, surface_list):
         for surface in surface_list:
-            self.draw_surface(surface, c.CENTER, False)
+            self.draw_surface_screen(surface, c.CENTER, False)
+
+    @staticmethod
+    def draw_surface(draw_this_surface, on_this_surface, disp_pos=(0, 0), center=True, middle=False):
+        """
+        draw a draw_this_surface centered (or not) in the given coords
+        """
+        if middle:
+            disp_pos = (on_this_surface.get_width() // 2, on_this_surface.get_height() // 2)
+
+        x, y = disp_pos
+
+        if center:
+            on_this_surface.blit(draw_this_surface,
+                                 (x - draw_this_surface.get_width() // 2, y - draw_this_surface.get_height() // 2))
+        else:
+            on_this_surface.blit(draw_this_surface, (x, y))
 
     @staticmethod
     def convert_to_mask(mask_surface, disp_pos, type_name, b_pos=None):
@@ -92,19 +108,19 @@ class Display:
 
                 if n > 0:
                     but_tag = "but_" + str(n)
-                    self.draw_surface(textures.dflt["button"], (x, y), on_this_surface=bg)
-                    text = textures.font["menu button"].render(text_str, True, textures.colors["button_text"])
+                    self.draw_surface_screen(textures.dflt["button"], (x, y), on_this_surface=bg)
+                    text = textures.font["menu button"].render(text_str, True, textures.colors["button text"])
                     menu_but_masks.append(self.convert_to_mask(textures.dflt["button"], (x, y), but_tag))
-                    self.draw_surface(text, (x, y), on_this_surface=text_surface)
-                    text = textures.font["menu button sub"].render(sub_str, True, textures.colors["button_text_sub"])
+                    self.draw_surface_screen(text, (x, y), on_this_surface=text_surface)
+                    text = textures.font["menu button sub"].render(sub_str, True, textures.colors["button text sub"])
                     menu_but_masks.append(self.convert_to_mask(textures.dflt["button"], (x, y), but_tag))
-                    self.draw_surface(text, (x, y+30), on_this_surface=text_surface)
+                    self.draw_surface_screen(text, (x, y + 30), on_this_surface=text_surface)
 
                 else:
-                    self.draw_surface(textures.dflt["bg_hex"], (x, y), on_this_surface=bg)
+                    self.draw_surface_screen(textures.dflt["bg hex"], (x, y), on_this_surface=bg)
 
-        self.draw_surface(textures.dflt["menu_title"], c.TITLE_POS, on_this_surface=text_surface)
-        self.draw_surface(textures.dflt["menu_sub_1"], c.SUB1_POS, on_this_surface=text_surface)
+        self.draw_surface_screen(textures.dflt["menu title"], c.TITLE_POS, on_this_surface=text_surface)
+        self.draw_surface_screen(textures.dflt["menu sub 1"], c.SUB1_POS, on_this_surface=text_surface)
 
         # bg is the background, text_surface is the text overlay surface, menu_but_masks are the masks used for button
         return bg, text_surface, menu_but_masks
@@ -149,40 +165,6 @@ class Display:
         return menu_but_masks, bg, text_surface
 
     # game related
-    def draw_in_game_buttons(self, textures):
-        """
-        draw in game buttons (takeback, offer draw, give up...)
-        """
-        masks = []
-        image = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
-        name = ["takeback", "offer_draw", "give_up"]
-        for k in range(len(name)):
-
-            pos = ((k+1)*c.X_SIZE/15, 300)
-            but = textures.game_but[name[k]]
-
-            self.draw_surface(but, pos, True, on_this_surface=image)
-            masks.append(self.convert_to_mask(but, pos, name[k]))
-
-        return image, masks
-
-    # game related
-    def draw_end_game_buttons(self, textures):
-        """
-        draw in game buttons (takeback, offer draw, give up...)
-        """
-        masks = []
-        image = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
-        name = ["rematch", "return_main_menu"]
-        for k in range(len(name)):
-
-            pos = ((k + 1) * c.X_SIZE/10, 420)
-            but = textures.game_but[name[k]]
-
-            self.draw_surface(but, pos, True, on_this_surface=image)
-            masks.append(self.convert_to_mask(but, pos, name[k]))
-
-        return image, masks
 
     def draw_table(self, last_turn, turn, state, clock, textures):
         """
@@ -196,12 +178,10 @@ class Display:
         for i in [c.TURN_STATE[turn],  c.TURN_STATE[last_turn]]:
 
             clock_surface = self.draw_clock(clock=clock[i], turn=your_turn, textures=textures)
-            self.draw_surface(draw_this_surface=clock_surface, disp_pos=c.CLOCK[i], on_this_surface=table, center=True)
+            self.draw_surface_screen(draw_this_surface=clock_surface, disp_pos=c.CLOCK[i], on_this_surface=table, center=True)
             your_turn = False
 
-        self.draw_surface(table, c.TB, True)
-
-        self.draw_in_game_buttons(textures)
+        self.draw_surface_screen(table, c.TB, True)
 
     def draw_states(self, turn, state, textures):
         """
@@ -211,9 +191,9 @@ class Display:
         table = pygame.Surface(c.TB_SIZE, pygame.SRCALPHA, 32)
         table.fill(textures.colors["infos"])
 
-        self.draw_surface(draw_this_surface=textures.write(turn), disp_pos=c.TURN_P, center=True, on_this_surface=table)
-        self.draw_surface(draw_this_surface=textures.write(state, font="game infos"), disp_pos=c.PROCESS_P, center=True,
-                          on_this_surface=table)
+        self.draw_surface_screen(draw_this_surface=textures.write(turn), disp_pos=c.TURN_P, center=True, on_this_surface=table)
+        self.draw_surface_screen(draw_this_surface=textures.write(state, font="game infos"), disp_pos=c.PROCESS_P, center=True,
+                                 on_this_surface=table)
 
         return table
 
@@ -222,10 +202,10 @@ class Display:
         stopwatch = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
 
         if turn:
-            stopwatch.fill(textures.colors["clock_turn"])
+            stopwatch.fill(textures.colors["clock turn"])
 
         else:
-            stopwatch.fill(textures.colors["clock_not_turn"])
+            stopwatch.fill(textures.colors["clock not turn"])
 
         text = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
 
@@ -262,27 +242,27 @@ class Display:
 
         pos = stopwatch.get_rect().center
 
-        self.draw_surface(text, pos, True, on_this_surface=stopwatch)
+        self.draw_surface_screen(text, pos, True, on_this_surface=stopwatch)
 
         return stopwatch
 
     def draw_2_chr(self, value, pos, text, textures):
         temp = "{:02d}".format(value)
         for char in temp:
-            self.draw_surface(textures.clock_1[char], pos, True, on_this_surface=text)
+            self.draw_surface_screen(textures.clock_1[char], pos, True, on_this_surface=text)
             pos[0] = pos[0] + 28
 
         return text, pos
 
     def draw_small_chr(self, value, pos, text, textures):
-        self.draw_surface(textures.clock_1[value], pos, True, on_this_surface=text)
+        self.draw_surface_screen(textures.clock_1[value], pos, True, on_this_surface=text)
         pos[0] = pos[0] + 20
 
         return text, pos
 
     def draw_tenth(self, value, pos, text, textures):
 
-        self.draw_surface(textures.clock_2[value], pos, True, on_this_surface=text)
+        self.draw_surface_screen(textures.clock_2[value], pos, True, on_this_surface=text)
         pos[0] = pos[0] + 15
 
         return text, pos
@@ -292,7 +272,7 @@ class Display:
         if text is not None:
 
             rend_text = textures.font["default"].render(text, True, textures.colors["button_text"])
-            self.draw_surface(rend_text, (c.X_MID, c.Y_SIZE / 26))
+            self.draw_surface_screen(rend_text, (c.X_MID, c.Y_SIZE / 26))
 
 
 class Board(Display):
@@ -368,9 +348,9 @@ class Board(Display):
                     disp_pos = self.position(cell)
 
                     if i % 5 == 2 or j % 5 == 2:
-                        self.draw_surface(tile_1, disp_pos, on_this_surface=image)
+                        self.draw_surface_screen(tile_1, disp_pos, on_this_surface=image)
                     else:
-                        self.draw_surface(tile_2, disp_pos, on_this_surface=image)
+                        self.draw_surface_screen(tile_2, disp_pos, on_this_surface=image)
 
                     self.pos_list.append(cell)
                     self.disp_list.append(disp_pos)
@@ -395,12 +375,10 @@ class Board(Display):
         pass
 
     def reset_surface(self, name):
-        if name == "mouse_interaction_surface":
+        if name == "mouse interaction surface":
             self.mouse_interaction_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
-        elif name == "ways_surface":
+        elif name == "ways surface":
             self.ways_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
-        else:
-            print("Error")
 
     def draw_tile_overview(self, mask_infos, textures):
 
@@ -410,9 +388,9 @@ class Board(Display):
 
         # check if the tile is a new tile, else no update of the screen
         if self.last_tile != mask_infos[4]:
-            self.reset_surface("mouse_interaction_surface")
-            self.draw_surface(
-                textures.game["tile_overview"], disp_pos, on_this_surface=self.mouse_interaction_surface)
+            self.reset_surface("mouse interaction surface")
+            self.draw_surface_screen(
+                textures.game["tile overview"], disp_pos, on_this_surface=self.mouse_interaction_surface)
 
             update = True
         self.last_tile_pos = mask_infos[4]
@@ -426,5 +404,5 @@ class Board(Display):
 
         # add both pos of new move
         for pos in pos_list:
-            self.draw_surface(
-                textures.game["tile_move"], self.position(pos), on_this_surface=self.last_move_surface)
+            self.draw_surface_screen(
+                textures.game["tile move"], self.position(pos), on_this_surface=self.last_move_surface)
