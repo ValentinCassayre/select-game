@@ -314,18 +314,12 @@ def main():
 
                         update_board, selected_insect = game.choose_insect(board, textures)
 
-                    elif game.process == "choose way":
-
-                        update_board, selected_insect = game.choose_way(board, textures)
-
-                        if update_board:
-                            drag = False
-
                 elif drag and not events.mouse_but_down:
 
-                    update_board, selected_insect = game.choose_way(board, textures, drag=drag)
-                    selected_insect = None
-                    drag = False
+                    if game.process == "choose way":
+
+                        update_board, selected_insect = game.choose_way(board, textures, drag=drag)
+                        drag = False
 
                 if last_update//100 != pygame.time.get_ticks()//100:
                     last_update = pygame.time.get_ticks()
