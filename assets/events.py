@@ -8,10 +8,11 @@ import pygame
 class Events:
 
     def __init__(self):
-        pass
 
-    @staticmethod
-    def check(mask_list=None):
+        self.mouse_pos = None
+        self.mouse_but_down = False
+
+    def check(self, mask_list=None):
 
         if mask_list is None:
             mask_list = []
@@ -23,6 +24,8 @@ class Events:
         x, y = pygame.mouse.get_pos()
 
         for event in pygame.event.get():
+
+            self.mouse_pos = (x, y)
 
             if event.type is pygame.QUIT:
                 event_key = "leave"
@@ -47,8 +50,12 @@ class Events:
                 if touching:
                     mask_touching.append(mask)
 
-                    if event.type == pygame.MOUSEBUTTONDOWN:
-                        # tile clicked
-                        click = True
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                # tile clicked
+                click = True
+                self.mouse_but_down = True
+
+            if event.type == pygame.MOUSEBUTTONUP:
+                self.mouse_but_down = False
 
         return event_key, mask_touching, click

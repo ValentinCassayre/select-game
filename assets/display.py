@@ -149,16 +149,34 @@ class Display:
         return menu_but_masks, bg, text_surface
 
     # game related
-    def draw_game_buttons(self, textures):
+    def draw_in_game_buttons(self, textures):
         """
         draw in game buttons (takeback, offer draw, give up...)
         """
         masks = []
         image = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
-        for k in range(3):
+        name = ["takeback", "offer_draw", "give_up"]
+        for k in range(len(name)):
 
-            pos = ((k+1)*c.X_SIZE/15, c.Y_MID)
-            name = ["takeback", "offer_draw", "give_up"]
+            pos = ((k+1)*c.X_SIZE/15, 300)
+            but = textures.game_but[name[k]]
+
+            self.draw_surface(but, pos, True, on_this_surface=image)
+            masks.append(self.convert_to_mask(but, pos, name[k]))
+
+        return image, masks
+
+    # game related
+    def draw_end_game_buttons(self, textures):
+        """
+        draw in game buttons (takeback, offer draw, give up...)
+        """
+        masks = []
+        image = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+        name = ["rematch", "return_main_menu"]
+        for k in range(len(name)):
+
+            pos = ((k + 1) * c.X_SIZE/10, 420)
             but = textures.game_but[name[k]]
 
             self.draw_surface(but, pos, True, on_this_surface=image)
@@ -183,7 +201,7 @@ class Display:
 
         self.draw_surface(table, c.TB, True)
 
-        self.draw_game_buttons(textures)
+        self.draw_in_game_buttons(textures)
 
     def draw_states(self, turn, state, textures):
         """
@@ -323,8 +341,8 @@ class Board(Display):
             origin = self.board_origin
         a, b = b_pos
         xo, yo = origin
-        x = xo + (a*3*c.RADIUS/2 - b*3*c.RADIUS/2)*c.EDGE_WIDTH
-        y = yo + (a*c.UNIT + b*c.UNIT)*c.EDGE_WIDTH
+        x = xo + (a * 3 * c.R / 2 - b * 3 * c.R / 2) * c.MULT
+        y = yo + (a * c.U + b * c.U) * c.MULT
         return x, y
 
     def create_board(self, color_bg, tile_1, tile_2, tile_mask):

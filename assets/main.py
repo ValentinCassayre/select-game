@@ -26,7 +26,7 @@ def main():
     pygame.init()
 
     # importing the classes
-    events = Events
+    events = Events()
     disp = Display()
     board = Board()
     textures = Textures()  # create all the textures
@@ -63,7 +63,7 @@ def main():
             while game.loop and game.state == "menu":
 
                 # check events
-                event, mask_touching, click = events.check(menu_masks)
+                event, mask_touching, click = events.check(mask_list=menu_masks)
 
                 if event in ["leave", "escape"]:
                     game.stop()
@@ -219,9 +219,11 @@ def main():
             update_board = True
             game.start_clock()
 
-            game_button, game_button_mask = disp.draw_game_buttons(textures)
+            selected_insect = None
+            drag = False
 
-            setback_log = None
+            in_game_button, in_game_button_mask = disp.draw_in_game_buttons(textures)
+            end_game_button, end_game_button_mask = disp.draw_end_game_buttons(textures)
 
             last_update = pygame.time.get_ticks()
 
@@ -249,7 +251,7 @@ def main():
                 game.clock.tick(c.FPS)
 
                 # find the event
-                event, mask_touching, click = events.check(mask_list=board.mask_list + game_button_mask)
+                event, mask_touching, click = events.check(mask_list=board.mask_list + in_game_button_mask + end_game_button_mask)
 
                 if event == "leave":
                     game.stop()
@@ -279,6 +281,17 @@ def main():
 
                             game.log = game.turn, "{} gave up !".format(game.turn.capitalize())
 
+                    elif touched_mask[3] == "rematch":
+
+                        if click:
+
+                            print("rematch")
+
+                    elif touched_mask[3] == "return_main_menu":
+
+                        if click:
+
+                            game.state = "menu"
 
                 game.check_end_game()
 
@@ -290,19 +303,29 @@ def main():
 
                 elif game.process == "end game":
 
-                    setback_log = game.log[1]
                     game.stop_clock()
 
                 # act after a click
                 if click:
 
+                    drag = True
+
                     if game.process == "choose insect":
 
-                        update_board = game.choose_insect(board, textures)
+                        update_board, selected_insect = game.choose_insect(board, textures)
 
                     elif game.process == "choose way":
 
-                        update_board = game.choose_way(board, textures)
+                        update_board, selected_insect = game.choose_way(board, textures)
+
+                        if update_board:
+                            drag = False
+
+                elif drag and not events.mouse_but_down:
+
+                    update_board, selected_insect = game.choose_way(board, textures, drag=drag)
+                    selected_insect = None
+                    drag = False
 
                 if last_update//100 != pygame.time.get_ticks()//100:
                     last_update = pygame.time.get_ticks()
@@ -315,7 +338,7 @@ def main():
                     disp.draw_screen()
 
                     # update the screen
-                    log_text = str(game.tile_pos)
+                    log_text = str((events.mouse_pos, events.mouse_but_down))
                     log = textures.font["menu button"].render(log_text, True, textures.colors["button_text"])
                     disp.draw_surface(log, c.CENTER, False)
 
@@ -323,7 +346,8 @@ def main():
                     game.update_clock()
 
                     # buttons
-                    disp.draw_surface(game_button, c.CENTER, False)
+                    disp.draw_surface(in_game_button, c.CENTER, False)
+                    disp.draw_surface(end_game_button, c.CENTER, False)
 
                     disp.draw_table(game.last_turn, game.turn, game.process, game.player_clock, textures)
 
@@ -357,7 +381,10 @@ def main():
 
                     # draw the insects
                     for insect in game.insects:
-                        disp.draw_surface(textures.dflt[insect.full_name], board.position(insect.pos))
+                        if insect == selected_insect and drag:
+                            disp.draw_surface(textures.dflt[insect.full_name], events.mouse_pos)
+                        else:
+                            disp.draw_surface(textures.dflt[insect.full_name], board.position(insect.pos))
 
                     game.clock.tick(c.FPS)
 
@@ -368,8 +395,6 @@ def main():
                     game.clock.tick(c.FPS)
 
                     update_disp, update_board = False, False
-
-
 
 
 # everything starts here

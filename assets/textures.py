@@ -40,7 +40,7 @@ class Textures:
                      "tile_setback", "tile_move"]:
             self.game[name] = self.create_game(name)
 
-        for name in ["takeback", "offer_draw", "give_up"]:
+        for name in ["takeback", "offer_draw", "give_up", "rematch", "return_main_menu"]:
             self.game_but[name] = self.create_game_but(name)
 
         for digit in range(10):
@@ -146,7 +146,7 @@ class Textures:
     def save_insect(self, insect_full_name, insect):
         self.dflt[insect_full_name] = insect.convert_alpha()
 
-    def draw_hexagon(self, image, color_in, rect, radius=c.RADIUS, mult=1.0, fill=True):
+    def draw_hexagon(self, image, color_in, rect, radius=c.R, mult=1.0, fill=True):
         """
         return a surface with the shape of an hexagon
         """
@@ -167,7 +167,7 @@ class Textures:
         image.blit(temp, rect.topleft)
         return image.convert_alpha()
 
-    def draw_tile(self, color, radius=c.RADIUS, unit=c.UNIT*2, mult=1.0, fill=True, alpha=32):
+    def draw_tile(self, color, radius=c.R, unit=c.U * 2, mult=1.0, fill=True, alpha=32):
         """
         inner tile pnly
         """
@@ -184,14 +184,14 @@ class Textures:
         special tile for the board
         """
         # create a selection of the area
-        rect = pygame.Rect((0, 0), (2 * c.RADIUS * mult, c.UNIT * 2 * mult))
+        rect = pygame.Rect((0, 0), (2 * c.R * mult, c.U * 2 * mult))
         image = pygame.Surface(rect.size, pygame.SRCALPHA)
-        image = self.draw_hexagon(image, self.colors["COLOR_TILE_OUTLINE"], rect, c.RADIUS, mult)
-        image = self.draw_hexagon(image, color, rect, c.RADIUS)
+        image = self.draw_hexagon(image, self.colors["COLOR_TILE_OUTLINE"], rect, c.R, mult)
+        image = self.draw_hexagon(image, color, rect, c.R)
         return image
 
     @staticmethod
-    def coords(pos, radius=c.RADIUS, mult=1.0):
+    def coords(pos, radius=c.R, mult=1.0):
         """
         create the coordinates of the 6 points of the hexagon calculated with the pi/3 modulo
         pos is a tuple of the coordinates on the screen and not on the board

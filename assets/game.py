@@ -188,6 +188,7 @@ class Game:
         self.tile_insect = self.select_insect(self.tile_pos)
 
         update = False
+        selected_insect = None
 
         # check is something has been selected
         if self.tile_insect is not None:
@@ -196,7 +197,7 @@ class Game:
 
             # if the insect can't move
             if len(ways+eat) == 0:
-                return False
+                return update, selected_insect
 
             for way_cell in ways:
                 board.draw_surface(
@@ -209,46 +210,61 @@ class Game:
             update = True
             self.process = "choose way"
 
-        return update
+            selected_insect = self.tile_insect
 
-    def choose_way(self, board, textures):
+        return update, selected_insect
+
+    def choose_way(self, board, textures, drag=False):
         """
         allows the player to give the new position of the selected insect
         """
-        update = False
+        reset = True
 
-        # just moove
-        if self.tile_pos in self.tile_insect.ways:
-            self.last_move = self.tile_insect.pos, self.tile_pos
+        if self.tile_insect is not None:
 
-            self.move(self.tile_insect, self.tile_pos)
+            # just moove
+            if self.tile_pos in self.tile_insect.ways:
+                self.last_move = self.tile_insect.pos, self.tile_pos
 
-            update = True
-            self.process = "next turn"
+                self.move(self.tile_insect, self.tile_pos)
 
-            self.board.draw_last_move(self.last_move, textures)
+                update = True
+                self.process = "next turn"
 
-        # moove and kill
-        elif self.tile_pos in self.tile_insect.eat:
-            self.last_move = self.tile_insect.pos, self.tile_pos
+                self.board.draw_last_move(self.last_move, textures)
 
-            dead_insect = board.tile_state[self.tile_pos]
-            self.kill(self.tile_insect, dead_insect)
+            # moove and kill
+            elif self.tile_pos in self.tile_insect.eat:
+                self.last_move = self.tile_insect.pos, self.tile_pos
 
-            # update tile after
-            board.tile(self.tile_insect.pos, self.tile_insect)
-            update = True
-            self.process = "next turn"
+                dead_insect = board.tile_state[self.tile_pos]
+                self.kill(self.tile_insect, dead_insect)
 
-            self.board.draw_last_move(self.last_move, textures)
+                # update tile after
+                board.tile(self.tile_insect.pos, self.tile_insect)
+                update = True
+                self.process = "next turn"
+
+                self.board.draw_last_move(self.last_move, textures)
+
+            elif drag and self.tile_pos == self.tile_insect.pos:
+
+                reset = False
+                update = True
+                self.process = "choose way"
+
+            else:
+                update = True
+                self.process = "choose insect"
 
         else:
             update = True
             self.process = "choose insect"
 
-        board.reset_surface("ways_surface")
+        if reset:
+            board.reset_surface("ways_surface")
 
-        return update
+        return update, self.tile_insect
 
     def move(self, insect, new_pos):
         self.board.tile(self.tile_insect.pos, None)
