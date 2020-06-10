@@ -63,19 +63,19 @@ def main():
             while game.loop and game.state == "menu":
 
                 # check events
-                event, mask_touching, click = events.check(mask_list=menu_masks)
+                events.check(mask_list=menu_masks)
 
-                if event in ["leave", "escape"]:
+                if events.key in ["leave", "escape"]:
                     game.stop()
 
-                if event in ["space", "enter"]:
+                if events.key in ["space", "enter"]:
                     game.state = "game"
 
-                for touched_mask in mask_touching:
+                for touched_mask in events.mask_touching:
 
                     if touched_mask[3].startswith("but"):
 
-                        if click:
+                        if events.click:
                             if touched_mask[3] == "but_1":
                                 tutorial.start()
                             elif touched_mask[3] == "but_2":
@@ -173,19 +173,19 @@ def main():
             while game.loop and game.state == "interrupt":
 
                 # check events
-                event, mask_touching, click = events.check(menu_masks)
+                events.check(menu_masks)
 
-                if event in ["leave", "escape"]:
+                if events.key in ["leave", "escape"]:
                     game.stop()
 
-                if event in ["space", "enter"]:
+                if events.key in ["space", "enter"]:
                     game.state = "game"
 
-                for touched_mask in mask_touching:
+                for touched_mask in events.mask_touching:
 
                     if touched_mask[3].startswith("but"):
 
-                        if click:
+                        if events.click:
                             if touched_mask[3] == "but_1":
                                 pass
                             elif touched_mask[3] == "but_2":
@@ -248,15 +248,15 @@ def main():
                 game.clock.tick(c.FPS)
 
                 # find the event
-                event, mask_touching, click = events.check(mask_list=board.mask_list)
+                events.check(mask_list=board.mask_list)
 
-                if event == "leave":
+                if events.key == "leave":
                     game.stop()
 
-                if event == "escape":
+                if events.key == "escape":
                     game.state = "interrupt"
 
-                for touched_mask in mask_touching:
+                for touched_mask in events.mask_touching:
 
                     if touched_mask[3] == "tile":
 
@@ -268,25 +268,25 @@ def main():
 
                     elif touched_mask[3] == "offer draw":
 
-                        if click:
+                        if events.click:
 
                             game.log = None, "{} offer draw".format(game.turn.capitalize())
 
                     elif touched_mask[3] == "give up":
 
-                        if click:
+                        if events.click:
 
                             game.log = game.turn, "{} gave up !".format(game.turn.capitalize())
 
                     elif touched_mask[3] == "rematch":
 
-                        if click:
+                        if events.click:
 
                             print("rematch")
 
                     elif touched_mask[3] == "return main menu":
 
-                        if click:
+                        if events.click:
 
                             game.state = "menu"
 
@@ -303,7 +303,7 @@ def main():
                     game.stop_clock()
 
                 # act after a click
-                if click:
+                if events.click:
 
                     drag = True
 

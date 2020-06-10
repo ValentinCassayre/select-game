@@ -1,7 +1,7 @@
 # Texture pack color file
 # New texture pack
 
-# RGB COLORS UNDER THE FORM R,G,B WITHOUT SPACES
+# RGB COLORS UNDER THE FORM R,G,B,A
 # OPTIONAL 4TH DIGIT FOR ALPHA COLOR
 
 # BOARD
@@ -30,3 +30,8 @@ text_1 = 133,70,0
 button = 156,159,149
 button_overview = 172,164,161
 button_text = 94,87,83
+
+# GAME
+
+game_buttons = 160, 160, 160
+game_buttons_text = 40, 40, 40

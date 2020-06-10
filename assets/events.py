@@ -8,18 +8,35 @@ import pygame
 class Events:
 
     def __init__(self):
+        """
+        initialize default states
+        """
 
+        # Mouse related
+
+        self.click = False
         self.mouse_pos = None
         self.mouse_but_down = False
 
+        # Keyboard related
+
+        self.key = None
+
+        # Masks related
+
+        self.mask_touching = []
+
     def check(self, mask_list=None):
+        """
+        check all the events
+        """
 
         if mask_list is None:
             mask_list = []
 
-        event_key = None
-        mask_touching = []
-        click = False
+        self.key = None
+        self.mask_touching = []
+        self.click = False
 
         x, y = pygame.mouse.get_pos()
 
@@ -28,18 +45,18 @@ class Events:
             self.mouse_pos = (x, y)
 
             if event.type is pygame.QUIT:
-                event_key = "leave"
+                self.key = "leave"
 
             elif event.type is pygame.KEYDOWN:
 
                 if event.key is pygame.K_ESCAPE:
-                    event_key = "escape"
+                    self.key = "escape"
 
                 if event.key is pygame.K_SPACE:
-                    event_key = "space"
+                    self.key = "space"
 
                 if event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
-                    event_key = "return"
+                    self.key = "return"
 
             for mask in mask_list:
 
@@ -48,14 +65,12 @@ class Events:
                 touching = mask[0].collidepoint(*(x, y)) and mask[1].get_at(pos_in_mask)
 
                 if touching:
-                    mask_touching.append(mask)
+                    self.mask_touching.append(mask)
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 # tile clicked
-                click = True
+                self.click = True
                 self.mouse_but_down = True
 
             if event.type == pygame.MOUSEBUTTONUP:
                 self.mouse_but_down = False
-
-        return event_key, mask_touching, click
