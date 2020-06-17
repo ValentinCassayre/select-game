@@ -34,14 +34,6 @@ class Insect:
 
     pos = property(_get_position, _set_position)
 
-    @staticmethod
-    def kill(insect_killed):
-        insect_killed.killed()
-
-    def killed(self):
-        self.alive = False
-        del self
-
     def update_directions(self, new_dir):
         self.ways, self.eat = new_dir
 

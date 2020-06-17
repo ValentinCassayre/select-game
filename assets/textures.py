@@ -62,14 +62,23 @@ class Textures:
         """
         import the colors from the "colors.txt" file
         """
-        with open("assets/default textures/colors.txt", "r") as colors:
+        try:
+            self.open_file('assets/default textures/colors.txt')
+        except FileNotFoundError:
+            self.open_file('default textures/colors.txt')
+
+    def open_file(self, file):
+        """
+        open and convert colors file
+        """
+        with open(file, 'r') as colors:
             for line in colors:
-                if line.startswith("# ") or line.startswith("\n"):
+                if line.startswith('# ') or line.startswith('\n'):
                     continue
                 else:
                     color_dat = self.format_text(line).split('=')
                     name = color_dat[0]
-                    color = tuple(map(int, color_dat[1].split(",")))
+                    color = tuple(map(int, color_dat[1].split(',')))
                     self.colors.update({name: color})
                     self.insect_path = c.INSECTS
             colors.close()

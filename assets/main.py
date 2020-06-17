@@ -84,6 +84,7 @@ def main():
                                 pass
                             elif touched_mask[3] == "but_4":
                                 game.state = "infos"
+                            break
 
                         elif last_touched_mask is not touched_mask[3]:
                             button = disp.draw_surface_screen(textures.dflt["button overlay"],
@@ -102,7 +103,7 @@ def main():
                 # limit the frame rate
                 game.clock.tick(c.FPS)
 
-        # interrupt
+        # menu 2 // infos
         if game.loop and game.state == "infos":
 
             # initialize the menu
@@ -117,22 +118,22 @@ def main():
             while game.loop and game.state == "infos":
 
                 # check events
-                event, mask_touching, click = events.check(menu_masks)
+                events.check(menu_masks)
 
-                if event is "leave":
+                if events.key is "leave":
                     game.stop()
 
-                if event is "escape":
+                if events.key is "escape":
                     game.state = "menu"
 
-                if event in ["space", "enter"]:
+                if events.key in ["space", "enter"]:
                     open_url('https://github.com/V-def/select-game')
 
-                for touched_mask in mask_touching:
+                for touched_mask in events.mask_touching:
 
                     if touched_mask[3].startswith("but"):
 
-                        if click:
+                        if events.click:
                             if touched_mask[3] == "but_1":
                                 open_url('https://github.com/V-def/select-game')
                             elif touched_mask[3] == "but_2":
@@ -141,6 +142,7 @@ def main():
                                 game.state = "menu"
                             elif touched_mask[3] == "but_4":
                                 game.stop()
+                            break
 
                         elif last_touched_mask is not touched_mask[3]:
                             button = disp.draw_surface_screen(textures.dflt["button overlay"],
@@ -187,13 +189,18 @@ def main():
 
                         if events.click:
                             if touched_mask[3] == "but_1":
-                                pass
+                                # save
+                                game.save()
                             elif touched_mask[3] == "but_2":
+                                # resume
                                 game.state = "game"
                             elif touched_mask[3] == "but_3":
+                                # quit
                                 game.stop()
                             elif touched_mask[3] == "but_4":
+                                # github
                                 open_url('https://github.com/V-def/select-game')
+                            break
 
                         elif last_touched_mask is not touched_mask[3]:
                             button = disp.draw_surface_screen(textures.dflt["button overlay"],
@@ -309,13 +316,13 @@ def main():
 
                     if game.process == "choose insect":
 
-                        update_board, selected_insect = game.choose_insect(board, textures)
+                        update_board, selected_insect = game.choose_insect(textures)
 
                 elif drag and not events.mouse_but_down:
 
                     if game.process == "choose way":
 
-                        update_board, selected_insect = game.choose_way(board, textures, drag=drag)
+                        update_board, selected_insect = game.choose_way(textures, drag=drag)
                         drag = False
 
                 if last_update//100 != pygame.time.get_ticks()//100:
@@ -329,7 +336,10 @@ def main():
                     disp.draw_screen()
 
                     # update the screen
-                    log_text = str((events.mouse_pos, events.mouse_but_down))
+                    try:
+                        log_text = str((game.tile_pos, game.board.tile_state[game.tile_pos].color))
+                    except:
+                        log_text = str((game.tile_pos, 'NaN'))
                     log = textures.font["menu button"].render(log_text, True, textures.colors["button text"])
                     disp.draw_surface_screen(log, c.CENTER, False)
 
@@ -367,11 +377,14 @@ def main():
                     disp.draw_surface_screen(board.mouse_interaction_surface, c.CENTER, False)
 
                     # draw the insects
-                    for insect in game.insects:
-                        if insect == selected_insect and drag:
-                            disp.draw_surface_screen(textures.dflt[insect.full_name], events.mouse_pos)
-                        else:
-                            disp.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))
+                    for tile in board.tile_state:
+                        if board.tile_state[tile] is not None:
+                            insect = board.tile_state[tile]
+
+                            if insect == selected_insect and drag:
+                                disp.draw_surface_screen(textures.dflt[insect.full_name], events.mouse_pos)
+                            else:
+                                disp.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))
 
                     game.clock.tick(c.FPS)
 

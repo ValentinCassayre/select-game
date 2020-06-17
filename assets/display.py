@@ -362,11 +362,13 @@ class Board(Display):
                     self.tile_state.update({cell: None})
         return image
 
-    def tile(self, b_pos, insect):
+    def tile(self, new_pos, insect, update_insect=True):
         """
         give the state_string of a tile, pos = (x, y) and insect = True if the tile is insect
         """
-        self.tile_state.update({b_pos: insect})
+        self.tile_state.update({new_pos: insect})
+        if insect is not None and update_insect:
+            insect.pos = new_pos
 
     def check_tile_move(self, insect_moving, new_pos):
         """

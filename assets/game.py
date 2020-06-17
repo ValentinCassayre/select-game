@@ -103,7 +103,6 @@ class Game:
 
         self.update_name()
         self.update_ways()
-        self.update_list()
 
         self.start_clock()
 
@@ -124,14 +123,6 @@ class Game:
         else:
             pygame.display.set_caption(c.GAME_NAME + bond +
                                        self.state_string.capitalize())
-
-    def update_list(self):
-        """
-        detect and remove unwanted deleted objetcs
-        """
-        for insect in self.insects:
-            if insect.alive is False:
-                self.insects.remove(insect)
 
     def start_clock(self):
         """
@@ -170,17 +161,14 @@ class Game:
         """
 
         # check any insect is on this tile
-        for insect in self.insects:
+        if self.board.tile_state[tile_pos] is not None:
 
-            if insect.pos == tile_pos:
-                tile_insect = insect
+            # check if insect is owned by the player
+            if self.board.tile_state[tile_pos].color == self.turn:
 
-                # check if insect is owned by the player
-                if insect.color == self.turn:
+                return self.board.tile_state[tile_pos]
 
-                    return tile_insect
-
-    def choose_insect(self, board, textures):
+    def choose_insect(self, textures):
         """
         allows the player to select the tile on which there is the insect he want to move
         """
@@ -200,12 +188,12 @@ class Game:
                 return update, selected_insect
 
             for way_cell in ways:
-                board.draw_surface_screen(
-                    textures.game["tile way"], board.position(way_cell), on_this_surface=board.ways_surface)
+                self.board.draw_surface_screen(
+                    textures.game["tile way"], self.board.position(way_cell), on_this_surface=self.board.ways_surface)
 
             for eat_cell in eat:
-                board.draw_surface_screen(
-                    textures.game["tile eat"], board.position(eat_cell), on_this_surface=board.ways_surface)
+                self.board.draw_surface_screen(
+                    textures.game["tile eat"], self.board.position(eat_cell), on_this_surface=self.board.ways_surface)
 
             update = True
             self.process = "choose way"
@@ -214,7 +202,7 @@ class Game:
 
         return update, selected_insect
 
-    def choose_way(self, board, textures, drag=False):
+    def choose_way(self, textures, drag=False):
         """
         allows the player to give the new position of the selected insect
         """
@@ -237,11 +225,9 @@ class Game:
             elif self.tile_pos in self.tile_insect.eat:
                 self.last_move = self.tile_insect.pos, self.tile_pos
 
-                dead_insect = board.tile_state[self.tile_pos]
-                self.kill(self.tile_insect, dead_insect)
+                self.kill(self.tile_insect, self.board.tile_state[self.tile_pos])
 
                 # update tile after
-                board.tile(self.tile_insect.pos, self.tile_insect)
                 update = True
                 self.process = "next turn"
 
@@ -262,31 +248,31 @@ class Game:
             self.process = "choose insect"
 
         if reset:
-            board.reset_surface("ways surface")
+            self.board.reset_surface("ways surface")
 
         return update, self.tile_insect
 
+    # Movement of the insect on the board
+
     def move(self, insect, new_pos):
-        self.board.tile(self.tile_insect.pos, None)
+        # moving on board
+        self.board.tile(insect.pos, None)
+        self.board.tile(new_pos, insect)
+
+        # moving object
         insect.pos = new_pos
-        self.board.tile(self.tile_insect.pos, self.tile_insect)
 
     def kill(self, murderer, dead):
         self.board.tile(murderer.pos, None)
-        try:
-            self.insects.remove(dead)
+        murderer.pos = dead.pos
 
-        except ValueError:
-            print("Value error in game.kill with the {} insect in pos {}".format(murderer.color, murderer.pos))
-
-        murderer.kill(dead)
+        # special killing -> killer gets killed with the dead insect
         if murderer.kamikaze:
             self.board.tile(dead.pos, None)
-            murderer.killed()
-            self.insects.remove(murderer)
+
+        # normal killing -> murderer replacing the dead insect
         else:
-            murderer.pos = dead.pos
-            self.board.tile(murderer.pos, murderer)
+            self.board.tile(dead.pos, murderer)
 
     # movement related
     def update_ways(self):
@@ -297,39 +283,44 @@ class Game:
         setback = None
         total_paths = []
 
-        for insect in self.insects:
-            ways, eat = self.check_obstacle(insect)
+        for tile in self.board.tile_state:
 
-            if insect.color == self.turn:  # check ways
+            if self.board.tile_state[tile] is not None:
 
-                new_ways, new_eat = [], []
+                insect = self.board.tile_state[tile]
 
-                for cell in ways:
+                ways, eat = self.check_obstacle(insect)
 
-                    # check and remove illegal moves
-                    if not self.removed_illegal_moves(insect, cell):
-                        new_ways.append(cell)
+                if insect.color == self.turn:  # check ways
 
-                for cell in eat:
+                    new_ways, new_eat = [], []
 
-                    # check and remove illegal moves
-                    if not self.removed_illegal_moves(insect, cell):
-                        if self.board.tile_state[cell].ant is not True:
-                            new_eat.append(cell)
+                    for cell in ways:
 
-                insect.ways = new_ways
-                insect.eat = new_eat
+                        # check and remove illegal moves
+                        if not self.removed_illegal_moves(insect, cell):
+                            new_ways.append(cell)
 
-                for cell in new_ways + new_eat:
-                    total_paths.append(cell)
+                    for cell in eat:
 
-            else:  # check setback
+                        # check and remove illegal moves
+                        if not self.removed_illegal_moves(insect, cell):
+                            if self.board.tile_state[cell].ant is not True:
+                                new_eat.append(cell)
 
-                for cell in eat:
+                    insect.ways = new_ways
+                    insect.eat = new_eat
 
-                    # check setback
-                    if self.board.tile_state[cell].color != insect.color and self.board.tile_state[cell].ant:
-                        setback = self.board.tile_state[cell]
+                    for cell in new_ways + new_eat:
+                        total_paths.append(cell)
+
+                else:  # check setback
+
+                    for cell in eat:
+
+                        # check setback
+                        if self.board.tile_state[cell].color != insect.color and self.board.tile_state[cell].ant:
+                            setback = self.board.tile_state[cell]
 
         if setback is None:
             self.setback = None
@@ -449,6 +440,31 @@ class Game:
         if self.log is not None:
 
             self.process = "end game"
+
+    def save(self):
+        """
+        save current object
+        """
+        cond = True
+        n = 1
+        while cond:
+            try:
+                # file already exist ?
+                open('assets/save/save {}.txt'.format(n), 'r')
+            except FileNotFoundError:
+                # if file doesn't exist we can save here
+                self.open_file('assets/save/save {}.txt'.format(n))
+                cond = False
+            n = n + 1
+
+    def open_file(self, file):
+        """
+        open and convert colors file
+        """
+        with open(file, 'w') as save:
+            save.write(str(self.board_saves))
+            save.close()
+
 
 class Tutorial(Game):
     """
