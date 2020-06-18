@@ -163,7 +163,8 @@ class Textures:
         pygame.image.save(board, c.SCREENSHOTS + "/board.png")
 
     def save_insect(self, insect_full_name, insect):
-        self.dflt[insect_full_name] = insect.convert_alpha()
+        image = pygame.image.load(insect.path + insect.full_name + ".png")
+        self.dflt[insect_full_name] = image.convert_alpha()
 
     def draw_hexagon(self, image, color_in, rect, radius=c.R, mult=1.0, fill=True):
         """

@@ -258,6 +258,7 @@ def main():
                 events.check(mask_list=board.mask_list)
 
                 if events.key == "leave":
+                    game.save()
                     main_loop = False
 
                 if events.key == "escape":

@@ -47,7 +47,6 @@ class Bug(Insect):
         Insect.__init__(self, pos, color, path)
         self.name = "bug"
         self.full_name = self.name + "_" + self.color
-        self.pict = pygame.image.load(self.path + self.full_name + ".png")
 
     def calc_directions(self, pos=None):
         # (ways, eat) both are directions list composed by direction
@@ -91,7 +90,6 @@ class Locust(Insect):
         Insect.__init__(self, pos, color, path)
         self.name = "locust"
         self.full_name = self.name + "_" + self.color
-        self.pict = pygame.image.load(self.path + self.full_name + ".png")
 
     def calc_directions(self, pos=None):
         if pos is None:
@@ -120,7 +118,6 @@ class Spider(Insect):
         Insect.__init__(self, pos, color, path)
         self.name = "spider"
         self.full_name = self.name + "_" + self.color
-        self.pict = pygame.image.load(self.path + self.full_name + ".png")
 
     def calc_directions(self, pos=None):
         if pos is None:
@@ -162,7 +159,6 @@ class Beetle(Insect):
         Insect.__init__(self, pos, color, path)
         self.name = "beetle"
         self.full_name = self.name + "_" + self.color
-        self.pict = pygame.image.load(self.path + self.full_name + ".png")
 
     def calc_directions(self, pos=None):
         if pos is None:
@@ -201,7 +197,6 @@ class Bee(Insect):
         Insect.__init__(self, pos, color, path)
         self.name = "bee"
         self.full_name = self.name + "_" + self.color
-        self.pict = pygame.image.load(self.path + self.full_name + ".png")
         self.kamikaze = True
 
     def calc_directions(self, pos=None):
@@ -253,7 +248,6 @@ class Ant(Insect):
         Insect.__init__(self, pos, color, path)
         self.name = "ant"
         self.full_name = self.name + "_" + self.color
-        self.pict = pygame.image.load(self.path + self.full_name + ".png")
         self.ant = True
 
     def calc_directions(self, pos=None):
@@ -281,7 +275,6 @@ class Custom(Insect):
         Insect.__init__(self, pos, color, path)
         self.name = "custom"
         self.full_name = self.name + "_" + self.color
-        self.pict = pygame.image.load(self.path + self.full_name + ".png")
 
     def calc_directions(self, pos=None):
         if pos is None:
@@ -399,7 +392,6 @@ class God(Insect):
         Insect.__init__(self, pos, color, path)
         self.name = "god"
         self.full_name = self.name + "_" + self.color
-        self.pict = pygame.image.load(self.path + self.full_name + ".png")
 
     def calc_directions(self, pos=None):
         if pos is None:

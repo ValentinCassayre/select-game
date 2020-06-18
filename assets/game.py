@@ -6,6 +6,7 @@ Used only during a game
 import pygame
 import assets.consts as c
 from assets.initial_layout import InitialLayout
+import pickle
 
 
 class Game:
@@ -106,7 +107,7 @@ class Game:
             self.board.tile(insect.pos, insect)
 
             # importing insect texture
-            self.textures.save_insect(insect.full_name, insect.pict)
+            self.textures.save_insect(insect.full_name, insect)
 
         self.update_name()
         self.update_ways()
@@ -449,17 +450,10 @@ class Game:
         """
         save current object
         """
-        cond = True
-        n = 1
-        while cond:
-            try:
-                # file already exist ?
-                open('assets/save/save {}.txt'.format(n), 'r')
-            except FileNotFoundError:
-                # if file doesn't exist we can save here
-                self.open_file('assets/save/save {}.txt'.format(n))
-                cond = False
-            n = n + 1
+        filehandler = open('save.obj', 'wb')
+        obj = self.board.tile_state
+        pickle.dump(obj, filehandler)
+        filehandler.close()
 
     def open_file(self, file):
         """
