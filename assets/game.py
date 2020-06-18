@@ -5,6 +5,8 @@ Used only during a game
 
 import pygame
 import assets.consts as c
+from assets.display import Display
+from assets.initial_layout import InitialLayout
 
 
 class Game:
@@ -13,8 +15,13 @@ class Game:
     also allows to create online games
     """
 
-    def __init__(self, board):
-        # variables and default state
+    def __init__(self, board, textures, time):
+        """
+        needed parameter board : object from Board
+        """
+
+        # General
+
         self.state_string = "menu"
         self.process_string = "choose insect"
 
@@ -24,14 +31,14 @@ class Game:
         self.loop = True  # main loop
         self.started = False  # game started ?
 
-        self.insect_list = []
-        self.ways_list = []
-        self.eat_list = []
+        # Board
 
         self.tile_pos = None
         self.tile_insect = None
 
         self.board = board
+        self.textures = textures
+        self.time = time
 
         self.setback = None
 
@@ -41,17 +48,19 @@ class Game:
 
         self.changed_turn = True
 
-        # create the clock used to control the frame rate and the stopwatch
-        self.clock = pygame.time.Clock()
+        self.turn_number = 0
+        self.color_number = 0
+
+        self.board_saves = []
+
+        # Clock
 
         self.player_stopwatch = [0, 0]
         self.last_check = [0, 0]
+        self.check = [0, 0]
         self.player_clock = [300000, 300000]
+        self.round_clock = [300000, 300000]
         self.clock_bol = True
-
-        self.turn_number = 0
-
-        self.board_saves = []
 
     # strings
     # state
@@ -75,22 +84,33 @@ class Game:
 
         self.update_name()
 
-    # allow to store the data and use it in main properly
+    # allows to store the data and use it in main properly
     state = property(_get_state, _set_state)  # indicate which state the game is in
     process = property(_get_process, _set_process)  # indicate during a game what the players should do
 
-    # lists
-    # insects
-    def _get_insects(self):
-        return self.insect_list
+    def start(self):
+        """
+        starts the game
+        """
+        # prepare the initial position of the insects
+        for insect_data in InitialLayout.classic():
+            insect = insect_data[0](insect_data[1], insect_data[2], self.textures.insect_path)
+            # update tile
+            self.board.tile(insect.pos, insect)
 
-    def _set_insects(self, insects):
-        self.insect_list = insects
+            # importing insect texture
+            self.textures.save_insect(insect.full_name, insect.pict)
 
-    insects = property(_get_insects, _set_insects)
+        self.update_ways()
+        self.started = True
+
+        self.start_clock()
 
     def stop(self):
-        self.loop = False  # stop the main loop
+        """
+        stops the game loop
+        """
+        self.loop = False
 
     def change_turn(self):
         """
@@ -123,37 +143,6 @@ class Game:
         else:
             pygame.display.set_caption(c.GAME_NAME + bond +
                                        self.state_string.capitalize())
-
-    def start_clock(self):
-        """
-        start the clock of the player
-        """
-        self.clock_bol = True
-        i = c.TURN_STATE[self.turn]
-
-        time = pygame.time.get_ticks()
-        self.last_check[i] = time
-
-    def update_clock(self):
-        """
-        update the clock value
-        """
-        if self.clock_bol:
-            time = pygame.time.get_ticks()
-
-            i = c.TURN_STATE[self.turn]
-
-            self.player_stopwatch[i] = time - self.last_check[i]
-
-            self.player_clock[i] = self.player_clock[i] - self.player_stopwatch[i]
-
-            self.last_check[i] = time
-
-    def stop_clock(self):
-        """
-        block the clocks
-        """
-        self.clock_bol = False
 
     def select_insect(self, tile_pos):
         """
@@ -465,17 +454,49 @@ class Game:
             save.write(str(self.board_saves))
             save.close()
 
+    # clock related
 
-class Tutorial(Game):
-    """
-    the tutorial apply lot of normal game rules but to have a better understanding in the tutorial mod there is text,
-    auto move and less insects
-    """
-    def __init__(self, board):
-        Game.__init__(self, board)
-        self.n = 0
+    def i(self):
+        return c.TURN_STATE[self.turn]
 
-    def start(self):
-        self.state = "tutorial"
+    def start_clock(self):
+        """
+        start the clock of the player
+        """
+        self.clock_bol = True
+
+        self.last_check[self.i()] = self.time.stopwatch.get_ticks()
+
+    def update_clock(self):
+        """
+        update the clock value
+        """
+        i = self.turn_number%2
+        if self.clock_bol:
+            self.player_stopwatch[i] = self.time.stopwatch.get_ticks()-self.last_check[i]
+            self.last_check[i] = self.time.stopwatch.get_ticks()
+            self.player_clock[i] = self.player_clock[i]-self.player_stopwatch[i]
+
+    def stop_clock(self):
+        """
+        block the clocks
+        """
+        self.clock_bol = False
+
+
+class Time:
+    """
+    time
+    """
+    def __init__(self):
+
+        self.clock = pygame.time.Clock()
+        self.stopwatch = pygame.time
+
+    def tick(self):
+        """
+        limit frame rate
+        """
+        self.clock.tick(c.FPS)
 
 

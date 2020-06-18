@@ -17,8 +17,7 @@ import assets.consts as c
 from assets.events import Events
 from assets.display import Display, Board
 from assets.textures import Textures
-from assets.game import Game, Tutorial
-from assets.initial_layout import InitialLayout
+from assets.game import Game, Time
 
 
 def main():
@@ -30,14 +29,17 @@ def main():
     disp = Display()
     board = Board()
     textures = Textures()  # create all the textures
-    game = Game(board)
-    tutorial = Tutorial(board)
+
+    time = Time()
 
     # variables
     # booleans
     update_menu = True
     update_board = True
     update_disp = True
+
+    main_loop = True
+    state = "menu"
 
     # creating the board for the first time
     textures.save_board(board.create_board(
@@ -47,9 +49,9 @@ def main():
         textures.game["tile mask"]))
 
     # loop while game is open
-    while game.loop:
+    while main_loop:
         # menu
-        if game.loop and game.state == "menu":
+        if main_loop and state == "menu":
 
             # initialize the menu
             # use disp class to draw the menu page
@@ -60,16 +62,16 @@ def main():
 
             last_touched_mask = None
 
-            while game.loop and game.state == "menu":
+            while main_loop and state == "menu":
 
                 # check events
                 events.check(mask_list=menu_masks)
 
                 if events.key in ["leave", "escape"]:
-                    game.stop()
+                    main_loop = False
 
                 if events.key in ["space", "enter"]:
-                    game.state = "game"
+                    state = "game"
 
                 for touched_mask in events.mask_touching:
 
@@ -77,13 +79,14 @@ def main():
 
                         if events.click:
                             if touched_mask[3] == "but_1":
-                                tutorial.start()
+                                # tutorial here
+                                pass
                             elif touched_mask[3] == "but_2":
-                                game.state = "game"
+                                state = "game"
                             elif touched_mask[3] == "but_3":
                                 pass
                             elif touched_mask[3] == "but_4":
-                                game.state = "infos"
+                                state = "infos"
                             break
 
                         elif last_touched_mask is not touched_mask[3]:
@@ -101,10 +104,10 @@ def main():
                     update_menu = False
 
                 # limit the frame rate
-                game.clock.tick(c.FPS)
+                time.tick()
 
         # menu 2 // infos
-        if game.loop and game.state == "infos":
+        if main_loop and state == "infos":
 
             # initialize the menu
             # use disp class to draw the menu page
@@ -115,16 +118,16 @@ def main():
 
             last_touched_mask = None
 
-            while game.loop and game.state == "infos":
+            while main_loop and state == "infos":
 
                 # check events
                 events.check(menu_masks)
 
                 if events.key is "leave":
-                    game.stop()
+                    main_loop = False
 
                 if events.key is "escape":
-                    game.state = "menu"
+                    state = "menu"
 
                 if events.key in ["space", "enter"]:
                     open_url('https://github.com/V-def/select-game')
@@ -139,9 +142,9 @@ def main():
                             elif touched_mask[3] == "but_2":
                                 open_url('http://valentin.cassayre.me/select')
                             elif touched_mask[3] == "but_3":
-                                game.state = "menu"
+                                state = "menu"
                             elif touched_mask[3] == "but_4":
-                                game.stop()
+                                main_loop = False
                             break
 
                         elif last_touched_mask is not touched_mask[3]:
@@ -158,10 +161,10 @@ def main():
                     update_menu = False
 
                 # limit the frame rate
-                game.clock.tick(c.FPS)
+                time.tick()
 
         # interrupt
-        if game.loop and game.state == "interrupt":
+        if main_loop and state == "interrupt":
 
             # initialize the menu
             # use disp class to draw the menu page
@@ -172,16 +175,16 @@ def main():
 
             last_touched_mask = None
 
-            while game.loop and game.state == "interrupt":
+            while main_loop and state == "interrupt":
 
                 # check events
                 events.check(menu_masks)
 
                 if events.key in ["leave", "escape"]:
-                    game.stop()
+                    main_loop = False
 
                 if events.key in ["space", "enter"]:
-                    game.state = "game"
+                    state = "game"
 
                 for touched_mask in events.mask_touching:
 
@@ -190,13 +193,13 @@ def main():
                         if events.click:
                             if touched_mask[3] == "but_1":
                                 # save
-                                game.save()
+                                pass
                             elif touched_mask[3] == "but_2":
                                 # resume
-                                game.state = "game"
+                                state = "game"
                             elif touched_mask[3] == "but_3":
                                 # quit
-                                game.stop()
+                                main_loop = False
                             elif touched_mask[3] == "but_4":
                                 # github
                                 open_url('https://github.com/V-def/select-game')
@@ -216,86 +219,47 @@ def main():
                     update_menu = False
 
                 # limit the frame rate
-                game.clock.tick(c.FPS)
+                time.tick()
 
         # game
-        if game.loop and game.state == "game" or game.state == "tutorial":
+        if main_loop and state == "game":
 
+            # clean screen
             disp.draw_screen()
+
+            game = Game(board, textures, time)
+            game.start()
+
             disp.draw_surface_screen(textures.game["board"], c.CENTER, False)
+
             update_board = True
-            game.start_clock()
 
             selected_insect = None
             drag = False
 
-            last_update = pygame.time.get_ticks()
-
-            # initialize the game
-            if not game.started:
-
-                # prepare the initial position of the insects
-                for insect_data in InitialLayout.classic():
-
-                    insect = insect_data[0](insect_data[1], insect_data[2], textures.insect_path)
-                    # update tile
-                    board.tile(insect.pos, insect)
-                    # add the insect to the other
-                    game.insects.append(insect)
-                    # importing insect texture
-                    textures.save_insect(insect.full_name, insect.pict)
-
-                game.update_ways()
-                game.started = True
+            last_update = time.stopwatch.get_ticks()
 
             # real game main loop
-            while game.loop and game.state == "game":
+            while main_loop and state == "game":
 
                 # limit the frame rate
-                game.clock.tick(c.FPS)
+                time.tick()
 
-                # find the event
+                # find the events
                 events.check(mask_list=board.mask_list)
 
                 if events.key == "leave":
-                    game.stop()
+                    main_loop = False
 
                 if events.key == "escape":
-                    game.state = "interrupt"
+                    state = "interrupt"
 
+                # draw overlay
                 for touched_mask in events.mask_touching:
 
                     if touched_mask[3] == "tile":
 
                         update_board, game.tile_pos = board.draw_tile_overview(touched_mask, textures)
-
-                    elif touched_mask[3] == "takeback":
-
-                        pass
-
-                    elif touched_mask[3] == "offer draw":
-
-                        if events.click:
-
-                            game.log = None, "{} offer draw".format(game.turn.capitalize())
-
-                    elif touched_mask[3] == "give up":
-
-                        if events.click:
-
-                            game.log = game.turn, "{} gave up !".format(game.turn.capitalize())
-
-                    elif touched_mask[3] == "rematch":
-
-                        if events.click:
-
-                            print("rematch")
-
-                    elif touched_mask[3] == "return main menu":
-
-                        if events.click:
-
-                            game.state = "menu"
 
                 game.check_end_game()
 
@@ -325,7 +289,7 @@ def main():
                         update_board, selected_insect = game.choose_way(textures, drag=drag)
                         drag = False
 
-                if last_update//100 != pygame.time.get_ticks()//100:
+                if last_update/100 != time.stopwatch.get_ticks()/100:
                     last_update = pygame.time.get_ticks()
                     update_disp = True
 
@@ -353,7 +317,7 @@ def main():
 
                     update_board = True
 
-                    game.clock.tick(c.FPS)
+                    time.tick()
 
                 if update_board:
                     """
@@ -386,13 +350,13 @@ def main():
                             else:
                                 disp.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))
 
-                    game.clock.tick(c.FPS)
+                    time.tick()
 
                 if update_disp or update_board:
 
                     # update
                     pygame.display.flip()
-                    game.clock.tick(c.FPS)
+                    time.tick()
 
                     update_disp, update_board = False, False
 

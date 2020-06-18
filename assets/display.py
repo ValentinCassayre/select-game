@@ -271,7 +271,7 @@ class Display:
 
         if text is not None:
 
-            rend_text = textures.font["default"].render(text, True, textures.colors["button_text"])
+            rend_text = textures.font["default"].render(text, True, textures.colors["button text"])
             self.draw_surface_screen(rend_text, (c.X_MID, c.Y_SIZE / 26))
 
 
