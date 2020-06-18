@@ -267,7 +267,7 @@ class Display:
 
         return text, pos
 
-    def game_over(self, text, textures):
+    def big_log(self, text, textures):
 
         if text is not None:
 

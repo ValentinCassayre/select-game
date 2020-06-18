@@ -23,11 +23,12 @@ class Game:
 
         # General
 
-        self.state_string = "menu"
         self.process_string = "choose insect"
 
         self.turn = "white"
         self.last_turn = "black"
+
+        self.ended = False
 
         # Board
 
@@ -42,7 +43,7 @@ class Game:
 
         self.last_move = []
 
-        self.log = None
+        self.log = None, None
 
         self.changed_turn = True
 
@@ -65,9 +66,11 @@ class Game:
             # end of the time measurement
             self.check = [0, 0]
 
-            self.player_clock = [300000, 300000]  # clock value at the beginning in milliseconds
+            # clock value at the beginning in milliseconds and during all the game
+            self.player_clock = list(c.CLOCK_VALUE)
 
-        self.clock_incrementation = 3000  # value in milliseconds of the incrementation (0 = no incrementation)
+        # value in milliseconds of the incrementation (0 = no incrementation)
+        self.clock_incrementation = c.CLOCK_INCREMENTATION
 
     # strings
     # state
@@ -85,9 +88,6 @@ class Game:
     def _set_process(self, process):
 
         self.process_string = process
-
-        if self.process == "game ended":
-            self.stop_clock()
 
         self.update_name()
 
@@ -108,6 +108,7 @@ class Game:
             # importing insect texture
             self.textures.save_insect(insect.full_name, insect.pict)
 
+        self.update_name()
         self.update_ways()
 
         self.start_clock()
@@ -117,6 +118,16 @@ class Game:
         restart the game after an interrupt
         """
         self.start_clock()
+
+    def stop(self):
+        """
+        end the game and display the reason
+        """
+        # stop the clock
+        self.stop_clock()
+
+        #
+        self.ended = True
 
     def change_turn(self):
         """
@@ -153,13 +164,7 @@ class Game:
         update the window name
         """
         bond = " - "
-        if self.state_string == "game":
-            pygame.display.set_caption(c.GAME_NAME + bond +
-                                       "In " + self.state_string + bond +
-                                       self.turn.capitalize())
-        else:
-            pygame.display.set_caption(c.GAME_NAME + bond +
-                                       self.state_string.capitalize())
+        pygame.display.set_caption(c.GAME_NAME + bond + "In game" + bond + self.turn.capitalize())
 
     def select_insect(self, tile_pos):
         """
@@ -332,13 +337,15 @@ class Game:
             self.setback = None
         else:
             self.setback = setback
-            self.log = "{} attacked !".format(self.turn.capitalize())
+            self.log = None, "{} attacked !".format(self.turn.capitalize())
 
         if len(total_paths) == 0:
             if setback:
                 self.log = self.turn, "{} lost ! Ant stuck".format(self.turn.capitalize())
+                self.stop()
             else:
                 self.log = None, "Draw ! {} cannot move".format(self.turn.capitalize())
+                self.stop()
 
     def removed_illegal_moves(self, insect, new_pos):
         """
@@ -438,15 +445,6 @@ class Game:
         else:
             return False
 
-    def check_end_game(self):
-        """
-        check if there is someone who lost or if there is a draw
-        """
-
-        if self.log is not None:
-
-            self.process = "end game"
-
     def save(self):
         """
         save current object
@@ -493,6 +491,12 @@ class Game:
 
             self.last_check[i] = self.time.stopwatch.get_ticks()
 
+            # if time is negative : end the game and lock the time to 0 for the one who ran out of time
+            if self.player_clock[i] < 0:
+                self.log = self.turn, "{} lost ! Run out of time".format(self.turn.capitalize())
+                self.player_clock[i] = 0
+                self.stop()
+
     def stop_clock(self):
         """
         block the clocks
@@ -514,5 +518,3 @@ class Time:
         limit frame rate
         """
         self.clock.tick(c.FPS)
-
-

@@ -252,6 +252,8 @@ def main():
                 # limit the frame rate
                 time.tick()
 
+                # Events related
+
                 # find the events
                 events.check(mask_list=board.mask_list)
 
@@ -268,33 +270,36 @@ def main():
 
                         update_board, game.tile_pos = board.draw_tile_overview(touched_mask, textures)
 
-                game.check_end_game()
+                if not game.ended:
 
-                if game.process == "next turn":
+                    if game.process == "next turn":
 
-                    game.process = "choose insect"
-                    game.change_turn()
-                    game.check_end_game()
+                        game.process = "choose insect"
+                        game.change_turn()
 
-                elif game.process == "end game":
+                    # act after a click
+                    if events.click:
 
-                    game.stop_clock()
+                        drag = True
 
-                # act after a click
-                if events.click:
+                        if game.process == "choose insect":
 
-                    drag = True
+                            update_board, selected_insect = game.choose_insect(textures)
 
-                    if game.process == "choose insect":
+                    elif drag and not events.mouse_but_down:
 
-                        update_board, selected_insect = game.choose_insect(textures)
+                        if game.process == "choose way":
 
-                elif drag and not events.mouse_but_down:
+                            update_board, selected_insect = game.choose_way(textures, drag=drag)
+                            drag = False
 
-                    if game.process == "choose way":
+                else:
 
-                        update_board, selected_insect = game.choose_way(textures, drag=drag)
-                        drag = False
+                    # end game state
+
+                    pass
+
+                # Display
 
                 if last_update/100 != time.stopwatch.get_ticks()/100:
                     last_update = time.stopwatch.get_ticks()
@@ -307,20 +312,19 @@ def main():
                     disp.draw_screen()
 
                     # update the screen
-                    try:
-                        log_text = str((game.tile_pos, game.board.tile_state[game.tile_pos].color))
-                    except:
-                        log_text = str((game.tile_pos, 'NaN'))
+                    log_text = str((game.tile_pos, game.turn_number))
+
                     log = textures.font["menu button"].render(log_text, True, textures.colors["button text"])
                     disp.draw_surface_screen(log, c.CENTER, False)
 
                     # update clock
                     game.update_clock()
 
+                    # table on the right
                     disp.draw_table(game.last_turn, game.turn, game.process, game.player_clock, textures)
 
                     if game.log is not None:
-                        disp.game_over(game.log[1], textures)
+                        disp.big_log(game.log[1], textures)
 
                     update_board = True
 

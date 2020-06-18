@@ -52,6 +52,9 @@ GAME_NAME = "Select!"
 GAME_STATE = {"choose insect": 0, "choose way": 1}
 TURN_STATE = {"white": 0, "black": 1}
 
+CLOCK_VALUE = (300000, 300000)
+CLOCK_INCREMENTATION = 1000
+
 # PATHS
 ICON = 'assets/other/icon.png'
 FONTS = 'assets/fonts'
