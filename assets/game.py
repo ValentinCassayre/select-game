@@ -5,19 +5,20 @@ Used only during a game
 
 import pygame
 import assets.consts as c
-from assets.display import Display
 from assets.initial_layout import InitialLayout
 
 
 class Game:
     """
-    Class used to clean the main.py and allow to store the data and say what to do
-    also allows to create online games
+    Class used to create games objects
     """
 
     def __init__(self, board, textures, time):
         """
-        needed parameter board : object from Board
+        needed parameter
+        board : object from Board
+        textures : object from Textures
+        time : object from Time
         """
 
         # General
@@ -27,9 +28,6 @@ class Game:
 
         self.turn = "white"
         self.last_turn = "black"
-
-        self.loop = True  # main loop
-        self.started = False  # game started ?
 
         # Board
 
@@ -55,12 +53,21 @@ class Game:
 
         # Clock
 
-        self.player_stopwatch = [0, 0]
-        self.last_check = [0, 0]
-        self.check = [0, 0]
-        self.player_clock = [300000, 300000]
-        self.round_clock = [300000, 300000]
-        self.clock_bol = True
+        self.clock = True  # allow clock
+
+        if self.clock:
+            # list that stores clock data in the form [white, black]
+
+            # total time used by the player each round
+            self.player_stopwatch = [0, 0]
+            # beginning of the time measurement
+            self.last_check = [0, 0]
+            # end of the time measurement
+            self.check = [0, 0]
+
+            self.player_clock = [300000, 300000]  # clock value at the beginning in milliseconds
+
+        self.clock_incrementation = 3000  # value in milliseconds of the incrementation (0 = no incrementation)
 
     # strings
     # state
@@ -102,33 +109,43 @@ class Game:
             self.textures.save_insect(insect.full_name, insect.pict)
 
         self.update_ways()
-        self.started = True
 
         self.start_clock()
 
-    def stop(self):
+    def restart(self):
         """
-        stops the game loop
+        restart the game after an interrupt
         """
-        self.loop = False
+        self.start_clock()
 
     def change_turn(self):
         """
         change the turn
         """
 
+        # change the turn value
         turn = self.last_turn
         self.last_turn = self.turn
         self.turn = turn
 
+        # changing window name
         self.update_name()
-        self.update_ways()
 
-        self.start_clock()
+        # calculating insect possible movements
+        self.update_ways()
 
         self.changed_turn = True
 
+        # clock update if clock is on
+        if self.clock:
+            # update
+            self.start_clock()
+            # add incrementation to the clock
+            self.player_clock[self.turn_number % 2] += self.clock_incrementation
+
+        # update turn number
         self.turn_number = self.turn_number + 1
+
         self.board_saves.append(self.board)
 
     def update_name(self):
@@ -456,32 +473,31 @@ class Game:
 
     # clock related
 
-    def i(self):
-        return c.TURN_STATE[self.turn]
-
     def start_clock(self):
         """
         start the clock of the player
         """
-        self.clock_bol = True
-
-        self.last_check[self.i()] = self.time.stopwatch.get_ticks()
+        self.last_check[self.turn_number % 2] = self.time.stopwatch.get_ticks()
 
     def update_clock(self):
         """
         update the clock value
         """
-        i = self.turn_number%2
-        if self.clock_bol:
+        if self.clock:
+            i = self.turn_number % 2
+
             self.player_stopwatch[i] = self.time.stopwatch.get_ticks()-self.last_check[i]
-            self.last_check[i] = self.time.stopwatch.get_ticks()
             self.player_clock[i] = self.player_clock[i]-self.player_stopwatch[i]
+
+            self.last_check[(self.turn_number + 1) % 2] = self.time.stopwatch.get_ticks()
+
+            self.last_check[i] = self.time.stopwatch.get_ticks()
 
     def stop_clock(self):
         """
         block the clocks
         """
-        self.clock_bol = False
+        self.clock = False
 
 
 class Time:

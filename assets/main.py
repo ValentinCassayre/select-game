@@ -41,6 +41,8 @@ def main():
     main_loop = True
     state = "menu"
 
+    game = None
+
     # creating the board for the first time
     textures.save_board(board.create_board(
         textures.colors["tile outline"],
@@ -227,9 +229,14 @@ def main():
             # clean screen
             disp.draw_screen()
 
-            game = Game(board, textures, time)
-            game.start()
+            # check if a game is started, if not start one
+            if game is None:
+                game = Game(board, textures, time)
+                game.start()
+            else:
+                game.restart()
 
+            # draw board
             disp.draw_surface_screen(textures.game["board"], c.CENTER, False)
 
             update_board = True
@@ -290,7 +297,7 @@ def main():
                         drag = False
 
                 if last_update/100 != time.stopwatch.get_ticks()/100:
-                    last_update = pygame.time.get_ticks()
+                    last_update = time.stopwatch.get_ticks()
                     update_disp = True
 
                 if update_disp:
