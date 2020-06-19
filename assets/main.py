@@ -285,7 +285,7 @@ def main():
 
                         if game.process == "choose insect":
 
-                            update_board, selected_insect = game.choose_insect(textures)
+                            update_board, selected_insect = game.choose_insect()
 
                     elif drag and not events.mouse_but_down:
 
@@ -335,17 +335,23 @@ def main():
                     """
                     update only the board
                     """
-
                     # draw the board to erase old position of the insects for the next update
                     disp.draw_surface_screen(textures.game["board"], c.MIDDLE)
-
-                    # draw the ways_surface
-                    disp.draw_surface_screen(board.ways_surface, c.CENTER, False)
 
                     # draw last move
                     disp.draw_surface_screen(board.last_move_surface, c.CENTER, False)
 
-                    # draw setback
+                    # draw possible ways
+                    if board.draw_ways:
+                        # create surface if it needs to be updated
+                        if len(game.to_draw) > 0:
+                            board.game_draw(game.to_draw, textures)
+                            game.to_draw = []
+
+                        # draw the ways_surface
+                        disp.draw_surface_screen(board.ways_surface, c.CENTER, False)
+
+                    # draw setback on ant
                     if game.setback is not None:
                         disp.draw_surface_screen(textures.game['tile setback'], board.position(game.setback.pos), True)
 

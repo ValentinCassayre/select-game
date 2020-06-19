@@ -64,6 +64,8 @@ class Display:
         else:
             on_this_surface.blit(draw_this_surface, (x, y))
 
+        return on_this_surface
+
     @staticmethod
     def convert_to_mask(mask_surface, disp_pos, type_name, b_pos=None):
         """
@@ -296,6 +298,8 @@ class Board(Display):
 
         self.last_tile_pos = None
 
+        self.draw_ways = True  # if false the game will no longer display the ways each insect can go
+
         self.screen_copy = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.mouse_interaction_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.ways_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
@@ -408,3 +412,12 @@ class Board(Display):
         for pos in pos_list:
             self.draw_surface_screen(
                 textures.game["tile move"], self.position(pos), on_this_surface=self.last_move_surface)
+
+    def game_draw(self, data, textures):
+        """
+        draw stuff on board asked by game object
+        """
+        for tile in data:
+            name, pos, surface = tile
+
+            self.ways_surface = self.draw_surface(draw_this_surface=textures.game[name], disp_pos=pos, on_this_surface=self.ways_surface, center=True)
