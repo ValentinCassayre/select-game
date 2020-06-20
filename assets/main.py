@@ -26,7 +26,7 @@ def main():
 
     # importing the classes
     events = Events()
-    disp = Display()
+    display = Display()
     board = Board()
     textures = Textures()  # create all the textures
 
@@ -35,8 +35,7 @@ def main():
     # variables
     # booleans
     update_menu = True
-    update_board = True
-    update_disp = True
+    update_display = True
 
     main_loop = True
     state = "menu"
@@ -57,7 +56,7 @@ def main():
 
             # initialize the menu
             # use disp class to draw the menu page
-            menu_masks, bg_surface, texts_surface = disp.create_main_menu(textures)
+            menu_masks, bg_surface, texts_surface = display.create_main_menu(textures)
             button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
             # update the screen
             pygame.display.flip()
@@ -92,15 +91,15 @@ def main():
                             break
 
                         elif last_touched_mask is not touched_mask[3]:
-                            button = disp.draw_surface_screen(textures.dflt["button overlay"],
-                                                              touched_mask[2], on_this_surface=button)
+                            button = display.draw_surface_screen(textures.dflt["button overlay"],
+                                                                 touched_mask[2], on_this_surface=button)
                             update_menu = True
                             last_touched_mask = touched_mask[3]
 
                 if update_menu:
 
-                    disp.draw_screen()
-                    disp.draw_surfaces([bg_surface, button, texts_surface])
+                    display.draw_screen()
+                    display.draw_surfaces([bg_surface, button, texts_surface])
                     button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
                     pygame.display.flip()
                     update_menu = False
@@ -113,7 +112,7 @@ def main():
 
             # initialize the menu
             # use disp class to draw the menu page
-            menu_masks, bg_surface, texts_surface = disp.create_infos_menu(textures)
+            menu_masks, bg_surface, texts_surface = display.create_infos_menu(textures)
             button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
             # update the screen
             update_menu = True
@@ -150,14 +149,14 @@ def main():
                             break
 
                         elif last_touched_mask is not touched_mask[3]:
-                            button = disp.draw_surface_screen(textures.dflt["button overlay"],
-                                                              touched_mask[2], on_this_surface=button)
+                            button = display.draw_surface_screen(textures.dflt["button overlay"],
+                                                                 touched_mask[2], on_this_surface=button)
                             update_menu = True
                             last_touched_mask = touched_mask[3]
 
                 if update_menu:
-                    disp.draw_screen()
-                    disp.draw_surfaces([bg_surface, button, texts_surface])
+                    display.draw_screen()
+                    display.draw_surfaces([bg_surface, button, texts_surface])
                     button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
                     pygame.display.flip()
                     update_menu = False
@@ -170,7 +169,7 @@ def main():
 
             # initialize the menu
             # use disp class to draw the menu page
-            menu_masks, bg_surface, texts_surface = disp.create_interrupt_menu(textures)
+            menu_masks, bg_surface, texts_surface = display.create_interrupt_menu(textures)
             button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
             # update the screen
             update_menu = True
@@ -208,14 +207,14 @@ def main():
                             break
 
                         elif last_touched_mask is not touched_mask[3]:
-                            button = disp.draw_surface_screen(textures.dflt["button overlay"],
-                                                              touched_mask[2], on_this_surface=button)
+                            button = display.draw_surface_screen(textures.dflt["button overlay"],
+                                                                 touched_mask[2], on_this_surface=button)
                             update_menu = True
                             last_touched_mask = touched_mask[3]
 
                 if update_menu:
-                    disp.draw_screen()
-                    disp.draw_surfaces([bg_surface, button, texts_surface])
+                    display.draw_screen()
+                    display.draw_surfaces([bg_surface, button, texts_surface])
                     button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
                     pygame.display.flip()
                     update_menu = False
@@ -227,22 +226,21 @@ def main():
         if main_loop and state == "game":
 
             # clean screen
-            disp.draw_screen()
+            display.draw_screen()
 
             # check if a game is started, if not start one
             if game is None:
-                game = Game(board, textures, time)
-                game.start()
+                game = Game(board, time)
+                game.start(textures)
             else:
                 game.restart()
 
             # draw board
-            disp.draw_surface_screen(textures.game["board"], c.CENTER, False)
+            display.draw_surface_screen(textures.game["board"], c.CENTER, False)
 
             update_board = True
 
             selected_insect = None
-            drag = False
 
             last_update = time.stopwatch.get_ticks()
 
@@ -311,28 +309,28 @@ def main():
 
                 if last_update/100 != time.stopwatch.get_ticks()/100:
                     last_update = time.stopwatch.get_ticks()
-                    update_disp = True
+                    update_display = True
 
-                if update_disp:
+                if update_display:
                     """
                     update everything on the display except the board
                     """
-                    disp.draw_screen()
+                    display.draw_screen()
 
                     # update the screen
                     log_text = str((game.tile_pos, game.turn_number))
 
                     log = textures.font["menu button"].render(log_text, True, textures.colors["button text"])
-                    disp.draw_surface_screen(log, c.CENTER, False)
+                    display.draw_surface_screen(log, c.CENTER, False)
 
                     # update clock
                     game.update_clock()
 
                     # table on the right
-                    disp.draw_table(game.last_turn, game.turn, game.process, game.player_clock, textures)
+                    display.draw_table(game.last_turn, game.turn, game.process, game.player_clock, textures)
 
                     if game.log is not None:
-                        disp.big_log(game.log[1], textures)
+                        display.big_log(game.log[1], textures)
 
                     update_board = True
 
@@ -343,27 +341,24 @@ def main():
                     update only the board
                     """
                     # draw the board to erase old position of the insects for the next update
-                    disp.draw_surface_screen(textures.game["board"], c.MIDDLE)
+                    display.draw_surface_screen(textures.game["board"], c.MIDDLE)
 
-                    # draw every overlays (ways, last move)
+                    # draw every overlays on the board (ways, last move, setback)
                     if board.draw_ways:
                         # create surface if it needs to be updated
-                        for category in game.to_draw:
-                            if len(game.to_draw[category]) > 0:
-                                board.to_draw[category] = None
-                                board.game_draw(category, game.to_draw[category], textures)
-                                game.to_draw[category] = []
+                        for category in game.to_draw_board:
+
+                            if len(game.to_draw_board[category]) > 0:
+
+                                board.game_draw(category, game.to_draw_board[category], textures)
+                                game.to_draw_board[category] = []
 
                             # draw the surfaces
                             if board.to_draw[category] is not None:
-                                disp.draw_surface_screen(board.to_draw[category], c.CENTER, False)
-
-                    # draw setback on ant
-                    if game.setback is not None:
-                        disp.draw_surface_screen(textures.game['tile setback'], board.position(game.setback.pos), True)
+                                display.draw_surface_screen(board.to_draw[category], c.CENTER, False)
 
                     # draw the mouse tile pos
-                    disp.draw_surface_screen(board.mouse_interaction_surface, c.CENTER, False)
+                    display.draw_surface_screen(board.mouse_interaction_surface, c.CENTER, False)
 
                     # draw the insects
                     for tile in board.tile_state:
@@ -372,19 +367,19 @@ def main():
 
                             # draw the insect that is dragged near the mouse
                             if insect is selected_insect and game.drag:
-                                disp.draw_surface_screen(textures.dflt[insect.full_name], events.mouse_pos)
+                                display.draw_surface_screen(textures.dflt[insect.full_name], events.mouse_pos)
                             else:
-                                disp.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))
+                                display.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))
 
                     time.tick()
 
-                if update_disp or update_board:
+                if update_display or update_board:
 
                     # update
                     pygame.display.flip()
                     time.tick()
 
-                    update_disp, update_board = False, False
+                    update_display, update_board = False, False
 
 
 # everything starts here

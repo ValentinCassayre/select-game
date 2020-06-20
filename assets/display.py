@@ -300,12 +300,13 @@ class Board(Display):
 
         self.draw_ways = True  # if false the game will no longer display the ways each insect can go
 
-        self.to_draw = {'last move': None, 'ways': None}
+        self.to_draw = {'last move': None, 'ways': None, 'setback': None}
 
         self.screen_copy = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.mouse_interaction_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.ways_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.last_move_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+        self.setback_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
 
         # find were to draw the board to fit in the middle
         self.board_origin = c.X_MID, (c.Y_SIZE-self.position((9, 9), origin=(0, 0))[1])/2
@@ -389,6 +390,8 @@ class Board(Display):
             self.ways_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         elif name == 'last move':
             self.last_move_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+        elif name == 'setback':
+            self.setback_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
 
     def draw_tile_overview(self, mask_infos, textures):
 
@@ -420,6 +423,7 @@ class Board(Display):
     def game_draw(self, category, data, textures):
         """
         draw stuff on board asked by game object
+        data : (name for texture.game[name], board position, 'surface id')
         """
 
         for tile in data:
@@ -438,8 +442,13 @@ class Board(Display):
             elif surface_name == 'last kill surface':
                 surface = self.last_move_surface
 
-            else:
-                return
+            elif surface_name == 'setback surface':
+                surface = self.setback_surface
 
-            self.to_draw[category] = self.draw_surface(draw_this_surface=textures.game[name], disp_pos=pos,
-                                                  on_this_surface=surface, center=True)
+            else:
+                surface = None
+
+            if surface is not None:
+                self.to_draw[category] = self.draw_surface(draw_this_surface=textures.game[name], disp_pos=pos,
+                                                           on_this_surface=surface, center=True)
+

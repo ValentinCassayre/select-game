@@ -14,7 +14,7 @@ class Game:
     Class used to create games objects
     """
 
-    def __init__(self, board, textures, time):
+    def __init__(self, board, time):
         """
         needed parameter
         board : object from Board
@@ -37,7 +37,6 @@ class Game:
         self.tile_insect = None
 
         self.board = board
-        self.textures = textures
         self.time = time
 
         self.setback = None
@@ -53,7 +52,7 @@ class Game:
 
         self.board_saves = []
 
-        self.to_draw = {'last move': [], 'ways': []}
+        self.to_draw_board = {'last move': [], 'ways': [], 'setback': []}
 
         self.drag = False
 
@@ -102,18 +101,18 @@ class Game:
     state = property(_get_state, _set_state)  # indicate which state the game is in
     process = property(_get_process, _set_process)  # indicate during a game what the players should do
 
-    def start(self):
+    def start(self, textures):
         """
         starts the game
         """
         # prepare the initial position of the insects
         for insect_data in InitialLayout.classic():
-            insect = insect_data[0](insect_data[1], insect_data[2], self.textures.insect_path)
+            insect = insect_data[0](insect_data[1], insect_data[2], textures.insect_path)
             # update tile
             self.board.tile(insect.pos, insect)
 
             # importing insect texture
-            self.textures.save_insect(insect.full_name, insect)
+            textures.save_insect(insect.full_name, insect)
 
         self.update_name()
         self.update_ways()
@@ -153,8 +152,11 @@ class Game:
         # delete old last move
         self.board.reset_surface('last move')
 
-        # delete log
+        # delete setback log
         self.log = None, None
+        # reset setback surface
+        self.board.reset_surface('setback')
+        self.board.to_draw['setback'] = None
 
         # calculating insect possible movements
         self.update_ways()
@@ -201,7 +203,7 @@ class Game:
         # return the object of the tile insect if the insect can be selected
         self.tile_insect = self.select_insect(self.tile_pos)
 
-        self.to_draw['ways'] = []
+        self.to_draw_board['ways'] = []
 
         update = False
         selected_insect = None
@@ -212,10 +214,10 @@ class Game:
             ways, eat = self.tile_insect.ways, self.tile_insect.eat
 
             for way_cell in ways:
-                self.to_draw['ways'].append(('tile way', way_cell, 'ways surface'))
+                self.to_draw_board['ways'].append(('tile way', way_cell, 'ways surface'))
 
             for eat_cell in eat:
-                self.to_draw['ways'].append(('tile eat', eat_cell, 'eat surface'))
+                self.to_draw_board['ways'].append(('tile eat', eat_cell, 'eat surface'))
 
             update = True
             self.process = 'choose way'
@@ -240,7 +242,7 @@ class Game:
                 update = True
                 self.process = 'next turn'
                 for tile in self.last_move:
-                    self.to_draw['last move'].append(('tile move', tile, 'last move surface'))
+                    self.to_draw_board['last move'].append(('tile move', tile, 'last move surface'))
 
             # moove and kill
             elif self.tile_pos in self.tile_insect.eat:
@@ -250,7 +252,7 @@ class Game:
                 self.process = 'next turn'
 
                 for tile in self.last_move:
-                    self.to_draw['last move'].append(('tile move', tile, 'last kill surface'))
+                    self.to_draw_board['last move'].append(('tile move', tile, 'last kill surface'))
 
             # select another one
             elif self.board.tile_state[self.tile_pos] is not None:
@@ -300,7 +302,7 @@ class Game:
         update all the possible ways the insects can go
         """
 
-        setback = None
+        self.setback = None
         total_paths = []
 
         for tile in self.board.tile_state:
@@ -340,16 +342,17 @@ class Game:
 
                         # check setback
                         if self.board.tile_state[cell].color != insect.color and self.board.tile_state[cell].ant:
-                            setback = self.board.tile_state[cell]
+                            self.setback = self.board.tile_state[cell]
 
-        if setback is None:
-            self.setback = None
-        else:
-            self.setback = setback
+        if self.setback is not None:
+
+            # update log
             self.log = None, '{} attacked !'.format(self.turn.capitalize())
+            # draw setback tile
+            self.to_draw_board['setback'].append(('tile setback', self.setback.pos, 'setback surface'))
 
         if len(total_paths) == 0:
-            if setback:
+            if self.setback:
                 self.log = self.turn, '{} lost ! Ant stuck'.format(self.turn.capitalize())
                 self.stop()
             else:
