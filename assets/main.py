@@ -276,6 +276,7 @@ def main():
                     if game.process == "next turn":
 
                         game.change_turn()
+                        board.to_draw['ways'] = None
 
                     # act after a click
                     if events.click:
@@ -296,7 +297,7 @@ def main():
 
                         elif game.process == "choose way":
 
-                            update, selected_insect = game.choose_way(textures)
+                            update, selected_insect = game.choose_way()
 
                         game.update_process = False
 
@@ -344,18 +345,18 @@ def main():
                     # draw the board to erase old position of the insects for the next update
                     disp.draw_surface_screen(textures.game["board"], c.MIDDLE)
 
-                    # draw last move
-                    disp.draw_surface_screen(board.last_move_surface, c.CENTER, False)
-
-                    # draw possible ways
+                    # draw every overlays (ways, last move)
                     if board.draw_ways:
                         # create surface if it needs to be updated
-                        if len(game.to_draw) > 0:
-                            board.game_draw(game.to_draw, textures)
-                            game.to_draw = []
+                        for category in game.to_draw:
+                            if len(game.to_draw[category]) > 0:
+                                board.to_draw[category] = None
+                                board.game_draw(category, game.to_draw[category], textures)
+                                game.to_draw[category] = []
 
-                        # draw the ways_surface
-                        disp.draw_surface_screen(board.ways_surface, c.CENTER, False)
+                            # draw the surfaces
+                            if board.to_draw[category] is not None:
+                                disp.draw_surface_screen(board.to_draw[category], c.CENTER, False)
 
                     # draw setback on ant
                     if game.setback is not None:

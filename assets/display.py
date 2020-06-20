@@ -300,6 +300,8 @@ class Board(Display):
 
         self.draw_ways = True  # if false the game will no longer display the ways each insect can go
 
+        self.to_draw = {'last move': None, 'ways': None}
+
         self.screen_copy = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.mouse_interaction_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.ways_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
@@ -381,10 +383,12 @@ class Board(Display):
         pass
 
     def reset_surface(self, name):
-        if name == "mouse interaction surface":
+        if name == 'mouse interaction surface':
             self.mouse_interaction_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
-        elif name == "ways surface":
+        elif name == 'ways surface':
             self.ways_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+        elif name == 'last move':
+            self.last_move_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
 
     def draw_tile_overview(self, mask_infos, textures):
 
@@ -413,11 +417,29 @@ class Board(Display):
             self.draw_surface_screen(
                 textures.game["tile move"], self.position(pos), on_this_surface=self.last_move_surface)
 
-    def game_draw(self, data, textures):
+    def game_draw(self, category, data, textures):
         """
         draw stuff on board asked by game object
         """
-        for tile in data:
-            name, pos, surface = tile
 
-            self.ways_surface = self.draw_surface(draw_this_surface=textures.game[name], disp_pos=pos, on_this_surface=self.ways_surface, center=True)
+        for tile in data:
+            name, board_pos, surface_name = tile
+            pos = self.position(board_pos)
+
+            if surface_name == 'ways surface':
+                surface = self.ways_surface
+
+            elif surface_name == 'eat surface':
+                surface = self.ways_surface
+
+            elif surface_name == 'last move surface':
+                surface = self.last_move_surface
+
+            elif surface_name == 'last kill surface':
+                surface = self.last_move_surface
+
+            else:
+                return
+
+            self.to_draw[category] = self.draw_surface(draw_this_surface=textures.game[name], disp_pos=pos,
+                                                  on_this_surface=surface, center=True)

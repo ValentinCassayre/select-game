@@ -22,7 +22,7 @@ class Game:
         time : object from Time
         """
 
-        # General
+        # Global
 
         self.process_string = "choose insect"
 
@@ -53,7 +53,7 @@ class Game:
 
         self.board_saves = []
 
-        self.to_draw = []
+        self.to_draw = {'last move': [], 'ways': []}
 
         self.drag = False
 
@@ -133,14 +133,14 @@ class Game:
         # stop the clock
         self.stop_clock()
 
-        #
+        # used to stop the process of moving insects
         self.ended = True
 
     def change_turn(self):
         """
         change the turn
         """
-        self.process = "choose insect"
+        self.process = 'choose insect'
 
         # change the turn value
         turn = self.last_turn
@@ -149,6 +149,12 @@ class Game:
 
         # changing window name
         self.update_name()
+
+        # delete old last move
+        self.board.reset_surface('last move')
+
+        # delete log
+        self.log = None, None
 
         # calculating insect possible movements
         self.update_ways()
@@ -171,8 +177,8 @@ class Game:
         """
         update the window name
         """
-        bond = " - "
-        pygame.display.set_caption(c.GAME_NAME + bond + "In game" + bond + self.turn.capitalize())
+        bond = ' - '
+        pygame.display.set_caption(c.GAME_NAME + bond + 'In game' + bond + self.turn.capitalize())
 
     def select_insect(self, tile_pos):
         """
@@ -195,7 +201,7 @@ class Game:
         # return the object of the tile insect if the insect can be selected
         self.tile_insect = self.select_insect(self.tile_pos)
 
-        self.to_draw = []
+        self.to_draw['ways'] = []
 
         update = False
         selected_insect = None
@@ -205,24 +211,20 @@ class Game:
 
             ways, eat = self.tile_insect.ways, self.tile_insect.eat
 
-            # if the insect can't move
-            if len(ways+eat) == 0:
-                return update, selected_insect
-
             for way_cell in ways:
-                self.to_draw.append(("tile way", self.board.position(way_cell), self.board.ways_surface))
+                self.to_draw['ways'].append(('tile way', way_cell, 'ways surface'))
 
             for eat_cell in eat:
-                self.to_draw.append(("tile eat", self.board.position(eat_cell), self.board.ways_surface))
+                self.to_draw['ways'].append(('tile eat', eat_cell, 'eat surface'))
 
             update = True
-            self.process = "choose way"
+            self.process = 'choose way'
 
             selected_insect = self.tile_insect
 
         return update, selected_insect
 
-    def choose_way(self, textures):
+    def choose_way(self):
         """
         allows the player to give the new position of the selected insect
         """
@@ -236,17 +238,19 @@ class Game:
                 self.move(self.tile_insect, self.tile_pos)
 
                 update = True
-                self.process = "next turn"
-                self.board.draw_last_move(self.last_move, textures)
+                self.process = 'next turn'
+                for tile in self.last_move:
+                    self.to_draw['last move'].append(('tile move', tile, 'last move surface'))
 
             # moove and kill
             elif self.tile_pos in self.tile_insect.eat:
                 self.last_move = self.tile_insect.pos, self.tile_pos
 
                 self.kill(self.tile_insect, self.board.tile_state[self.tile_pos])
-                self.process = "next turn"
+                self.process = 'next turn'
 
-                self.board.draw_last_move(self.last_move, textures)
+                for tile in self.last_move:
+                    self.to_draw['last move'].append(('tile move', tile, 'last kill surface'))
 
             # select another one
             elif self.board.tile_state[self.tile_pos] is not None:
@@ -254,17 +258,17 @@ class Game:
                 # same tile -> continue
                 if self.tile_pos == self.tile_insect.pos:
                     reset = False
-                    self.process = "choose way"
+                    self.process = 'choose way'
 
                 # other tile but also an insect
                 if self.board.tile_state[self.tile_pos].color == self.turn and self.drag:
                     self.choose_insect()
 
             else:
-                self.process = "choose insect"
+                self.process = 'choose insect'
 
         if reset:
-            self.board.reset_surface("ways surface")
+            self.board.reset_surface('ways surface')
 
         return True, self.tile_insect
 
@@ -342,14 +346,14 @@ class Game:
             self.setback = None
         else:
             self.setback = setback
-            self.log = None, "{} attacked !".format(self.turn.capitalize())
+            self.log = None, '{} attacked !'.format(self.turn.capitalize())
 
         if len(total_paths) == 0:
             if setback:
-                self.log = self.turn, "{} lost ! Ant stuck".format(self.turn.capitalize())
+                self.log = self.turn, '{} lost ! Ant stuck'.format(self.turn.capitalize())
                 self.stop()
             else:
-                self.log = None, "Draw ! {} cannot move".format(self.turn.capitalize())
+                self.log = None, 'Draw ! {} cannot move'.format(self.turn.capitalize())
                 self.stop()
 
     def removed_illegal_moves(self, insect, new_pos):
