@@ -275,24 +275,30 @@ def main():
 
                     if game.process == "next turn":
 
-                        game.process = "choose insect"
                         game.change_turn()
 
                     # act after a click
                     if events.click:
 
-                        drag = True
+                        game.drag = True
+                        game.update_process = True
 
-                        if game.process == "choose insect":
+                    elif game.drag and not events.mouse_but_down:
 
-                            update_board, selected_insect = game.choose_insect()
+                        game.drag = False
+                        game.update_process = True
 
-                    elif drag and not events.mouse_but_down:
+                    if game.update_process:
 
-                        if game.process == "choose way":
+                        if game.process == 'choose insect':
 
-                            update_board, selected_insect = game.choose_way(textures, drag=drag)
-                            drag = False
+                            update, selected_insect = game.choose_insect()
+
+                        elif game.process == "choose way":
+
+                            update, selected_insect = game.choose_way(textures)
+
+                        game.update_process = False
 
                 else:
 
@@ -363,7 +369,8 @@ def main():
                         if board.tile_state[tile] is not None:
                             insect = board.tile_state[tile]
 
-                            if insect == selected_insect and drag:
+                            # draw the insect that is dragged near the mouse
+                            if insect is selected_insect and game.drag:
                                 disp.draw_surface_screen(textures.dflt[insect.full_name], events.mouse_pos)
                             else:
                                 disp.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))

@@ -55,6 +55,10 @@ class Game:
 
         self.to_draw = []
 
+        self.drag = False
+
+        self.update_process = False
+
         # Clock
 
         self.clock = True  # allow clock
@@ -136,6 +140,7 @@ class Game:
         """
         change the turn
         """
+        self.process = "choose insect"
 
         # change the turn value
         turn = self.last_turn
@@ -186,8 +191,11 @@ class Game:
         """
         allows the player to select the tile on which there is the insect he want to move
         """
+
         # return the object of the tile insect if the insect can be selected
         self.tile_insect = self.select_insect(self.tile_pos)
+
+        self.to_draw = []
 
         update = False
         selected_insect = None
@@ -214,7 +222,7 @@ class Game:
 
         return update, selected_insect
 
-    def choose_way(self, textures, drag=False):
+    def choose_way(self, textures):
         """
         allows the player to give the new position of the selected insect
         """
@@ -240,15 +248,17 @@ class Game:
 
                 self.board.draw_last_move(self.last_move, textures)
 
-            elif drag and self.tile_pos == self.tile_insect.pos:
-
-                reset = False
-                self.process = "choose way"
-
             # select another one
-            elif self.board.tile_state[self.tile_pos] is not None and self.board.tile_state[self.tile_pos].color == self.turn:
-                self.tile_insect = self.board.tile_state[self.tile_pos]
-                self.process = "choose way"
+            elif self.board.tile_state[self.tile_pos] is not None:
+
+                # same tile -> continue
+                if self.tile_pos == self.tile_insect.pos:
+                    reset = False
+                    self.process = "choose way"
+
+                # other tile but also an insect
+                if self.board.tile_state[self.tile_pos].color == self.turn and self.drag:
+                    self.choose_insect()
 
             else:
                 self.process = "choose insect"
