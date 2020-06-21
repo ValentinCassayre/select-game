@@ -234,7 +234,7 @@ def main():
 
             # check if a game is started, if not start one
             if game is None:
-                game = Game(board, time)
+                game = Game(board, time, textures)
                 game.start(textures)
             else:
                 game.restart()
@@ -276,7 +276,6 @@ def main():
                 if not game.ended:
 
                     if game.process == "next turn":
-
                         game.change_turn()
                         board.to_draw['ways'] = None
 
@@ -284,14 +283,18 @@ def main():
                     if events.click:
 
                         game.drag = True
+                        game.disp_drag = True
                         game.update_process = True
 
                     elif game.drag and not events.mouse_but_down:
 
                         game.drag = False
+                        game.disp_drag = False
                         game.update_process = True
 
                     if game.update_process:
+
+                        game.click = events.click
 
                         if game.process == 'choose insect':
 
@@ -380,7 +383,11 @@ def main():
                                 board.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))
 
                     if game.moving_insect is not None:
-                        display.draw_surface_screen(textures.dflt[game.moving_insect.full_name], events.mouse_pos)
+                        if game.disp_drag:
+                            display.draw_surface_screen(textures.dflt[game.moving_insect.full_name], events.mouse_pos)
+
+                        else:
+                            board.draw_surface_screen(textures.dflt[game.moving_insect.full_name], board.position(game.moving_insect.pos))
                         game.moving_insect = None
 
                     time.tick()

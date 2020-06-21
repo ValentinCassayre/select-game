@@ -7,6 +7,7 @@ import pygame
 import assets.consts as c
 from assets.initial_layout import InitialLayout
 import pickle
+import os
 
 
 class Game:
@@ -14,7 +15,7 @@ class Game:
     Class used to create games objects
     """
 
-    def __init__(self, board, time):
+    def __init__(self, board, time, textures):
         """
         needed parameter
         board : object from Board
@@ -39,6 +40,7 @@ class Game:
 
         self.board = board
         self.time = time
+        self.textures = textures
 
         self.setback = None
 
@@ -55,7 +57,11 @@ class Game:
 
         self.to_draw_board = {'last move': [], 'ways': [], 'setback': []}
 
+        self.click = False
         self.drag = False
+        self.disp_drag = False
+        self.origin_drag = None
+        self.initial_pos = None
 
         self.update_process = False
         self.caption = c.GAME_NAME
@@ -226,8 +232,13 @@ class Game:
 
         if self.tile_insect is not None:
 
+            # same tile
+            if self.tile_pos == self.initial_pos:
+                reset = False
+                self.process = 'choose way'
+
             # just moove
-            if self.tile_pos in self.tile_insect.ways:
+            elif self.tile_pos in self.tile_insect.ways:
                 self.last_move = self.tile_insect.pos, self.tile_pos
                 self.move(self.tile_insect, self.tile_pos)
 
@@ -257,8 +268,12 @@ class Game:
                 if self.board.tile_state[self.tile_pos].color == self.turn and self.drag:
                     self.choose_insect()
 
+                else:
+                    self.disp_drag = False
+
             else:
                 self.process = 'choose insect'
+                self.disp_drag = False
 
         if reset:
             # reset surface
@@ -352,25 +367,40 @@ class Game:
                 self.log = None, 'Draw ! {} cannot move'.format(self.turn.capitalize())
                 self.stop()
 
-    def removed_illegal_moves(self, insect, new_pos):
+    def removed_illegal_moves(self, insect, new_pos, temp=None):
         """
         check if this move is an illegal move
         illegal move mean it set its own ant into setback
         """
+        if temp is None:
+            temp = self.board.tile_state.copy()
 
-        temp = self.board.tile_state.copy()
+        if insect.kamikaze and temp[new_pos] is not None:
+            # if insect is kamikaze and eat consider him dead
+            temp.update({new_pos: None})
+        else:
+            temp.update({new_pos: insect})
+
         temp.update({insect.pos: None})
-        temp.update({new_pos: insect})
 
-        for cell in self.board.pos_list:
+        # render a picture of all possible move (~3 s loading each move) for debug
+        # image = self.board.render(temp, self.textures)
 
-            insect_attacking = temp[cell]
+        # try:
+        #     pygame.image.save(image, '{}test/{}/{}.png'.format(c.SCREENSHOTS, self.turn_number, insect.pos))
+        # except pygame.error:
+        #     os.makedirs('{}test/{}/'.format(c.SCREENSHOTS, self.turn_number))
+        #     pygame.image.save(image, '{}test/{}/{}.png'.format(c.SCREENSHOTS, self.turn_number, insect.pos))
+
+        for tile in self.board.tile_state:
+
+            insect_attacking = temp[tile]
 
             # check if someone on it, and if it is an enemy
             if insect_attacking is not None and insect_attacking.color != insect.color:
 
                 # get all the possible path he can get
-                paths = self.check_obstacle(temp[cell], temp, paths=True)
+                paths = self.check_obstacle(temp[tile], temp, paths=True)
 
                 # check them
                 for pot_attack_pos in paths:

@@ -461,3 +461,18 @@ class Board(Display):
                 self.to_draw[category] = self.draw_surface(draw_this_surface=textures.game[name], disp_pos=pos,
                                                            on_this_surface=surface, center=True)
 
+    def render(self, board_render, textures):
+
+        image = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+
+        # draw the board to erase old position of the insects for the next update
+        self.draw_surface(textures.game["board"], image, c.MIDDLE)
+
+        # draw the insects
+        for tile in board_render:
+            if board_render[tile] is not None:
+                insect = board_render[tile]
+                self.draw_surface(textures.dflt[insect.full_name], image, self.position(tile))
+
+        return image
+

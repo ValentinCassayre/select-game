@@ -17,6 +17,7 @@ class Events:
         self.click = False
         self.mouse_pos = None
         self.mouse_but_down = False
+        self.move = False
 
         # Keyboard related
 
@@ -25,6 +26,13 @@ class Events:
         # Masks related
 
         self.mask_touching = []
+
+        # Game related
+
+        self.drag = False
+        self.selected_insect = None
+        self.disp_drag = False
+        self.initial_pos = None
 
     def check(self, mask_list=None):
         """
@@ -40,9 +48,16 @@ class Events:
 
         x, y = pygame.mouse.get_pos()
 
-        for event in pygame.event.get():
+        # check if mouse moved
+        if self.mouse_pos == (x, y):
+            self.move = False
+        else:
+            self.move = True
 
-            self.mouse_pos = (x, y)
+        # update mouse position
+        self.mouse_pos = (x, y)
+
+        for event in pygame.event.get():
 
             if event.type is pygame.QUIT:
                 self.key = "leave"
@@ -74,3 +89,31 @@ class Events:
 
             if event.type == pygame.MOUSEBUTTONUP:
                 self.mouse_but_down = False
+
+    def game_check(self, game):
+        """
+        prototype
+        check specific events for a game
+        """
+
+        if self.click:
+            self.initial_pos = self.mouse_pos
+            game.update_process = True
+
+        if self.mouse_but_down:
+            self.drag = True
+            if not self.disp_drag:
+                if self.move:
+                    self.disp_drag = True
+
+        else:
+            if self.drag is True:
+                self.drag = False
+                game.update_process = True
+            self.disp_drag = False
+            self.initial_pos = None
+
+        game.drag = self.drag
+        game.disp_drag = self.disp_drag
+        game.initial_pos = self.initial_pos
+
