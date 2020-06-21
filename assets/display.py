@@ -23,6 +23,8 @@ class Display:
 
         self.stopwatch = pygame.Surface((200, 60), pygame.SRCALPHA, 32)
 
+        self.caption = c.GAME_NAME
+
     # basic tools
     def draw_screen(self):
         """
@@ -275,6 +277,13 @@ class Display:
 
             rend_text = textures.font["default"].render(text, True, textures.colors["button text"])
             self.draw_surface_screen(rend_text, (c.X_MID, c.Y_SIZE / 26))
+
+    def set_caption(self, caption=c.GAME_NAME):
+        """
+        set the window caption
+        """
+        self.caption = caption
+        pygame.display.set_caption(caption)
 
 
 class Board(Display):

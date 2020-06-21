@@ -51,6 +51,10 @@ def main():
 
     # loop while game is open
     while main_loop:
+
+        # update default window name
+        display.set_caption()
+
         # menu
         if main_loop and state == "menu":
 
@@ -315,6 +319,9 @@ def main():
                     """
                     update everything on the display except the board
                     """
+                    # update caption
+                    if display.caption != game.caption:
+                        display.set_caption(caption=game.caption)
                     display.draw_screen()
 
                     # update the screen
@@ -367,9 +374,14 @@ def main():
 
                             # draw the insect that is dragged near the mouse
                             if insect is selected_insect and game.drag:
-                                display.draw_surface_screen(textures.dflt[insect.full_name], events.mouse_pos)
+                                game.moving_insect = insect
+
                             else:
-                                display.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))
+                                board.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))
+
+                    if game.moving_insect is not None:
+                        display.draw_surface_screen(textures.dflt[game.moving_insect.full_name], events.mouse_pos)
+                        game.moving_insect = None
 
                     time.tick()
 

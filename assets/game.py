@@ -35,6 +35,7 @@ class Game:
 
         self.tile_pos = None
         self.tile_insect = None
+        self.moving_insect = None
 
         self.board = board
         self.time = time
@@ -57,6 +58,7 @@ class Game:
         self.drag = False
 
         self.update_process = False
+        self.caption = c.GAME_NAME
 
         # Clock
 
@@ -78,15 +80,6 @@ class Game:
         # value in milliseconds of the incrementation (0 = no incrementation)
         self.clock_incrementation = c.CLOCK_INCREMENTATION
 
-    # strings
-    # state
-    def _get_state(self):
-        return self.state_string
-
-    def _set_state(self, state):
-        self.state_string = state
-        self.update_name()
-
     # process
     def _get_process(self):
         return self.process_string
@@ -98,7 +91,6 @@ class Game:
         self.update_name()
 
     # allows to store the data and use it in main properly
-    state = property(_get_state, _set_state)  # indicate which state the game is in
     process = property(_get_process, _set_process)  # indicate during a game what the players should do
 
     def start(self, textures):
@@ -180,7 +172,7 @@ class Game:
         update the window name
         """
         bond = ' - '
-        pygame.display.set_caption(c.GAME_NAME + bond + 'In game' + bond + self.turn.capitalize())
+        self.caption = c.GAME_NAME + bond + 'In game' + bond + self.turn.capitalize()
 
     def select_insect(self, tile_pos):
         """
@@ -239,7 +231,6 @@ class Game:
                 self.last_move = self.tile_insect.pos, self.tile_pos
                 self.move(self.tile_insect, self.tile_pos)
 
-                update = True
                 self.process = 'next turn'
                 for tile in self.last_move:
                     self.to_draw_board['last move'].append(('tile move', tile, 'last move surface'))
