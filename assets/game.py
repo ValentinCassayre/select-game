@@ -88,7 +88,7 @@ class Game:
 
         self.process_string = process
 
-        self.update_name()
+        self.update_caption()
 
     # allows to store the data and use it in main properly
     process = property(_get_process, _set_process)  # indicate during a game what the players should do
@@ -106,7 +106,7 @@ class Game:
             # importing insect texture
             textures.save_insect(insect.full_name, insect)
 
-        self.update_name()
+        self.update_caption()
         self.update_ways()
 
         self.start_clock()
@@ -139,7 +139,7 @@ class Game:
         self.turn = turn
 
         # changing window name
-        self.update_name()
+        self.update_caption()
 
         # delete old last move
         self.board.reset_surface('last move')
@@ -167,7 +167,7 @@ class Game:
 
         self.board_saves.append(self.board)
 
-    def update_name(self):
+    def update_caption(self):
         """
         update the window name
         """
@@ -253,7 +253,7 @@ class Game:
                     reset = False
                     self.process = 'choose way'
 
-                # other tile but also an insect
+                # other tile but also an insect from team
                 if self.board.tile_state[self.tile_pos].color == self.turn and self.drag:
                     self.choose_insect()
 
@@ -261,7 +261,9 @@ class Game:
                 self.process = 'choose insect'
 
         if reset:
-            self.board.reset_surface('ways surface')
+            # reset surface
+            self.board.reset_surface('ways')
+            self.board.to_draw['ways'] = None
 
         return True, self.tile_insect
 

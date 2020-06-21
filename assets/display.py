@@ -395,7 +395,7 @@ class Board(Display):
     def reset_surface(self, name):
         if name == 'mouse interaction surface':
             self.mouse_interaction_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
-        elif name == 'ways surface':
+        elif name == 'ways':
             self.ways_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         elif name == 'last move':
             self.last_move_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
