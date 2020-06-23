@@ -63,6 +63,8 @@ class Game:
         self.origin_drag = None
         self.initial_pos = None
 
+        self.update_board = False
+
         self.update_process = False
         self.caption = c.GAME_NAME
 
@@ -203,9 +205,6 @@ class Game:
 
         self.to_draw_board['ways'] = []
 
-        update = False
-        selected_insect = None
-
         # check is something has been selected
         if self.tile_insect is not None:
 
@@ -217,18 +216,15 @@ class Game:
             for eat_cell in eat:
                 self.to_draw_board['ways'].append(('tile eat', eat_cell, 'eat surface'))
 
-            update = True
+            self.update_board = True
             self.process = 'choose way'
-
-            selected_insect = self.tile_insect
-
-        return update, selected_insect
 
     def choose_way(self):
         """
         allows the player to give the new position of the selected insect
         """
         reset = True
+        self.update_board = True
 
         if self.tile_insect is not None:
 
@@ -279,8 +275,6 @@ class Game:
             # reset surface
             self.board.reset_surface('ways')
             self.board.to_draw['ways'] = None
-
-        return True, self.tile_insect
 
     # Movement of the insect on the board
 
@@ -504,6 +498,7 @@ class Game:
         start the clock of the player
         """
         self.last_check[self.turn_number % 2] = self.time.stopwatch.get_ticks()
+        self.time.last_update = self.time.stopwatch.get_ticks()
 
     def update_clock(self):
         """
@@ -531,6 +526,73 @@ class Game:
         """
         self.clock = False
 
+    def send_events(self, events, textures):
+        """
+        events
+        """
+        main_loop = True
+        state = "game"
+
+        if events.key == "leave":
+            self.save()
+            main_loop = False
+
+        if events.key == "escape":
+            state = "interrupt"
+
+        # draw overlay
+        for touched_mask in events.mask_touching:
+
+            if touched_mask[3] == "tile":
+                self.update_board, self.tile_pos = self.board.draw_tile_overview(touched_mask, textures)
+
+        if not self.ended:
+
+            if self.process == "next turn":
+                self.change_turn()
+                self.board.to_draw['ways'] = None
+
+            # act after a click
+            if events.click:
+
+                self.drag = True
+                self.disp_drag = True
+                self.update_process = True
+                self.update_board = True
+
+            elif self.drag and not events.mouse_but_down:
+
+                self.drag = False
+                self.disp_drag = False
+                self.update_process = True
+                self.update_board = True
+
+            elif self.drag:
+
+                self.update_board = True
+
+            if self.update_process:
+
+                self.click = events.click
+
+                if self.process == 'choose insect':
+
+                    self.choose_insect()
+
+                elif self.process == "choose way":
+
+                    self.choose_way()
+
+                self.update_process = False
+
+        else:
+
+            # end game state
+
+            pass
+
+        return main_loop, state
+
 
 class Time:
     """
@@ -540,9 +602,16 @@ class Time:
 
         self.clock = pygame.time.Clock()
         self.stopwatch = pygame.time
+        self.last_update = None
 
     def tick(self):
         """
         limit frame rate
         """
         self.clock.tick(c.FPS)
+
+    def check_display_update(self):
+        if self.last_update // 100 != self.stopwatch.get_ticks() // 100:
+            self.last_update = self.stopwatch.get_ticks()
+            return True
+        return False

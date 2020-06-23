@@ -135,8 +135,8 @@ class Display:
         """
 
         pos_list = [(0, 1), (0, 0), (1, 1), (1, 0)]
-        text_list = ["Tutorial", "Play offline", "Play online", "More infos"]
-        sub = ["Soon", "", "Soon", "Git Hub"]
+        text_list = ["Tutorial", "Two players", "Computer", "More infos"]
+        sub = ["Soon", "Offline", "Offline", "Git Hub"]
 
         bg, text_surface, menu_but_masks = self.create_menu(pos_list, text_list, sub, textures)
 
@@ -319,6 +319,14 @@ class Board(Display):
 
         # find were to draw the board to fit in the middle
         self.board_origin = c.X_MID, (c.Y_SIZE-self.position((9, 9), origin=(0, 0))[1])/2
+
+    def __copy__(self):
+        """
+        copy board
+        """
+        new_board = type(self)()
+        new_board.__dict__.update(self.__dict__)
+        return new_board
 
     def _get_last_tile(self):
         return self.last_tile_pos

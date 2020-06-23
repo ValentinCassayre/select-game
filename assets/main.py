@@ -5,6 +5,7 @@ Coordinates actions
 
 from os import system
 from webbrowser import open as open_url
+from copy import copy
 
 try:
     import pygame
@@ -27,7 +28,7 @@ def main():
     # importing the classes
     events = Events()
     display = Display()
-    board = Board()
+    sample_board = Board()
     textures = Textures()  # create all the textures
 
     time = Time()
@@ -35,7 +36,6 @@ def main():
     # variables
     # booleans
     update_menu = True
-    update_display = True
 
     main_loop = True
     state = "menu"
@@ -43,7 +43,7 @@ def main():
     game = None
 
     # creating the board for the first time
-    textures.save_board(board.create_board(
+    textures.save_board(sample_board.create_board(
         textures.colors["tile outline"],
         textures.game["tile 1"],
         textures.game["tile 2"],
@@ -234,19 +234,11 @@ def main():
 
             # check if a game is started, if not start one
             if game is None:
-                game = Game(board, time, textures)
+                game_board = copy(sample_board)
+                game = Game(game_board, time, textures)
                 game.start(textures)
             else:
                 game.restart()
-
-            # draw board
-            display.draw_surface_screen(textures.game["board"], c.CENTER, False)
-
-            update_board = True
-
-            selected_insect = None
-
-            last_update = time.stopwatch.get_ticks()
 
             # real game main loop
             while main_loop and state == "game":
@@ -257,66 +249,14 @@ def main():
                 # Events related
 
                 # find the events
-                events.check(mask_list=board.mask_list)
+                events.check(mask_list=game.board.mask_list)
 
-                if events.key == "leave":
-                    game.save()
-                    main_loop = False
-
-                if events.key == "escape":
-                    state = "interrupt"
-
-                # draw overlay
-                for touched_mask in events.mask_touching:
-
-                    if touched_mask[3] == "tile":
-
-                        update_board, game.tile_pos = board.draw_tile_overview(touched_mask, textures)
-
-                if not game.ended:
-
-                    if game.process == "next turn":
-                        game.change_turn()
-                        board.to_draw['ways'] = None
-
-                    # act after a click
-                    if events.click:
-
-                        game.drag = True
-                        game.disp_drag = True
-                        game.update_process = True
-
-                    elif game.drag and not events.mouse_but_down:
-
-                        game.drag = False
-                        game.disp_drag = False
-                        game.update_process = True
-
-                    if game.update_process:
-
-                        game.click = events.click
-
-                        if game.process == 'choose insect':
-
-                            update, selected_insect = game.choose_insect()
-
-                        elif game.process == "choose way":
-
-                            update, selected_insect = game.choose_way()
-
-                        game.update_process = False
-
-                else:
-
-                    # end game state
-
-                    pass
+                # send them to game to update it
+                main_loop, state = game.send_events(events, textures)
 
                 # Display
 
-                if last_update/100 != time.stopwatch.get_ticks()/100:
-                    last_update = time.stopwatch.get_ticks()
-                    update_display = True
+                update_display = time.check_display_update()
 
                 if update_display:
                     """
@@ -342,11 +282,9 @@ def main():
                     if game.log is not None:
                         display.big_log(game.log[1], textures)
 
-                    update_board = True
+                    game.update_board = True
 
-                    time.tick()
-
-                if update_board:
+                if game.update_board:
                     """
                     update only the board
                     """
@@ -354,51 +292,48 @@ def main():
                     display.draw_surface_screen(textures.game["board"], c.MIDDLE)
 
                     # draw every overlays on the board (ways, last move, setback)
-                    if board.draw_ways:
+                    if game.board.draw_ways:
                         # create surface if it needs to be updated
                         for category in game.to_draw_board:
 
                             if len(game.to_draw_board[category]) > 0:
 
-                                board.game_draw(category, game.to_draw_board[category], textures)
+                                game.board.game_draw(category, game.to_draw_board[category], textures)
                                 game.to_draw_board[category] = []
 
                             # draw the surfaces
-                            if board.to_draw[category] is not None:
-                                display.draw_surface_screen(board.to_draw[category], c.CENTER, False)
+                            if game.board.to_draw[category] is not None:
+                                display.draw_surface_screen(game.board.to_draw[category], c.CENTER, False)
 
                     # draw the mouse tile pos
-                    display.draw_surface_screen(board.mouse_interaction_surface, c.CENTER, False)
+                    display.draw_surface_screen(game.board.mouse_interaction_surface, c.CENTER, False)
 
                     # draw the insects
-                    for tile in board.tile_state:
-                        if board.tile_state[tile] is not None:
-                            insect = board.tile_state[tile]
+                    for tile in game.board.tile_state:
+                        if game.board.tile_state[tile] is not None:
+                            insect = game.board.tile_state[tile]
 
                             # draw the insect that is dragged near the mouse
-                            if insect is selected_insect and game.drag:
+                            if insect is game.tile_insect and game.drag:
                                 game.moving_insect = insect
 
                             else:
-                                board.draw_surface_screen(textures.dflt[insect.full_name], board.position(insect.pos))
+                                display.draw_surface_screen(textures.dflt[insect.full_name], game.board.position(insect.pos))
 
                     if game.moving_insect is not None:
                         if game.disp_drag:
                             display.draw_surface_screen(textures.dflt[game.moving_insect.full_name], events.mouse_pos)
 
                         else:
-                            board.draw_surface_screen(textures.dflt[game.moving_insect.full_name], board.position(game.moving_insect.pos))
+                            display.draw_surface_screen(textures.dflt[game.moving_insect.full_name], game.board.position(game.moving_insect.pos))
                         game.moving_insect = None
 
-                    time.tick()
-
-                if update_display or update_board:
+                if update_display or game.update_board:
 
                     # update
                     pygame.display.flip()
-                    time.tick()
 
-                    update_display, update_board = False, False
+                    update_display, game.update_board = False, False
 
 
 # everything starts here
