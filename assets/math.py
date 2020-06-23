@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 custom math module made for this game and to help calculate hexagons
 """

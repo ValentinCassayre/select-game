@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 check events (mouse, keyboard, leave etc)
 """
@@ -27,12 +29,27 @@ class Events:
 
         self.mask_touching = []
 
+        # Other
+
+        self.main_loop = True
+        self._state = 'menu main'
+        self.last_state = 'leave'
+
         # Game related
 
         self.drag = False
         self.selected_insect = None
         self.disp_drag = False
         self.initial_pos = None
+
+    @property
+    def state(self):
+        return self._state
+
+    @state.setter
+    def state(self, state):
+        self.last_state = self._state
+        self._state = state
 
     def check(self, mask_list=None):
         """
@@ -60,7 +77,7 @@ class Events:
         for event in pygame.event.get():
 
             if event.type is pygame.QUIT:
-                self.key = "leave"
+                self.main_loop = False
 
             elif event.type is pygame.KEYDOWN:
 

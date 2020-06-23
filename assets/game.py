@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Main game program files
 Used only during a game
@@ -66,7 +68,7 @@ class Game:
         self.update_board = False
 
         self.update_process = False
-        self.caption = c.GAME_NAME
+        self.caption = None
 
         # Clock
 
@@ -530,15 +532,12 @@ class Game:
         """
         events
         """
-        main_loop = True
-        state = "game"
 
         if events.key == "leave":
             self.save()
-            main_loop = False
 
         if events.key == "escape":
-            state = "interrupt"
+            events.state = 'menu pause'
 
         # draw overlay
         for touched_mask in events.mask_touching:
@@ -584,14 +583,6 @@ class Game:
                     self.choose_way()
 
                 self.update_process = False
-
-        else:
-
-            # end game state
-
-            pass
-
-        return main_loop, state
 
 
 class Time:

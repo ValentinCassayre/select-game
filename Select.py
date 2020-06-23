@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 Prototype game by Valentin Cassayre
 Github : https://github.com/V-def/select-game

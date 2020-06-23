@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 """
 All the constants of the game
 Fact : i use // instead of / to avoid float
@@ -80,3 +82,6 @@ SUB1 = "Game made by Valentin Cassayre"
 MENU_RADIUS = 100
 MENU_UNIT = Math.inscribed_rad(MENU_RADIUS)
 MENU_EDGE = 1.1
+
+# LINKS
+url = {'github': 'https://github.com/V-def/select-game/', 'website': 'https://valentin.cassayre.me/'}

@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*-
+
 """
 All the initial layouts
 """
+
 # import class
 from assets.insects import Bug, Locust, Spider, Beetle, Bee, Ant, Custom, God
 
