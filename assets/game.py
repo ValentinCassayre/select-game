@@ -61,14 +61,18 @@ class Game:
 
         self.click = False
         self.drag = False
-        self.disp_drag = False
+        self.display_drag = False
         self.origin_drag = None
-        self.initial_pos = None
 
-        self.update_board = False
+        self.update_board_bol = False
+        self.update_display_bol = False
+        self.update_insects_bol = False
 
         self.update_process = False
         self.caption = None
+
+        self.static_board = None
+        self.insect_board = None
 
         # Clock
 
@@ -119,12 +123,14 @@ class Game:
         self.update_caption()
         self.update_ways()
 
-        self.start_clock()
+        self.restart()
 
     def restart(self):
         """
         restart the game after an interrupt
         """
+        self.update_all()
+
         self.start_clock()
 
     def stop(self):
@@ -150,6 +156,8 @@ class Game:
 
         # changing window name
         self.update_caption()
+
+        self.update_insects_bol = True
 
         # delete old last move
         self.board.reset_surface('last move')
@@ -218,7 +226,8 @@ class Game:
             for eat_cell in eat:
                 self.to_draw_board['ways'].append(('tile eat', eat_cell, 'eat surface'))
 
-            self.update_board = True
+            self.update_board_bol = True
+            self.update_insects_bol = True
             self.process = 'choose way'
 
     def choose_way(self):
@@ -226,28 +235,28 @@ class Game:
         allows the player to give the new position of the selected insect
         """
         reset = True
-        self.update_board = True
+        self.update_board_bol = True
+        self.update_insects_bol = True
 
         if self.tile_insect is not None:
 
-            # same tile
-            if self.tile_pos == self.initial_pos:
-                reset = False
-                self.process = 'choose way'
-
             # just moove
-            elif self.tile_pos in self.tile_insect.ways:
+            if self.tile_pos in self.tile_insect.ways:
+
                 self.last_move = self.tile_insect.pos, self.tile_pos
                 self.move(self.tile_insect, self.tile_pos)
 
+                self.display_drag = False
                 self.process = 'next turn'
                 for tile in self.last_move:
                     self.to_draw_board['last move'].append(('tile move', tile, 'last move surface'))
 
             # moove and kill
             elif self.tile_pos in self.tile_insect.eat:
+
                 self.last_move = self.tile_insect.pos, self.tile_pos
 
+                self.display_drag = False
                 self.kill(self.tile_insect, self.board.tile_state[self.tile_pos])
                 self.process = 'next turn'
 
@@ -257,7 +266,7 @@ class Game:
             # select another one
             elif self.board.tile_state[self.tile_pos] is not None:
 
-                # same tile -> continue
+                # same tile
                 if self.tile_pos == self.tile_insect.pos:
                     reset = False
                     self.process = 'choose way'
@@ -267,11 +276,12 @@ class Game:
                     self.choose_insect()
 
                 else:
-                    self.disp_drag = False
+                    self.display_drag = False
 
+            # tile with nothing on it and which the insect can't go
             else:
                 self.process = 'choose insect'
-                self.disp_drag = False
+                self.display_drag = False
 
         if reset:
             # reset surface
@@ -532,6 +542,7 @@ class Game:
         """
         events
         """
+        events.check(mask_list=self.board.mask_list)
 
         if events.key == "leave":
             self.save()
@@ -543,7 +554,7 @@ class Game:
         for touched_mask in events.mask_touching:
 
             if touched_mask[3] == "tile":
-                self.update_board, self.tile_pos = self.board.draw_tile_overview(touched_mask, textures)
+                self.update_board_bol, self.tile_pos = self.board.draw_tile_overview(touched_mask, textures)
 
         if not self.ended:
 
@@ -555,20 +566,15 @@ class Game:
             if events.click:
 
                 self.drag = True
-                self.disp_drag = True
+                self.display_drag = True
                 self.update_process = True
-                self.update_board = True
+                self.update_board_bol = True
 
             elif self.drag and not events.mouse_but_down:
 
                 self.drag = False
-                self.disp_drag = False
+                self.display_drag = False
                 self.update_process = True
-                self.update_board = True
-
-            elif self.drag:
-
-                self.update_board = True
 
             if self.update_process:
 
@@ -583,6 +589,129 @@ class Game:
                     self.choose_way()
 
                 self.update_process = False
+
+    def update_all(self):
+        """
+        update every surfaces
+        """
+        self.update_board_bol = True
+        self.update_display_bol = True
+        self.update_insects_bol = True
+
+    def check_updates(self, textures):
+        """
+        check updates
+        """
+        if self.update_board_bol or self.static_board is None:
+            self.update_display_bol = True
+            self.update_board(textures)
+
+        if self.update_insects_bol:
+            self.update_display_bol = True
+            self.update_insects(textures)
+
+        if self.moving_insect is not None:
+            self.update_insects_bol = True
+
+    def update_board(self, textures):
+        """
+        update only the static board named static_board
+        """
+
+        self.update_board_bol = False
+        self.static_board = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+
+        # draw the board to erase old position of the insects for the next update
+        self.board.draw_surface(draw_this_surface=textures.game["board"], on_this_surface=self.static_board,
+                                disp_pos=c.CENTER, center=False)
+
+        # draw every overlays on the board (ways, last move, setback)
+        if self.board.draw_ways:
+            # create surface if it needs to be updated
+            for category in self.to_draw_board:
+
+                if len(self.to_draw_board[category]) > 0:
+                    self.board.game_draw(category, self.to_draw_board[category], textures)
+                    self.to_draw_board[category] = []
+
+                # draw the surfaces
+                if self.board.to_draw[category] is not None:
+                    self.board.draw_surface(draw_this_surface=self.board.to_draw[category],
+                                            on_this_surface=self.static_board, disp_pos=c.CENTER, center=False)
+
+        return self.static_board
+
+    def update_insects(self, textures):
+        """
+        update only the insect surface named insect_board
+        """
+
+        self.update_insects_bol = False
+        self.insect_board = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+
+        # draw the insects
+        for tile in self.board.tile_state:
+            if self.board.tile_state[tile] is not None:
+                insect = self.board.tile_state[tile]
+
+                # draw the insect that is dragged near the mouse
+                if insect is self.tile_insect and self.display_drag:
+                    self.moving_insect = insect
+
+                else:
+                    self.board.draw_surface(draw_this_surface=textures.dflt[insect.full_name],
+                                            on_this_surface=self.insect_board, disp_pos=self.board.position(insect.pos))
+
+    def update_screen(self, display, textures, events):
+        """
+        update the whole screen
+        """
+        if self.update_display_bol:
+
+            # clean screen
+            display.draw_screen()
+
+            # update caption
+            if display.caption != self.caption:
+                display.set_caption(caption=self.caption)
+            display.draw_screen()
+
+            # update the screen
+            log_text = str((self.tile_pos, self.turn_number))
+
+            log = textures.font["menu button"].render(log_text, True, textures.colors["button text"])
+            display.draw_surface_screen(log, c.CENTER, False)
+
+            # update clock
+            self.update_clock()
+
+            # table on the right
+            display.draw_table(self.last_turn, self.turn, self.process, self.player_clock, textures)
+
+            if self.log is not None:
+                display.big_log(self.log[1], textures)
+
+            # draw the board
+            display.draw_surface_screen(draw_this_surface=self.static_board)
+
+            # draw the mouse tile pos
+            display.draw_surface_screen(draw_this_surface=self.board.mouse_interaction_surface, disp_pos=c.CENTER,
+                                        center=False)
+
+            # draw the insects
+            display.draw_surface_screen(draw_this_surface=self.insect_board, disp_pos=c.CENTER, center=False)
+
+            if self.moving_insect is not None:
+                if self.display_drag:
+                    display.draw_surface_screen(draw_this_surface=textures.dflt[self.moving_insect.full_name],
+                                                disp_pos=events.mouse_pos, center=True)
+
+                else:
+                    self.moving_insect = None
+
+            # update
+            pygame.display.flip()
+            self.update_display_bol = False
 
 
 class Time:

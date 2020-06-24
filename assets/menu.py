@@ -85,10 +85,10 @@ class Menu(Display):
                     menu_but_masks.append(self.convert_to_mask(textures.dflt["button"], (x, y), data[pos][0]))
 
                 else:
-                    self.draw_surface_screen(textures.dflt["bg hex"], (x, y), on_this_surface=bg)
+                    self.draw_surface(draw_this_surface=textures.dflt["bg hex"], disp_pos=(x, y), on_this_surface=bg)
 
-        self.draw_surface_screen(textures.dflt["menu title"], c.TITLE_POS, on_this_surface=text_surface)
-        self.draw_surface_screen(textures.dflt["menu sub 1"], c.SUB1_POS, on_this_surface=text_surface)
+        self.draw_surface(draw_this_surface=textures.dflt["menu title"], disp_pos=c.TITLE_POS, on_this_surface=text_surface, center=True)
+        self.draw_surface(draw_this_surface=textures.dflt["menu sub 1"], disp_pos=c.SUB1_POS, on_this_surface=text_surface, center=True)
 
         # bg is the background, text_surface is the text overlay surface, menu_but_masks are the masks used for button
         return bg, text_surface, menu_but_masks
@@ -139,8 +139,8 @@ class Menu(Display):
 
             elif self.last_touched_mask is not touched_mask[3]:
 
-                self.button = self.draw_surface_screen(
-                    textures.dflt["button overlay"], touched_mask[2], on_this_surface=self.button)
+                self.button = self.draw_surface(draw_this_surface=textures.dflt["button overlay"],
+                                                disp_pos=touched_mask[2], on_this_surface=self.button, center=True)
                 self.update_display = True
                 self.last_touched_mask = touched_mask[3]
 

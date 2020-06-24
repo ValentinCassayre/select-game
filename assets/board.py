@@ -95,9 +95,9 @@ class Board(Display):
                     disp_pos = self.position(cell)
 
                     if i % 5 == 2 or j % 5 == 2:
-                        self.draw_surface_screen(tile_1, disp_pos, on_this_surface=image)
+                        self.draw_surface(draw_this_surface=tile_1, disp_pos=disp_pos, on_this_surface=image)
                     else:
-                        self.draw_surface_screen(tile_2, disp_pos, on_this_surface=image)
+                        self.draw_surface(draw_this_surface=tile_2, disp_pos=disp_pos, on_this_surface=image)
 
                     self.pos_list.append(cell)
                     self.disp_list.append(disp_pos)
@@ -142,8 +142,8 @@ class Board(Display):
         # check if the tile is a new tile, else no update of the screen
         if self.last_tile != mask_infos[4]:
             self.reset_surface("mouse interaction surface")
-            self.draw_surface_screen(
-                textures.game["tile overview"], disp_pos, on_this_surface=self.mouse_interaction_surface)
+            self.draw_surface(draw_this_surface=textures.game["tile overview"], disp_pos=disp_pos,
+                              on_this_surface=self.mouse_interaction_surface)
 
             update = True
         self.last_tile_pos = mask_infos[4]
@@ -157,8 +157,8 @@ class Board(Display):
 
         # add both pos of new move
         for pos in pos_list:
-            self.draw_surface_screen(
-                textures.game["tile move"], self.position(pos), on_this_surface=self.last_move_surface)
+            self.draw_surface(draw_this_surface=textures.game["tile move"], disp_pos=self.position(pos),
+                              on_this_surface=self.last_move_surface)
 
     def game_draw(self, category, data, textures):
         """
