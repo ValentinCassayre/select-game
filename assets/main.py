@@ -16,13 +16,13 @@ except ModuleNotFoundError:
     system("pause")
     exit()
 
-import assets.consts as c
-from assets.events import Events
 from assets.display import Display
+from assets.textures import Textures
+from assets.events import Events
+from assets.time import Time, Clock
 from assets.menu import Menu
 from assets.board import Board
-from assets.textures import Textures
-from assets.game import Game, Time
+from assets.game import Game
 
 
 def main():
@@ -40,7 +40,6 @@ def main():
 
     # variables
     # booleans
-    update_menu = True
 
     events.main_loop = True
 
@@ -79,7 +78,8 @@ def main():
             # check if a game is started, if not start one
             if game is None:
                 game_board = copy(sample_board)
-                game = Game(game_board, time, textures)
+                clock = Clock()
+                game = Game(board=game_board, textures=textures, clock=clock)
                 game.start(textures)
             else:
                 game.restart()
@@ -94,9 +94,7 @@ def main():
                 game.send_events(events, textures)
 
                 # Display
-
                 game.check_updates(textures)
-
                 game.update_screen(display=display, textures=textures, events=events)
 
         else:  # avoid infinite loop

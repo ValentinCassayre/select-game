@@ -148,13 +148,13 @@ class Textures:
 
     def create_digit(self, digit, size):
 
-        image = self.font["clock {}".format(size)].render(digit, True, self.colors["text"])
+        image = self.font["clock_bol {}".format(size)].render(digit, True, self.colors["text"])
 
         return image
 
     def stopwatch(self, time):
 
-        image = self.font["clock 1"].render(time, True, self.colors["text"])
+        image = self.font["clock_bol 1"].render(time, True, self.colors["text"])
 
         return image
 
@@ -253,8 +253,8 @@ class Textures:
         fonts["menu button"] = pygame.font.Font(font_path, round(font_size * 1.6))
         fonts["menu button sub"] = pygame.font.Font(font_path, round(font_size * 1.2))
 
-        fonts["clock 1"] = pygame.font.Font(font_path, round(font_size * 2.4))
-        fonts["clock 2"] = pygame.font.Font(font_path, round(font_size * 2))
+        fonts["clock_bol 1"] = pygame.font.Font(font_path, round(font_size * 2.4))
+        fonts["clock_bol 2"] = pygame.font.Font(font_path, round(font_size * 2))
 
         fonts["game infos"] = pygame.font.Font(font_path, round(font_size * 1.6))
 

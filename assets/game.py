@@ -9,7 +9,6 @@ import pygame
 import assets.consts as c
 from assets.initial_layout import InitialLayout
 import pickle
-import os
 
 
 class Game:
@@ -17,12 +16,11 @@ class Game:
     Class used to create games objects
     """
 
-    def __init__(self, board, time, textures):
+    def __init__(self, board, textures, clock):
         """
         needed parameter
         board : object from Board
         textures : object from Textures
-        time : object from Time
         """
 
         # Global
@@ -41,7 +39,6 @@ class Game:
         self.moving_insect = None
 
         self.board = board
-        self.time = time
         self.textures = textures
 
         self.setback = None
@@ -76,36 +73,22 @@ class Game:
 
         # Clock
 
-        self.clock = True  # allow clock
-
-        if self.clock:
-            # list that stores clock data in the form [white, black]
-
-            # total time used by the player each round
-            self.player_stopwatch = [0, 0]
-            # beginning of the time measurement
-            self.last_check = [0, 0]
-            # end of the time measurement
-            self.check = [0, 0]
-
-            # clock value at the beginning in milliseconds and during all the game
-            self.player_clock = list(c.CLOCK_VALUE)
-
-        # value in milliseconds of the incrementation (0 = no incrementation)
-        self.clock_incrementation = c.CLOCK_INCREMENTATION
+        self.clock = clock
 
     # process
-    def _get_process(self):
+    @property
+    def process(self):
         return self.process_string
 
-    def _set_process(self, process):
+    @process.setter
+    def process(self, process):
+        if process == 'next turn':
+            self.change_turn()
+            self.board.to_draw['ways'] = None
+            process = 'choose insect'
 
         self.process_string = process
-
         self.update_caption()
-
-    # allows to store the data and use it in main properly
-    process = property(_get_process, _set_process)  # indicate during a game what the players should do
 
     def start(self, textures):
         """
@@ -131,14 +114,20 @@ class Game:
         """
         self.update_all()
 
-        self.start_clock()
+        self.clock.start_clock(self)
 
     def stop(self):
         """
         end the game and display the reason
         """
-        # stop the clock
-        self.stop_clock()
+        # stop the clock_bol
+        self.clock.stop_clock()
+
+        self.moving_insect = None
+        self.display_drag = False
+        self.process = 'end game'
+        self.board.to_draw['ways'] = None
+        self.update_all()
 
         # used to stop the process of moving insects
         self.ended = True
@@ -173,12 +162,12 @@ class Game:
 
         self.changed_turn = True
 
-        # clock update if clock is on
-        if self.clock:
+        # clock_bol update if clock_bol is on
+        if self.clock.clock_bol:
             # update
-            self.start_clock()
-            # add incrementation to the clock
-            self.player_clock[self.turn_number % 2] += self.clock_incrementation
+            self.clock.start_clock(self)
+            # add incrementation to the clock_bol
+            self.clock.player_clock[self.turn_number % 2] += self.clock.clock_incrementation
 
         # update turn number
         self.turn_number = self.turn_number + 1
@@ -503,46 +492,14 @@ class Game:
             save.write(str(self.board_saves))
             save.close()
 
-    # clock related
-
-    def start_clock(self):
-        """
-        start the clock of the player
-        """
-        self.last_check[self.turn_number % 2] = self.time.stopwatch.get_ticks()
-        self.time.last_update = self.time.stopwatch.get_ticks()
-
-    def update_clock(self):
-        """
-        update the clock value
-        """
-        if self.clock:
-            i = self.turn_number % 2
-
-            self.player_stopwatch[i] = self.time.stopwatch.get_ticks()-self.last_check[i]
-            self.player_clock[i] = self.player_clock[i]-self.player_stopwatch[i]
-
-            self.last_check[(self.turn_number + 1) % 2] = self.time.stopwatch.get_ticks()
-
-            self.last_check[i] = self.time.stopwatch.get_ticks()
-
-            # if time is negative : end the game and lock the time to 0 for the one who ran out of time
-            if self.player_clock[i] < 0:
-                self.log = self.turn, "{} lost ! Run out of time".format(self.turn.capitalize())
-                self.player_clock[i] = 0
-                self.stop()
-
-    def stop_clock(self):
-        """
-        block the clocks
-        """
-        self.clock = False
-
     def send_events(self, events, textures):
         """
         events
         """
         events.check(mask_list=self.board.mask_list)
+
+        # update clock
+        self.clock.update_clock_value(game=self)
 
         if events.key == "leave":
             self.save()
@@ -557,10 +514,6 @@ class Game:
                 self.update_board_bol, self.tile_pos = self.board.draw_tile_overview(touched_mask, textures)
 
         if not self.ended:
-
-            if self.process == "next turn":
-                self.change_turn()
-                self.board.to_draw['ways'] = None
 
             # act after a click
             if events.click:
@@ -604,14 +557,18 @@ class Game:
         """
         if self.update_board_bol or self.static_board is None:
             self.update_display_bol = True
-            self.update_board(textures)
+            self.update_board(textures=textures)
 
         if self.update_insects_bol:
             self.update_display_bol = True
-            self.update_insects(textures)
+            self.update_insects(textures=textures)
+
+        if self.clock.update_clock_bol:
+            self.update_display_bol = True
+            self.update_clock(textures=textures)
 
         if self.moving_insect is not None:
-            self.update_insects_bol = True
+            self.update_display_bol = True
 
     def update_board(self, textures):
         """
@@ -662,6 +619,15 @@ class Game:
                     self.board.draw_surface(draw_this_surface=textures.dflt[insect.full_name],
                                             on_this_surface=self.insect_board, disp_pos=self.board.position(insect.pos))
 
+    def update_clock(self, textures):
+        """
+        update clock
+        """
+        # table on the right
+        self.clock.draw_table(self, textures)
+
+        self.clock.update_clock_bol = False
+
     def update_screen(self, display, textures, events):
         """
         update the whole screen
@@ -676,17 +642,13 @@ class Game:
                 display.set_caption(caption=self.caption)
             display.draw_screen()
 
+            display.draw_surface_screen(draw_this_surface=self.clock.table, disp_pos=c.TB, center=True)
+
             # update the screen
             log_text = str((self.tile_pos, self.turn_number))
 
             log = textures.font["menu button"].render(log_text, True, textures.colors["button text"])
             display.draw_surface_screen(log, c.CENTER, False)
-
-            # update clock
-            self.update_clock()
-
-            # table on the right
-            display.draw_table(self.last_turn, self.turn, self.process, self.player_clock, textures)
 
             if self.log is not None:
                 display.big_log(self.log[1], textures)
@@ -712,26 +674,3 @@ class Game:
             # update
             pygame.display.flip()
             self.update_display_bol = False
-
-
-class Time:
-    """
-    time
-    """
-    def __init__(self):
-
-        self.clock = pygame.time.Clock()
-        self.stopwatch = pygame.time
-        self.last_update = None
-
-    def tick(self):
-        """
-        limit frame rate
-        """
-        self.clock.tick(c.FPS)
-
-    def check_display_update(self):
-        if self.last_update // 100 != self.stopwatch.get_ticks() // 100:
-            self.last_update = self.stopwatch.get_ticks()
-            return True
-        return False
