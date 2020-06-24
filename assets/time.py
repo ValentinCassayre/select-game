@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Main game program files
-Used only during a game
+Related to time or the clock
 """
 
 import pygame

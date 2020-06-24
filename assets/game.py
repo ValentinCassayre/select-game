@@ -16,7 +16,7 @@ class Game:
     Class used to create games objects
     """
 
-    def __init__(self, board, textures, clock):
+    def __init__(self, board, textures, clock, chat):
         """
         needed parameter
         board : object from Board
@@ -74,6 +74,10 @@ class Game:
         # Clock
 
         self.clock = clock
+
+        # Chat
+
+        self.chat = chat
 
     # process
     @property
@@ -507,6 +511,10 @@ class Game:
         if events.key == "escape":
             events.state = 'menu pause'
 
+        if events.message is not None:
+            self.chat.add_message(events.message)
+            events.message = None
+
         # draw overlay
         for touched_mask in events.mask_touching:
 
@@ -567,6 +575,10 @@ class Game:
             self.update_display_bol = True
             self.update_clock(textures=textures)
 
+        if self.chat.update_chat_bol:
+            self.update_display_bol = True
+            self.update_chat(textures=textures)
+
         if self.moving_insect is not None:
             self.update_display_bol = True
 
@@ -621,12 +633,19 @@ class Game:
 
     def update_clock(self, textures):
         """
-        update clock
+        update right table with clock
         """
-        # table on the right
         self.clock.draw_table(self, textures)
 
         self.clock.update_clock_bol = False
+
+    def update_chat(self, textures):
+        """
+        update left table with chat
+        """
+        self.chat.update(textures)
+
+        self.chat.update_chat_bol = False
 
     def update_screen(self, display, textures, events):
         """
@@ -642,7 +661,8 @@ class Game:
                 display.set_caption(caption=self.caption)
             display.draw_screen()
 
-            display.draw_surface_screen(draw_this_surface=self.clock.table, disp_pos=c.TB, center=True)
+            display.draw_surface_screen(draw_this_surface=self.clock.table, disp_pos=c.TBR, center=True)
+            display.draw_surface_screen(draw_this_surface=self.chat.table, disp_pos=c.TBL, center=True)
 
             # update the screen
             log_text = str((self.tile_pos, self.turn_number))

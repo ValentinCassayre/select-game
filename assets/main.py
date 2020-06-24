@@ -20,6 +20,7 @@ from assets.display import Display
 from assets.textures import Textures
 from assets.events import Events
 from assets.time import Time, Clock
+from assets.chat import ChatBox
 from assets.menu import Menu
 from assets.board import Board
 from assets.game import Game
@@ -79,7 +80,8 @@ def main():
             if game is None:
                 game_board = copy(sample_board)
                 clock = Clock()
-                game = Game(board=game_board, textures=textures, clock=clock)
+                chat = ChatBox()
+                game = Game(board=game_board, textures=textures, clock=clock, chat=chat)
                 game.start(textures)
             else:
                 game.restart()

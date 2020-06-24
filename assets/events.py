@@ -24,6 +24,8 @@ class Events:
         # Keyboard related
 
         self.key = None
+        self.input_value = ''
+        self.message = None
 
         # Masks related
 
@@ -89,6 +91,13 @@ class Events:
 
                 if event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
                     self.key = "return"
+                    self.message = self.input_value
+                    self.input_value = ''
+
+                elif event.key == pygame.K_BACKSPACE:
+                    self.input_value = self.input_value[:-1]
+                else:
+                    self.input_value += event.unicode
 
             for mask in mask_list:
 

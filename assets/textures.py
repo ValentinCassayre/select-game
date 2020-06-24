@@ -261,6 +261,8 @@ class Textures:
         fonts["game menu 1"] = pygame.font.Font(font_path, round(font_size))
         fonts["game menu 2"] = pygame.font.Font(font_path, round(font_size*0.8))
 
+        fonts["chat"] = pygame.font.Font(font_path, c.CHAT_FONT_SIZE)
+
         return fonts
 
     @staticmethod
