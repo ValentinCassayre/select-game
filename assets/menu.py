@@ -23,24 +23,23 @@ class Menu(Display):
 
         self.menus = {}
 
-        self.text_menu = {
-            'infos': {(0, 0): ('state/last', 'Back', 'To the menu'),
-                      (0, 1): ('browse/github', 'Git Hub', 'Webpage'),
-                      (1, 0): ('browse/website', 'Website', 'In french'),
-                      (1, 1): ('leave', 'Quit game', '')},
-            'main': {(0, 0): ('state/game', 'Two players', 'Offline'),
-                     (0, 1): ('state/tutorial', 'Tutorial', 'Soon'),
-                     (1, 0): ('state/menu infos', 'More infos', 'Links'),
-                     (1, 1): ('state/game', 'Computer', 'Offline')},
-            'pause': {(0, 0): ('state/last', 'Resume', ''),
-                      (0, 1): ('save', 'Save', 'Soon'),
-                      (1, 0): ('browse/github', 'Git Hub', 'Webpage'),
-                      (1, 1): ('leave', 'Quit', 'Save')}
-        }
+        self.n = {}
+        for var in c.MENU_VARIABLES:
+            self.n[var] = 0
+
+        self.text_menu = c.TEXT_MENU
+        for menu in self.text_menu:
+            for coord in self.text_menu[menu]:
+                if self.text_menu[menu][coord][0].startswith('variable'):
+                    key = self.text_menu[menu][coord][0].split('/')[3]
+                    title, sub = self.variable(key)
+                    self.text_menu[menu][coord] = self.text_menu[menu][coord][0], title, sub
 
         self.button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.last_touched_mask = None
-        self.update_display = False
+        self.update_display_bol = False
+
+        self.update_text_bol = False
 
     def load(self, textures):
         """
@@ -50,13 +49,12 @@ class Menu(Display):
         for menu in self.text_menu:
             self.menus[menu] = self.create_menu(self.text_menu[menu], textures)
 
-    def create_menu(self, data, textures):
+    def create_menu(self, data, textures, full_update=True):
         """
         method used to create a menu using
         """
 
         menu_but_masks = []
-
         text_surface = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         bg = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
 
@@ -70,7 +68,10 @@ class Menu(Display):
 
                 if pos in data:
 
-                    self.draw_surface(draw_this_surface=textures.dflt["button"], on_this_surface=bg, disp_pos=(x, y))
+                    if full_update:
+
+                        self.draw_surface(draw_this_surface=textures.dflt["button"], on_this_surface=bg, disp_pos=(x, y))
+                        menu_but_masks.append(self.convert_to_mask(textures.dflt["button"], (x, y), data[pos][0]))
 
                     text = \
                         textures.font["menu button"].render(data[pos][1], True, textures.colors["button text"])
@@ -82,24 +83,38 @@ class Menu(Display):
 
                     self.draw_surface(draw_this_surface=text, on_this_surface=text_surface, disp_pos=(x, y + 30))
 
-                    menu_but_masks.append(self.convert_to_mask(textures.dflt["button"], (x, y), data[pos][0]))
+                elif full_update:
 
-                else:
                     self.draw_surface(draw_this_surface=textures.dflt["bg hex"], disp_pos=(x, y), on_this_surface=bg)
 
-        self.draw_surface(draw_this_surface=textures.dflt["menu title"], disp_pos=c.TITLE_POS, on_this_surface=text_surface, center=True)
-        self.draw_surface(draw_this_surface=textures.dflt["menu sub 1"], disp_pos=c.SUB1_POS, on_this_surface=text_surface, center=True)
+        self.draw_surface(draw_this_surface=textures.dflt["menu title"], disp_pos=c.TITLE_POS,
+                          on_this_surface=text_surface, center=True)
+        self.draw_surface(draw_this_surface=textures.dflt["menu sub 1"], disp_pos=c.SUB1_POS,
+                          on_this_surface=text_surface, center=True)
 
-        # bg is the background, text_surface is the text overlay surface, menu_but_masks are the masks used for button
-        return bg, text_surface, menu_but_masks
+        if full_update:
+
+            # bg is the background, text_surface is the text overlay surface, menu_but_masks are the masks for buttons
+            return bg, text_surface, menu_but_masks
+
+        else:
+
+            return text_surface
 
     def init(self, menu_name):
         """
         before going in the loop
         """
-        self.update_display = True
+        self.update_display_bol = True
         self.last_touched_mask = None
         self.set_caption('{} - {} menu'.format(c.GAME_NAME, menu_name.capitalize()))
+
+    def variable(self, name, next_category=False):
+        if next_category:
+            self.n[name] = (self.n[name] + 1) % len(c.MENU_VARIABLES[name])
+            return c.MENU_VARIABLES[name][self.n[name]]
+        else:
+            return c.MENU_VARIABLES[name][self.n[name]]
 
     def update(self, menu, events, textures):
         """
@@ -137,21 +152,34 @@ class Menu(Display):
                 elif key[0] == 'browse':
                     open_url(c.url[key[1]])
 
-            elif self.last_touched_mask is not touched_mask[3]:
+                elif key[0] == 'variable':
+                    if key[4] == 'next':
+                        full_key = self.text_menu[key[1]][tuple(map(int, key[2].split(',')))][0]
+                        title, subtitle = self.variable(key[3], True)
+                        self.text_menu[key[1]][tuple(map(int, key[2].split(',')))] = full_key, title, subtitle
+                        self.update_text_bol = True
 
+            elif self.last_touched_mask is not touched_mask[3]:
+                # clean buttons surface
+                self.button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
+                # draw new ones
                 self.button = self.draw_surface(draw_this_surface=textures.dflt["button overlay"],
                                                 disp_pos=touched_mask[2], on_this_surface=self.button, center=True)
-                self.update_display = True
+                # update
+                self.update_display_bol = True
                 self.last_touched_mask = touched_mask[3]
 
-        if self.update_display:
+        if self.update_text_bol:
+            self.menus[menu] = self.menus[menu][0], self.create_menu(self.text_menu[menu], textures, False), self.menus[menu][2]
+            self.update_display_bol = True
+            self.update_text_bol = False
+
+        if self.update_display_bol:
             # clean screen
             self.draw_screen()
             # draw new menu
             self.draw_surfaces(surface_list=[self.menus[menu][0], self.button, self.menus[menu][1]])
             # update screen
             pygame.display.flip()
-            # clean buttons surface
-            self.button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
             # reset
-            self.update_display = False
+            self.update_display_bol = False

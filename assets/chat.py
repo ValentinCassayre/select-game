@@ -54,28 +54,26 @@ class ChatBox(Display):
         self.input_value = message
 
     def update(self, textures):
-        table = pygame.Surface(c.TB_SIZE, pygame.SRCALPHA, 32)
-        table.fill(textures.colors["infos"])
+        self.table = pygame.Surface(c.TB_SIZE, pygame.SRCALPHA, 32)
+        self.table.fill(textures.colors["infos"])
 
         messages = self.formatted_messages.copy()
         messages.reverse()
         pos = list(c.CHAT_POS)
 
         self.draw_surface(draw_this_surface=self.chat_input_box, disp_pos=(0, c.TB_SIZE[1]-c.CHAT_FONT_SIZE),
-                          center=False, on_this_surface=table)
+                          center=False, on_this_surface=self.table)
 
         if self.input:
 
             self.draw_surface(draw_this_surface=textures.write(self.input_value[-24:]+'|', font='chat'),
-                              disp_pos=(10, c.TB_SIZE[1] - c.CHAT_FONT_SIZE), center=False, on_this_surface=table)
+                              disp_pos=(10, c.TB_SIZE[1] - c.CHAT_FONT_SIZE), center=False, on_this_surface=self.table)
 
         for message in messages:
             self.draw_surface(draw_this_surface=textures.write(message, font='chat'), disp_pos=pos, center=False,
-                              on_this_surface=table)
+                              on_this_surface=self.table)
 
             pos[1] -= c.CHAT_FONT_SIZE
 
         self.draw_surface(draw_this_surface=textures.write('Chat'), disp_pos=c.CENTER, center=False,
-                          on_this_surface=table)
-
-        self.table = table
+                          on_this_surface=self.table)

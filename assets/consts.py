@@ -61,7 +61,7 @@ GAME_NAME = "Select!"
 GAME_STATE = {"choose insect": 0, "choose way": 1}
 TURN_STATE = {"white": 0, "black": 1}
 
-CLOCK_VALUE = (30000, 300000)
+CLOCK_VALUE = (300000, 300000)
 CLOCK_INCREMENTATION = 1000
 
 # PATHS
@@ -92,3 +92,37 @@ MENU_EDGE = 1.1
 
 # LINKS
 url = {'github': 'https://github.com/V-def/select-game/', 'website': 'https://valentin.cassayre.me/'}
+
+MENU_VARIABLES = {
+    'type': (('1 player', 'Offline'), ('2 players', 'Offline'), ('2 players', 'Online')),
+    'clock': (('1 + 0', 'min'), ('1 + 2', 'min + sec'),
+              ('3 + 0', 'min'), ('3 + 2', 'min + sec'), ('5 + 0', 'min'), ('5 + 3', 'min + sec'),
+              ('10 + 0', 'min'), ('10 + 5', 'min + sec'), ('15 + 10', 'min + sec'),
+              ('30 + 0', 'min'), ('30 + 20', 'min + sec'),
+              ('No clock', 'infinite time')),
+    'commands': (('Allow both', 'commands'), ('Allow white', 'commands'), ('Allow black', 'commands'),
+                 ('Deny both', 'commands'))
+    }
+
+TEXT_MENU = {
+            'more': {(0, 0): ('state/last', 'Back', 'To the menu'),
+                      (0, 1): ('browse/github', 'Git Hub', 'Webpage'),
+                      (1, 0): ('browse/website', 'Website', 'In french'),
+                      (1, 1): ('leave', 'Quit game', '')},
+            'main': {(0, 0): ('state/menu load', 'Load game', 'Off/online'),
+                     (0, 1): ('state/game tutorial', 'Tutorial', 'Offline'),
+                     (1, 0): ('state/menu more', 'More', 'Links'),
+                     (1, 1): ('state/menu new', 'New game', 'Off/online')},
+            'new': {(0, 0): ('variable/new/0,0/type/next', '', ''),
+                     (0, 1): ('variable/new/0,1/clock/next', '', ''),
+                     (1, 0): ('variable/new/1,0/commands/next', '', ''),
+                     (1, 1): ('state/game', 'Start', 'game')},
+            'load': {(0, 0): ('state/menu load', 'Load game', 'Off/online'),
+                    (0, 1): ('state/game tutorial', 'Tutorial', 'Offline'),
+                    (1, 0): ('state/menu more', 'More', 'Links'),
+                    (1, 1): ('state/menu new', 'New game', 'Off/online')},
+            'pause': {(0, 0): ('state/last', 'Resume', ''),
+                      (0, 1): ('save', 'Save', 'Soon'),
+                      (1, 0): ('browse/github', 'Git Hub', 'Webpage'),
+                      (1, 1): ('leave', 'Quit', 'Save')}
+            }

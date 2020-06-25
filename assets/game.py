@@ -471,13 +471,7 @@ class Game:
             return ways, eat
 
     def check_turn(self):
-
-        if self.changed_turn:
-            self.changed_turn = False
-            return True
-
-        else:
-            return False
+        return True
 
     def save(self):
         """
@@ -574,33 +568,35 @@ class Game:
 
         if not self.ended:
 
-            # act after a click
-            if events.click:
+            if self.check_turn():
 
-                self.drag = True
-                self.display_drag = True
-                self.update_process = True
-                self.update_board_bol = True
+                # act after a click
+                if events.click:
 
-            elif self.drag and not events.mouse_but_down:
+                    self.drag = True
+                    self.display_drag = True
+                    self.update_process = True
+                    self.update_board_bol = True
 
-                self.drag = False
-                self.display_drag = False
-                self.update_process = True
+                elif self.drag and not events.mouse_but_down:
 
-            if self.update_process:
+                    self.drag = False
+                    self.display_drag = False
+                    self.update_process = True
 
-                self.click = events.click
+                if self.update_process:
 
-                if self.process == 'choose insect':
+                    self.click = events.click
 
-                    self.choose_insect()
+                    if self.process == 'choose insect':
 
-                elif self.process == "choose way":
+                        self.choose_insect()
 
-                    self.choose_way()
+                    elif self.process == "choose way":
 
-                self.update_process = False
+                        self.choose_way()
+
+                    self.update_process = False
 
     def update_all(self):
         """
@@ -745,3 +741,17 @@ class Game:
             # update
             pygame.display.flip()
             self.update_display_bol = False
+
+
+class GameComputer(Game):
+    """
+    offline one player
+    """
+    def __init__(self, board, textures, clock, chat):
+        Game.__init__(self, board, textures, clock, chat)
+        self.computer = 'black'
+
+    def check_turn(self):
+        if self.turn == self.computer:
+            print('computer play')
+            return False
