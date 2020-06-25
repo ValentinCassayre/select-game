@@ -61,9 +61,6 @@ GAME_NAME = "Select!"
 GAME_STATE = {"choose insect": 0, "choose way": 1}
 TURN_STATE = {"white": 0, "black": 1}
 
-CLOCK_VALUE = (300000, 300000)
-CLOCK_INCREMENTATION = 1000
-
 # PATHS
 ICON = 'assets/other/icon.png'
 FONTS = 'assets/fonts'
@@ -94,14 +91,14 @@ MENU_EDGE = 1.1
 url = {'github': 'https://github.com/V-def/select-game/', 'website': 'https://valentin.cassayre.me/'}
 
 MENU_VARIABLES = {
-    'type': (('1 player', 'Offline'), ('2 players', 'Offline'), ('2 players', 'Online')),
-    'clock': (('1 + 0', 'min'), ('1 + 2', 'min + sec'),
-              ('3 + 0', 'min'), ('3 + 2', 'min + sec'), ('5 + 0', 'min'), ('5 + 3', 'min + sec'),
-              ('10 + 0', 'min'), ('10 + 5', 'min + sec'), ('15 + 10', 'min + sec'),
-              ('30 + 0', 'min'), ('30 + 20', 'min + sec'),
-              ('No clock', 'infinite time')),
-    'commands': (('Allow both', 'commands'), ('Allow white', 'commands'), ('Allow black', 'commands'),
-                 ('Deny both', 'commands'))
+    'mode': (('1 player', 'Offline', 'computer'), ('2 players', 'Offline', 'offline'), ('2 players', 'Online', 'online')),
+    'clock': (('1 + 0', 'min', ((60000, 60000), 0)), ('2 + 1', 'min + sec', ((120000, 120000), 1000)),
+              ('3 + 0', 'min', ((180000, 180000), 0)), ('3 + 2', 'min + sec', ((180000, 180000), 2000)),
+              ('5 + 0', 'min', ((300000, 300000), 0)), ('5 + 3', 'min + sec', ((300000, 300000), 3000)),
+              ('10 + 0', 'min', ((600000, 600000), 0)), ('10 + 5', 'min + sec', ((600000, 600000), 5000)),
+              ('15 + 10', 'min + sec', ((900000, 900000), 10000)), ('30 + 0', 'min', ((1800000, 1800000), 0)),
+              ('30 + 20', 'min + sec', ((18000000, 18000000), 20000)), ('No clock', 'infinite time', ((0, 0), 0))),
+    'commands': (('Allow', 'commands', True), ('Deny', 'commands', False))
     }
 
 TEXT_MENU = {
@@ -110,17 +107,15 @@ TEXT_MENU = {
                       (1, 0): ('browse/website', 'Website', 'In french'),
                       (1, 1): ('leave', 'Quit game', '')},
             'main': {(0, 0): ('state/menu load', 'Load game', 'Off/online'),
-                     (0, 1): ('state/game tutorial', 'Tutorial', 'Offline'),
+                     (0, 1): ('state/game tutorial', 'Tutorial', 'Soon'),
                      (1, 0): ('state/menu more', 'More', 'Links'),
                      (1, 1): ('state/menu new', 'New game', 'Off/online')},
-            'new': {(0, 0): ('variable/new/0,0/type/next', '', ''),
+            'new': {(0, 0): ('variable/new/0,0/mode/next', '', ''),
                      (0, 1): ('variable/new/0,1/clock/next', '', ''),
                      (1, 0): ('variable/new/1,0/commands/next', '', ''),
                      (1, 1): ('state/game', 'Start', 'game')},
-            'load': {(0, 0): ('state/menu load', 'Load game', 'Off/online'),
-                    (0, 1): ('state/game tutorial', 'Tutorial', 'Offline'),
-                    (1, 0): ('state/menu more', 'More', 'Links'),
-                    (1, 1): ('state/menu new', 'New game', 'Off/online')},
+            'load': {(0, 0): ('', 'Soon', ''),
+                    (1, 1): ('state/menu main', 'Back', 'Main menu')},
             'pause': {(0, 0): ('state/last', 'Resume', ''),
                       (0, 1): ('save', 'Save', 'Soon'),
                       (1, 0): ('browse/github', 'Git Hub', 'Webpage'),

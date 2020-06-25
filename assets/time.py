@@ -7,6 +7,7 @@ Related to time or the clock
 import pygame
 import assets.consts as c
 from assets.display import Display
+import assets.settings as s
 
 
 class Time:
@@ -28,7 +29,7 @@ class Clock(Time, Display):
     """
     in game clock_bol
     """
-    def __init__(self):
+    def __init__(self, settings):
 
         Display.__init__(self)
 
@@ -55,11 +56,11 @@ class Clock(Time, Display):
             self.check = [0, 0]
 
             # clock_bol value at the beginning in milliseconds and during all the game
-            self.player_clock = list(c.CLOCK_VALUE)
-            self.last_player_clock = c.CLOCK_VALUE
+            self.last_player_clock = settings.game['clock'][0]
+            self.player_clock = list(self.last_player_clock)
 
         # value in milliseconds of the incrementation (0 = no incrementation)
-        self.clock_incrementation = c.CLOCK_INCREMENTATION
+        self.clock_incrementation = settings.game['clock'][1]
 
     def start_clock(self, game):
         """

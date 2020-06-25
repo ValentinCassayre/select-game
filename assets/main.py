@@ -19,11 +19,12 @@ except ModuleNotFoundError:
 from assets.display import Display
 from assets.textures import Textures
 from assets.events import Events
+from assets.settings import Settings
 from assets.time import Time, Clock
 from assets.chat import ChatBox
 from assets.menu import Menu
 from assets.board import Board
-from assets.game import Game
+from assets.gamemodes import Offline, Computer, Online, Tutorial
 
 
 def main():
@@ -36,6 +37,7 @@ def main():
     menu = Menu()
     sample_board = Board()
     textures = Textures()  # create all the textures
+    settings = Settings()
 
     time = Time()
 
@@ -67,7 +69,7 @@ def main():
 
             while events.main_loop and events.state.endswith(menu_name):
 
-                menu.update(menu=menu_name, events=events, textures=textures)
+                menu.update(menu=menu_name, events=events, settings=settings, textures=textures)
                 time.tick()
 
         # game
@@ -79,9 +81,19 @@ def main():
             # check if a game is started, if not start one
             if game is None:
                 game_board = copy(sample_board)
-                clock = Clock()
+                clock = Clock(settings)
                 chat = ChatBox()
-                game = Game(board=game_board, textures=textures, clock=clock, chat=chat)
+                if settings.game['mode'] == 'offline':
+                    game = Offline(board=game_board, textures=textures, clock=clock, chat=chat, settings=settings)
+                elif settings.game['mode'] == 'computer':
+                    game = Computer(board=game_board, textures=textures, clock=clock, chat=chat, settings=settings)
+                elif settings.game['mode'] == 'online':
+                    game = Online(board=game_board, textures=textures, clock=clock, chat=chat, settings=settings)
+                elif settings.game['mode'] == 'tutorial':
+                    game = Tutorial(board=game_board, textures=textures, clock=clock, chat=chat, settings=settings)
+                else:
+                    return
+
                 game.start(textures)
             else:
                 game.restart()

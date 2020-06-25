@@ -8,6 +8,7 @@ import pygame
 import assets.consts as c
 from assets.display import Display
 from webbrowser import open as open_url
+import assets.settings as s
 
 
 class Menu(Display):
@@ -32,7 +33,7 @@ class Menu(Display):
             for coord in self.text_menu[menu]:
                 if self.text_menu[menu][coord][0].startswith('variable'):
                     key = self.text_menu[menu][coord][0].split('/')[3]
-                    title, sub = self.variable(key)
+                    title, sub, _ = self.variable(key)
                     self.text_menu[menu][coord] = self.text_menu[menu][coord][0], title, sub
 
         self.button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
@@ -116,7 +117,7 @@ class Menu(Display):
         else:
             return c.MENU_VARIABLES[name][self.n[name]]
 
-    def update(self, menu, events, textures):
+    def update(self, menu, events, settings, textures):
         """
         update display using events
         """
@@ -155,8 +156,9 @@ class Menu(Display):
                 elif key[0] == 'variable':
                     if key[4] == 'next':
                         full_key = self.text_menu[key[1]][tuple(map(int, key[2].split(',')))][0]
-                        title, subtitle = self.variable(key[3], True)
+                        title, subtitle, out = self.variable(key[3], True)
                         self.text_menu[key[1]][tuple(map(int, key[2].split(',')))] = full_key, title, subtitle
+                        settings.game[key[3]] = out
                         self.update_text_bol = True
 
             elif self.last_touched_mask is not touched_mask[3]:

@@ -1,8 +1,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Main game program files
-Used only during a game
+Core game class
 """
 
 import pygame
@@ -16,12 +15,13 @@ class Game:
     Class used to create games objects
     """
 
-    def __init__(self, board, textures, clock, chat):
+    def __init__(self, board, textures, clock, chat, settings):
         """
         needed parameter
         board : object from Board
         textures : object from Textures
         """
+        self.mode = 'core'
 
         # Global
 
@@ -29,6 +29,7 @@ class Game:
 
         self.turn = "white"
         self.last_turn = "black"
+        self.play = True
 
         self.ended = False
 
@@ -78,6 +79,10 @@ class Game:
         # Chat
 
         self.chat = chat
+
+        # Settings
+
+        self.settings = settings
 
     # process
     @property
@@ -182,8 +187,7 @@ class Game:
         """
         update the window name
         """
-        bond = ' - '
-        self.caption = c.GAME_NAME + bond + 'In game' + bond + self.turn.capitalize()
+        self.caption = '{} - In a(n) {} game - {}'.format(c.GAME_NAME, self.mode, self.turn.capitalize())
 
     def select_insect(self, tile_pos):
         """
@@ -281,12 +285,50 @@ class Game:
             self.board.reset_surface('ways')
             self.board.to_draw['ways'] = None
 
+    def round_move(self):
+        if self.tile_insect is not None:
+
+            # just moove
+            if self.tile_pos in self.tile_insect.ways:
+
+                self.last_move = self.tile_insect.pos, self.tile_pos
+                self.move(self.tile_insect, self.tile_pos)
+
+                self.process = 'next turn'
+
+                for tile in self.last_move:
+                    self.to_draw_board['last move'].append(('tile move', tile, 'last move surface'))
+
+            # moove and kill
+            elif self.tile_pos in self.tile_insect.eat:
+
+                self.last_move = self.tile_insect.pos, self.tile_pos
+
+                self.kill(self.tile_insect, self.board.tile_state[self.tile_pos])
+                self.process = 'next turn'
+
+                for tile in self.last_move:
+                    self.to_draw_board['last move'].append(('tile move', tile, 'last kill surface'))
+
+            # select another one
+            else:
+                return False
+        else:
+            return False
+
     # Movement of the insect on the board
 
-    def move(self, insect, new_pos):
+    def move(self, insect, new_pos, board=None):
+        if board is None:
+            board = self.board.tile_state
+
         # moving on board
-        self.board.tile(insect.pos, None)
-        self.board.tile(new_pos, insect)
+        if board[new_pos] is None:
+            self.board.tile(insect.pos, None)
+            self.board.tile(new_pos, insect)
+
+        else:
+            self.kill(insect, board[new_pos])
 
         # moving object
         insect.pos = new_pos
@@ -470,9 +512,6 @@ class Game:
         else:
             return ways, eat
 
-    def check_turn(self):
-        return True
-
     def save(self):
         """
         save current object
@@ -494,21 +533,25 @@ class Game:
         """
         execute a command
         """
-        command = command.split(' ')
+        if self.settings.game['commands']:
+            command = command.split(' ')
 
-        if command[0] == 'help':
-            self.chat.add_message('CMD HELP', 'Console : ')
+            if command[0] == 'help':
+                self.chat.add_message('CMD HELP', 'Console : ')
 
-        elif command[0] == 'clock':
-            if command[1] == 'add':
-                self.clock.player_clock[c.TURN_STATE[command[2]]] += int(int(command[3])*1000)
-                self.chat.add_message('Successfully added {} s to the {} clock'.format(command[3], command[2]))
-            if command[1] == 'lower':
-                self.clock.player_clock[c.TURN_STATE[command[2]]] -= int(int(command[3])*1000)
-                self.chat.add_message('Successfully lowed {} s to the {} clock'.format(command[3], command[2]))
-            if command[1] == 'set':
-                self.clock.player_clock[c.TURN_STATE[command[2]]] = int(int(command[3])*1000)
-                self.chat.add_message('Successfully set {} s to the {} clock'.format(command[3], command[2]))
+            elif command[0] == 'clock':
+                if command[1] == 'add':
+                    self.clock.player_clock[c.TURN_STATE[command[2]]] += int(int(command[3])*1000)
+                    self.chat.add_message('Successfully added {} s to the {} clock'.format(command[3], command[2]))
+                if command[1] == 'lower':
+                    self.clock.player_clock[c.TURN_STATE[command[2]]] -= int(int(command[3])*1000)
+                    self.chat.add_message('Successfully lowed {} s to the {} clock'.format(command[3], command[2]))
+                if command[1] == 'set':
+                    self.clock.player_clock[c.TURN_STATE[command[2]]] = int(int(command[3])*1000)
+                    self.chat.add_message('Successfully set {} s to the {} clock'.format(command[3], command[2]))
+
+        else:
+            self.chat.add_message('Commands are disabled')
 
     def send_log(self, log):
         """
@@ -521,6 +564,9 @@ class Game:
         else:
 
             self.chat.add_message(log, '{} : '.format(self.turn))
+
+    def check(self):
+        pass
 
     def send_events(self, events, textures):
         """
@@ -563,12 +609,14 @@ class Game:
                 else:
                     pass
 
+        self.check()
+
         if events.click:
             self.chat.input = False
 
         if not self.ended:
 
-            if self.check_turn():
+            if self.play:
 
                 # act after a click
                 if events.click:
@@ -741,17 +789,3 @@ class Game:
             # update
             pygame.display.flip()
             self.update_display_bol = False
-
-
-class GameComputer(Game):
-    """
-    offline one player
-    """
-    def __init__(self, board, textures, clock, chat):
-        Game.__init__(self, board, textures, clock, chat)
-        self.computer = 'black'
-
-    def check_turn(self):
-        if self.turn == self.computer:
-            print('computer play')
-            return False
