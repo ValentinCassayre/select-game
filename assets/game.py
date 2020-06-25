@@ -496,11 +496,43 @@ class Game:
             save.write(str(self.board_saves))
             save.close()
 
+    def command(self, command):
+        """
+        execute a command
+        """
+        command = command.split(' ')
+
+        if command[0] == 'help':
+            self.chat.add_message('CMD HELP', 'Console : ')
+
+        elif command[0] == 'clock':
+            if command[1] == 'add':
+                self.clock.player_clock[c.TURN_STATE[command[2]]] += int(int(command[3])*1000)
+                self.chat.add_message('Successfully added {} s to the {} clock'.format(command[3], command[2]))
+            if command[1] == 'lower':
+                self.clock.player_clock[c.TURN_STATE[command[2]]] -= int(int(command[3])*1000)
+                self.chat.add_message('Successfully lowed {} s to the {} clock'.format(command[3], command[2]))
+            if command[1] == 'set':
+                self.clock.player_clock[c.TURN_STATE[command[2]]] = int(int(command[3])*1000)
+                self.chat.add_message('Successfully set {} s to the {} clock'.format(command[3], command[2]))
+
+    def send_log(self, log):
+        """
+        check if a log is a message or a command
+        """
+        if log.startswith('/'):
+
+            self.command(log[1:])
+
+        else:
+
+            self.chat.add_message(log, '{} : '.format(self.turn))
+
     def send_events(self, events, textures):
         """
         events
         """
-        events.check(mask_list=self.board.mask_list)
+        events.check(mask_list=self.board.mask_list+self.chat.chat_input_button, chat_input=self.chat.input)
 
         # update clock
         self.clock.update_clock_value(game=self)
@@ -511,8 +543,16 @@ class Game:
         if events.key == "escape":
             events.state = 'menu pause'
 
+        if self.chat.input:
+            if events.last_input_value != events.input_value:
+                events.last_input_value = events.input_value
+                self.chat.add_input_value(events.input_value)
+
+            elif events.input_value == '':
+                self.chat.update_chat_bol = True
+
         if events.message is not None:
-            self.chat.add_message(events.message)
+            self.send_log(events.message)
             events.message = None
 
         # draw overlay
@@ -520,6 +560,17 @@ class Game:
 
             if touched_mask[3] == "tile":
                 self.update_board_bol, self.tile_pos = self.board.draw_tile_overview(touched_mask, textures)
+
+            if touched_mask[3] == 'chat':
+                if events.click:
+                    self.chat.input = True
+                    self.display_drag = False
+                    events.click = False
+                else:
+                    pass
+
+        if events.click:
+            self.chat.input = False
 
         if not self.ended:
 

@@ -25,6 +25,7 @@ class Events:
 
         self.key = None
         self.input_value = ''
+        self.last_input_value = ''
         self.message = None
 
         # Masks related
@@ -53,7 +54,7 @@ class Events:
         self.last_state = self._state
         self._state = state
 
-    def check(self, mask_list=None):
+    def check(self, mask_list=None, chat_input=False):
         """
         check all the events
         """
@@ -91,13 +92,20 @@ class Events:
 
                 if event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
                     self.key = "return"
-                    self.message = self.input_value
-                    self.input_value = ''
 
-                elif event.key == pygame.K_BACKSPACE:
-                    self.input_value = self.input_value[:-1]
-                else:
-                    self.input_value += event.unicode
+                if chat_input:
+
+                    self.last_input_value = self.input_value
+
+                    if event.key in [pygame.K_RETURN, pygame.K_KP_ENTER]:
+                        self.key = "return"
+                        self.message = self.input_value
+                        self.input_value = ''
+
+                    elif event.key == pygame.K_BACKSPACE:
+                        self.input_value = self.input_value[:-1]
+                    else:
+                        self.input_value += event.unicode
 
             for mask in mask_list:
 
