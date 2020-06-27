@@ -12,6 +12,6 @@ class Settings:
     def __init__(self):
         self.game = {
             'mode': 'computer',
-            'clock': ((300000, 300000), 1000),
+            'clock': ((60000, 60000), 0),
             'commands': True
         }

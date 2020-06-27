@@ -8,6 +8,7 @@ import pygame
 import assets.consts as c
 from assets.initial_layout import InitialLayout
 import pickle
+from pprint import pprint
 
 
 class Game:
@@ -237,28 +238,17 @@ class Game:
 
         if self.tile_insect is not None:
 
-            # just moove
-            if self.tile_pos in self.tile_insect.ways:
+            # move or kill
+            if self.tile_pos in self.tile_insect.ways or self.tile_pos in self.tile_insect.eat:
 
                 self.last_move = self.tile_insect.pos, self.tile_pos
-                self.move(self.tile_insect, self.tile_pos)
+                self.move(insect=self.tile_insect, new_pos=self.tile_pos)
 
                 self.display_drag = False
-                self.process = 'next turn'
-                for tile in self.last_move:
-                    self.to_draw_board['last move'].append(('tile move', tile, 'last move surface'))
-
-            # moove and kill
-            elif self.tile_pos in self.tile_insect.eat:
-
-                self.last_move = self.tile_insect.pos, self.tile_pos
-
-                self.display_drag = False
-                self.kill(self.tile_insect, self.board.tile_state[self.tile_pos])
                 self.process = 'next turn'
 
                 for tile in self.last_move:
-                    self.to_draw_board['last move'].append(('tile move', tile, 'last kill surface'))
+                    self.to_draw_board['last move'].append(('tile move', tile, 'last move surface'))
 
             # select another one
             elif self.board.tile_state[self.tile_pos] is not None:
@@ -288,27 +278,16 @@ class Game:
     def round_move(self):
         if self.tile_insect is not None:
 
-            # just moove
-            if self.tile_pos in self.tile_insect.ways:
+            # move or kill
+            if self.tile_pos in self.tile_insect.ways or self.tile_pos in self.tile_insect.eat:
 
                 self.last_move = self.tile_insect.pos, self.tile_pos
-                self.move(self.tile_insect, self.tile_pos)
+                self.move(insect=self.tile_insect, new_pos=self.tile_pos)
 
                 self.process = 'next turn'
 
                 for tile in self.last_move:
                     self.to_draw_board['last move'].append(('tile move', tile, 'last move surface'))
-
-            # moove and kill
-            elif self.tile_pos in self.tile_insect.eat:
-
-                self.last_move = self.tile_insect.pos, self.tile_pos
-
-                self.kill(self.tile_insect, self.board.tile_state[self.tile_pos])
-                self.process = 'next turn'
-
-                for tile in self.last_move:
-                    self.to_draw_board['last move'].append(('tile move', tile, 'last kill surface'))
 
             # select another one
             else:
@@ -318,32 +297,54 @@ class Game:
 
     # Movement of the insect on the board
 
-    def move(self, insect, new_pos, board=None):
+    def move(self, insect, new_pos, old_pos=None, board=None, move=True):
+        """
+        general movement case
+        """
         if board is None:
             board = self.board.tile_state
 
+        if old_pos is None:
+            old_pos = insect.pos
+
         # moving on board
         if board[new_pos] is None:
-            self.board.tile(insect.pos, None)
-            self.board.tile(new_pos, insect)
+            board.update({old_pos: None})
+            board.update({new_pos: insect})
 
         else:
-            self.kill(insect, board[new_pos])
+            self.kill(insect=insect, new_pos=new_pos, old_pos=old_pos, board=board, move=move)
 
-        # moving object
-        insect.pos = new_pos
+        if move:
+            # moving object
+            insect.pos = new_pos
 
-    def kill(self, murderer, dead):
-        self.board.tile(murderer.pos, None)
-        murderer.pos = dead.pos
+        return board
+
+    def kill(self, insect, new_pos, old_pos=None, board=None, move=True):
+        """
+        special movement case please use self.move()
+        """
+        if board is None:
+            board = self.board.tile_state
+
+        if old_pos is None:
+            old_pos = insect.pos
+
+        board.update({old_pos: None})
 
         # special killing -> killer gets killed with the dead insect
-        if murderer.kamikaze:
-            self.board.tile(dead.pos, None)
+        if insect.kamikaze:
+            board.update({new_pos: None})
 
-        # normal killing -> murderer replacing the dead insect
+        # normal killing -> insect replacing the dead insect
         else:
-            self.board.tile(dead.pos, murderer)
+            board.update({new_pos: insect})
+
+        if move:
+            insect.pos = new_pos
+
+        return board
 
     # movement related
     def update_ways(self):
@@ -369,13 +370,13 @@ class Game:
                     for cell in ways:
 
                         # check and remove illegal moves
-                        if not self.removed_illegal_moves(insect, cell):
+                        if not self.removed_illegal_moves(insect, cell, tile):
                             new_ways.append(cell)
 
                     for cell in eat:
 
                         # check and remove illegal moves
-                        if not self.removed_illegal_moves(insect, cell):
+                        if not self.removed_illegal_moves(insect, cell, tile):
                             if self.board.tile_state[cell].ant is not True:
                                 new_eat.append(cell)
 
@@ -408,7 +409,7 @@ class Game:
                 self.log = None, 'Draw ! {} cannot move'.format(self.turn.capitalize())
                 self.stop()
 
-    def removed_illegal_moves(self, insect, new_pos, temp=None):
+    def removed_illegal_moves(self, insect, new_pos, old_pos, temp=None):
         """
         check if this move is an illegal move
         illegal move mean it set its own ant into setback
@@ -416,11 +417,7 @@ class Game:
         if temp is None:
             temp = self.board.tile_state.copy()
 
-        if insect.kamikaze and temp[new_pos] is not None:
-            # if insect is kamikaze and eat consider him dead
-            temp.update({new_pos: None})
-        else:
-            temp.update({new_pos: insect})
+        temp = self.move(insect=insect, new_pos=new_pos, old_pos=old_pos, board=temp, move=False)
 
         temp.update({insect.pos: None})
 
@@ -724,7 +721,7 @@ class Game:
 
                 else:
                     self.board.draw_surface(draw_this_surface=textures.dflt[insect.full_name],
-                                            on_this_surface=self.insect_board, disp_pos=self.board.position(insect.pos))
+                                            on_this_surface=self.insect_board, disp_pos=self.board.position(tile))
 
     def update_clock(self, textures):
         """
