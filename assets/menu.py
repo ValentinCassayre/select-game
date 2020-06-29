@@ -16,25 +16,23 @@ class Menu(Display):
     Class about each menus of the game
     """
 
-    def __init__(self):
+    def __init__(self, settings):
         """
         Constructor
         """
         Display.__init__(self)
 
         self.menus = {}
-
-        self.n = {}
-        for var in c.MENU_VARIABLES:
-            self.n[var] = 0
+        self.settings = settings
 
         self.text_menu = c.TEXT_MENU
         for menu in self.text_menu:
             for coord in self.text_menu[menu]:
                 if self.text_menu[menu][coord][0].startswith('variable'):
-                    key = self.text_menu[menu][coord][0].split('/')[3]
-                    title, sub, _ = self.variable(key)
-                    self.text_menu[menu][coord] = self.text_menu[menu][coord][0], title, sub
+                    key = self.text_menu[menu][coord][0].split('/')
+                    full_key = self.text_menu[key[1]][tuple(map(int, key[2].split(',')))][0]
+                    title, subtitle, out = self.variable(key[3])
+                    self.text_menu[key[1]][tuple(map(int, key[2].split(',')))] = full_key, title, subtitle
 
         self.button = pygame.Surface(c.SCREEN_SIZE, pygame.SRCALPHA, 32)
         self.last_touched_mask = None
@@ -112,12 +110,12 @@ class Menu(Display):
 
     def variable(self, name, next_category=False):
         if next_category:
-            self.n[name] = (self.n[name] + 1) % len(c.MENU_VARIABLES[name])
-            return c.MENU_VARIABLES[name][self.n[name]]
+            self.settings.game[name] = (self.settings.game[name] + 1) % len(c.MENU_VARIABLES[name])
+            return c.MENU_VARIABLES[name][self.settings.game[name]]
         else:
-            return c.MENU_VARIABLES[name][self.n[name]]
+            return c.MENU_VARIABLES[name][self.settings.game[name]]
 
-    def update(self, menu, events, settings, textures):
+    def update(self, menu, events, textures):
         """
         update display using events
         """
@@ -158,7 +156,6 @@ class Menu(Display):
                         full_key = self.text_menu[key[1]][tuple(map(int, key[2].split(',')))][0]
                         title, subtitle, out = self.variable(key[3], True)
                         self.text_menu[key[1]][tuple(map(int, key[2].split(',')))] = full_key, title, subtitle
-                        settings.game[key[3]] = out
                         self.update_text_bol = True
 
             elif self.last_touched_mask is not touched_mask[3]:

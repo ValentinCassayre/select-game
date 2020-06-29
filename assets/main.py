@@ -6,7 +6,7 @@ Coordinates actions
 """
 
 from os import system
-
+import pickle
 from copy import copy
 
 try:
@@ -34,10 +34,17 @@ def main():
     # importing the classes
     events = Events()
     display = Display()
-    menu = Menu()
+    s = Settings()
+
+    try:
+        s.load()
+    except FileNotFoundError:
+        pass
+
+    menu = Menu(s)
+
     sample_board = Board()
     textures = Textures()  # create all the textures
-    settings = Settings()
 
     time = Time()
 
@@ -69,7 +76,7 @@ def main():
 
             while events.main_loop and events.state.endswith(menu_name):
 
-                menu.update(menu=menu_name, events=events, settings=settings, textures=textures)
+                menu.update(menu=menu_name, events=events, textures=textures)
                 time.tick()
 
         # game
@@ -81,16 +88,16 @@ def main():
             # check if a game is started, if not start one
             if game is None:
                 game_board = copy(sample_board)
-                clock = Clock(settings)
+                clock = Clock(s)
                 chat = ChatBox()
-                if settings.game['mode'] == 'offline':
-                    game = Offline(board=game_board, textures=textures, clock=clock, chat=chat, settings=settings)
-                elif settings.game['mode'] == 'computer':
-                    game = Computer(board=game_board, textures=textures, clock=clock, chat=chat, settings=settings)
-                elif settings.game['mode'] == 'online':
-                    game = Online(board=game_board, textures=textures, clock=clock, chat=chat, settings=settings)
-                elif settings.game['mode'] == 'tutorial':
-                    game = Tutorial(board=game_board, textures=textures, clock=clock, chat=chat, settings=settings)
+                if s.value('mode') == 'offline':
+                    game = Offline(board=game_board, textures=textures, clock=clock, chat=chat, settings=s)
+                elif s.value('mode') == 'computer':
+                    game = Computer(board=game_board, textures=textures, clock=clock, chat=chat, settings=s)
+                elif s.value('mode') == 'online':
+                    game = Online(board=game_board, textures=textures, clock=clock, chat=chat, settings=s)
+                elif s.value('mode') == 'tutorial':
+                    game = Tutorial(board=game_board, textures=textures, clock=clock, chat=chat, settings=s)
                 else:
                     return
 
@@ -113,6 +120,9 @@ def main():
 
         else:  # avoid infinite loop
             events.main_loop = False
+
+    s.save()
+    pygame.quit()
 
 
 # everything starts here
